@@ -47,6 +47,10 @@ const UserSchema = new Schema({
     roles: {
         type: [String],
         default: ['client']
+    },
+    disabled: {
+        type: Boolean,
+        default: false
     }
 })
 

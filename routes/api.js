@@ -21,6 +21,7 @@ router.put('/users/:id', usersController.update_user)
 //Question Routes
 router.post('/questions', questionsController.create_questions)
 router.get('/questions', questionsController.get_questions)
+router.get('/admin-questions', questionsController.get_admin_questions)
 router.get('/questions/:id', questionsController.get_single_question)
 router.delete('/questions/:id', questionsController.delete_question)
 router.put('/questions/:id', questionsController.update_question)

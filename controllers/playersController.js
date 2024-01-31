@@ -29,8 +29,8 @@ const create_player = async (req, res, next) => {
 const get_players = (req, res, next) => {
     const page = req.query.page - 1 || 0
     const per_page = 16
-    Player.find({}).count().then(total_players => {
-        Player.find({}).sort({ createdAt: -1 }).skip(page * per_page).limit(per_page).then(player => res.status(200).send({ player, total_players, per_page })).catch(next)
+    Player.find({ $or: [{ firstName: { $regex: req.query.name, $options: "i" } }, { nameEn: { $regex: req.query.name, $options: "i" } }, { nameAr: { $regex: req.query.name, $options: "i" } }] }).count().then(total_players => {
+        Player.find({ $or: [{ firstName: { $regex: req.query.name, $options: "i" } }, { nameEn: { $regex: req.query.name, $options: "i" } }, { nameAr: { $regex: req.query.name, $options: "i" } }] }).sort({ createdAt: -1 }).skip(page * per_page).limit(per_page).then(player => res.status(200).send({ player, total_players, per_page })).catch(next)
     })
 }
 
@@ -39,7 +39,7 @@ const get_single_player = (req, res, next) => {
 }
 
 const delete_player = (req, res, next) => {
-    Player.findByIdAndRemove({ _id: req.params.id }).then(player => {
+    Player.findByIdAndDelete({ _id: req.params.id }).then(player => {
         res.status(200).send(player)
     }).catch(next)
 }

@@ -20,6 +20,14 @@ const create_questions = async (req, res, next) => {
     res.sendStatus(200)
 }
 
+const get_admin_questions = (req, res, next) => {
+    const page = req.query.page - 1 || 0
+    const per_page = 16
+    Question.find({ $or: [{ 'question.en': { $regex: req.query.question, $options: "i" } }, { 'question.ar': { $regex: req.query.question, $options: "i" } }] }).count().then(total_questions => {
+        Question.find({ $or: [{ 'question.en': { $regex: req.query.question, $options: "i" } }, { 'question.ar': { $regex: req.query.question, $options: "i" } }] }).sort({ createdAt: -1 }).skip(page * per_page).limit(per_page).then(question => res.status(200).send({ question, total_questions, per_page })).catch(next)
+    })
+}
+
 const get_questions = (req, res, next) => {
     const page = (req.query.page || 1) - 1;
     const per_page = 20;
@@ -58,4 +66,4 @@ const update_question = (req, res, next) => {
     }).catch(next)
 }
 
-module.exports = { create_questions, get_questions, get_single_question, delete_question, update_question }
+module.exports = { create_questions, get_questions, get_single_question, delete_question, update_question, get_admin_questions }
