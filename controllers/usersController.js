@@ -32,7 +32,7 @@ const get_single_user = (req, res, next) => {
 }
 
 const delete_user = (req, res, next) => {
-    User.findByIdAndRemove({ _id: req.params.id }).then(user => {
+    User.findByIdAndDelete({ _id: req.params.id }).then(user => {
         res.status(200).send(user)
     }).catch(next)
 }

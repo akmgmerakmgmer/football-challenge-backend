@@ -1,23 +1,23 @@
 const Question = require('../models/questionModel')
 const { handleErrors } = require('../utilities/handle_errors')
 
-const questionCreation = async (payload) => {
+const questionCreation = async (payload, req, res) => {
     await Question.create(payload).then(question => {
+        res.sendStatus(200)
     }).catch(err => {
-        res.status(422).send(handleErrors(err, req, 'question'))
+        return res.status(422).send(handleErrors(err, req, 'question'))
     })
 }
 const create_questions = async (req, res, next) => {
     if (Array.isArray(req.body)) {
         for (let i in req.body) {
             if (req.body[i].questionMode === 'trueOrFalse') req.body[i].choices = [{ en: 'Yes', ar: 'نعم', value: 'true' }, { en: "No", ar: "لا", value: 'false' }]
-            await questionCreation(req.body[i])
+            await questionCreation(req.body[i], req, res)
         }
     } else {
         if (req.body.questionMode === 'trueOrFalse') req.body.choices = [{ en: 'Yes', ar: 'نعم', value: 'true' }, { en: "No", ar: "لا", value: 'false' }]
-        await questionCreation(req.body)
+        await questionCreation(req.body, req, res)
     }
-    res.sendStatus(200)
 }
 
 const get_admin_questions = (req, res, next) => {
@@ -55,7 +55,7 @@ const get_single_question = (req, res, next) => {
 }
 
 const delete_question = (req, res, next) => {
-    Question.findByIdAndRemove({ _id: req.params.id }).then(question => {
+    Question.findByIdAndDelete({ _id: req.params.id }).then(question => {
         res.status(200).send(question)
     }).catch(next)
 }
