@@ -23,8 +23,21 @@ const QuestionSchema = new Schema({
             type: String
         }
     }],
+    hints: [
+        {
+            en: {
+                type: String,
+            },
+            ar: {
+                type: String
+            },
+            value: {
+                type: String
+            }
+        }
+    ],
     answer: {
-        type: String,
+        type: Schema.Types.Mixed,
         required: [true, 'field_required']
     },
     questionMode: {
