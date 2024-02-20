@@ -19,6 +19,10 @@ const create_questions = async (req, res, next) => {
             req.body.question.en = 'Password Challenge'
             req.body.question.ar = 'كلمة السر'
         }
+        if (req.body.questionMode === 'guessThePlayer') {
+            req.body.question.en = 'Guess The Player'
+            req.body.question.ar = 'خمن اللاعب'
+        }
         if (req.body.questionMode === 'trueOrFalse') req.body.choices = [{ en: 'Yes', ar: 'نعم', value: 'true' }, { en: "No", ar: "لا", value: 'false' }]
         await questionCreation(req.body, req, res)
     }
