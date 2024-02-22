@@ -4,6 +4,9 @@ const authController = require('../controllers/authController.js')
 const usersController = require('../controllers/usersController.js')
 const questionsController = require('../controllers/questionsController.js')
 const playersController = require('../controllers/playersController.js')
+const cloudinary = require('../utilities/cloudinary')
+const tinify = require('tinify');
+tinify.key = process.env.TINIFY_KEY;
 const translate = require('translate-google')
 
 
@@ -41,4 +44,18 @@ router.post('/translate', (req, res, next) => {
     })
 })
 
+const compressImage = function (req, res, next) {
+    const source = tinify.fromFile(req.file.path);
+    source.toFile(req.file.path, function () {
+        next();
+    });
+};
+router.post('/upload-single', upload.single('image'), compressImage, async (req, res) => {
+    if (!req.file) {
+        res.send({ code: 422, msg: 'field_required' })
+    } else {
+        const result = await cloudinary.uploader.upload(req.file.path)
+        res.status(200).send(result)
+    }
+})
 module.exports = router

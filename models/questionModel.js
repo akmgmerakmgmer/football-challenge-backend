@@ -52,6 +52,8 @@ const QuestionSchema = new Schema({
         type: String,
         required: [true, 'field_required']
     }
+}, {
+    timestamps: true
 })
 
 
