@@ -5,6 +5,7 @@ const usersController = require('../controllers/usersController.js')
 const questionsController = require('../controllers/questionsController.js')
 const playersController = require('../controllers/playersController.js')
 const cloudinary = require('../utilities/cloudinary')
+const upload = require('../utilities/multer')
 const tinify = require('tinify');
 tinify.key = process.env.TINIFY_KEY;
 const translate = require('translate-google')

@@ -36,6 +36,12 @@ const QuestionSchema = new Schema({
             }
         }
     ],
+    teamImage: {
+        type: String
+    },
+    teamPlayers: {
+        type: []
+    },
     answer: {
         type: Schema.Types.Mixed,
         required: [true, 'field_required']
