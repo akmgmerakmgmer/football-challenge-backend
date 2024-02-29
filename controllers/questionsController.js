@@ -48,6 +48,7 @@ const get_questions = (req, res, next) => {
     const skip = page * per_page;
 
     Question.aggregate([
+        { $match: { questionMode: 'guessThePlayer' } },
         { $skip: skip },                   // Skip based on pagination
         { $sample: { size: per_page } },   // Add this stage to get random questions
         { $limit: per_page }                // Limit based on pagination
@@ -58,8 +59,6 @@ const get_questions = (req, res, next) => {
     }).catch((err) => {
         next(err);
     });
-
-
 }
 
 const get_single_question = (req, res, next) => {
