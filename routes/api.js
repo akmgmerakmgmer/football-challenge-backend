@@ -21,6 +21,7 @@ router.post('/current-user', usersController.get_current_user)
 router.get('/users/:id', usersController.get_single_user)
 router.delete('/users/:id', usersController.delete_user)
 router.put('/users/:id', usersController.update_user)
+router.post('/user-save-game/:id', usersController.user_save_game)
 
 //Question Routes
 router.post('/questions', questionsController.create_questions)
