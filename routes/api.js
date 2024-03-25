@@ -22,6 +22,7 @@ router.get('/users/:id', usersController.get_single_user)
 router.delete('/users/:id', usersController.delete_user)
 router.put('/users/:id', usersController.update_user)
 router.post('/user-save-game/:id', usersController.user_save_game)
+router.get('/get-user-rank/:id', usersController.get_user_current_ranking)
 
 //Question Routes
 router.post('/questions', questionsController.create_questions)

@@ -24,6 +24,59 @@ const UserSchema = new Schema({
         type: Number,
         default: 0
     },
+    user_points: {
+        totalPoints: {
+            type: Number
+        },
+        yearlyPoints: [
+            {
+                points: {
+                    type: Number,
+                    default: 0
+                },
+                year: {
+                    type: Schema.Types.Mixed
+                },
+                games_played: {
+                    type: Number,
+                    default: 0
+                }
+            }
+        ],
+        monthlyPoints: [
+            {
+                points: {
+                    type: Number,
+                    default: 0
+                },
+                month: {
+                    type: Schema.Types.Mixed
+                },
+                year: {
+                    type: Schema.Types.Mixed
+                },
+                games_played: {
+                    type: Number,
+                    default: 0
+                }
+            }
+        ],
+        weeklyPoints: [
+            {
+                points: {
+                    type: Number,
+                    default: 0
+                },
+                weekDate: {
+                    type: String
+                },
+                games_played: {
+                    type: Number,
+                    default: 0
+                }
+            }
+        ]
+    },
     coins: {
         type: Number,
         default: 0
@@ -31,18 +84,6 @@ const UserSchema = new Schema({
     games_played: {
         type: Number,
         default: 0
-    },
-    stats: {
-        type: [{
-            games_played: {
-                type: Number,
-                default: 0
-            },
-            points: {
-                type: Number,
-                default: 0
-            }
-        }]
     },
     roles: {
         type: [String],

@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken')
 const User = require('../models/userModel')
+const moment = require('moment');
 
 const get_users = (req, res, next) => {
     const page = req.query.page - 1 || 0
@@ -43,35 +44,75 @@ const update_user = (req, res, next) => {
     }).catch(next)
 }
 
+
+function getLastSaturday(currentDate) {
+    // Get the current day of the week (0 for Sunday, 1 for Monday, ..., 6 for Saturday)
+    const currentDayOfWeek = currentDate.getDay();
+
+    // Calculate the difference in days to get to the last Saturday
+    const daysToLastSaturday = currentDayOfWeek === 6 ? 0 : currentDayOfWeek + 1;
+
+    // Subtract the difference from the current date to get the last Saturday
+    const lastSaturday = new Date(currentDate);
+    lastSaturday.setDate(currentDate.getDate() - daysToLastSaturday);
+
+    // Convert the date to 'YYYY-MM-DD' format using moment.js
+    return moment(lastSaturday).format('YYYY-MM-DD');
+}
+const numberOfDaysToPlayerLastSaturday = (playerLastSaturday) => {
+    // Example usage:
+    var currentDate = moment(new Date(), 'YYYY-MM-DD');
+    var playerDate = moment(playerLastSaturday, 'YYYY-MM-DD'); // Use any current date here
+    const differenceInDays = currentDate.diff(playerDate, 'days');
+    return differenceInDays;
+
+}
 const user_save_game = (req, res, next) => {
     const { coins, points } = req.body
-    User.findOneAndUpdate(
-        { _id: req.params.id },
-        { $inc: { coins: coins, points: points, games_played: 1 } },
-        { new: true } // To return the updated document
-    )
-        .then(updatedUser => {
+    User.findOne({ _id: req.params.id }).then(user => {
+        const currentDate = new Date();
+        const yearlyPoints = user.user_points.yearlyPoints
+        const monthlyPoints = user.user_points.monthlyPoints
+        const weeklyPoints = user.user_points.weeklyPoints
+        const currentYear = currentDate.getFullYear();
+        const currentMonth = currentDate.getMonth() + 1
+        // Calculate Yearly Points
+        if (yearlyPoints.length && yearlyPoints[yearlyPoints.length - 1].year === currentYear) {
+            yearlyPoints[yearlyPoints.length - 1].points += points
+            yearlyPoints[yearlyPoints.length - 1].games_played += 1
+        } else yearlyPoints.push({ points: points, year: currentYear, games_played: 1 })
+
+        //Calculate Monthly Points
+        if (monthlyPoints.length &&
+            monthlyPoints[monthlyPoints.length - 1].year === currentYear &&
+            monthlyPoints[monthlyPoints.length - 1].month === currentMonth) {
+            monthlyPoints[monthlyPoints.length - 1].points += points
+            monthlyPoints[monthlyPoints.length - 1].games_played += 1
+        } else monthlyPoints.push({ year: currentYear, month: currentMonth, points: points })
+
+        //Calculate Weekly Points
+        if (weeklyPoints.length && numberOfDaysToPlayerLastSaturday(weeklyPoints[weeklyPoints.length - 1].weekDate) <= 7) {
+            weeklyPoints[weeklyPoints.length - 1].points += points
+            weeklyPoints[weeklyPoints.length - 1].games_played += 1
+            weeklyPoints[weeklyPoints.length - 1].weekDate = getLastSaturday(new Date())
+        } else weeklyPoints.push({ weekDate: getLastSaturday(new Date()), points: points, games_played: 1 })
+
+
+        // Assign Values to user
+        user.user_points.yearlyPoints = yearlyPoints
+        user.user_points.monthlyPoints = monthlyPoints
+        user.user_points.weeklyPoints = weeklyPoints
+        user.user_points.totalPoints += points
+        user.coins += coins
+        user.games_played += 1
+        User.findOneAndUpdate({ _id: req.params.id }, user, { new: true }).then(updatedUser => {
             const userId = req.params.id; // Assuming you have the user's ID
             User.aggregate([
-                {
-                    $group: {
-                        _id: null,
-                        users: { $push: "$$ROOT" } // Group all users together
-                    }
-                },
-                {
-                    $unwind: "$users"
-                },
-                {
-                    $sort: { "users.points": -1 } // Sort users by points in descending order
-                },
-                {
-                    $project: {
-                        _id: "$users._id",
-                        username: "$users.username",
-                        points: "$users.points"
-                    }
-                }
+                // Unwind the weeklyPoints array to get individual documents for each element
+                { $unwind: "$user_points.weeklyPoints" },
+
+                // Sort by the last index of weeklyPoints
+                { $sort: { "user_points.weeklyPoints.points": -1 } },
             ]).then((sortedUsers) => {
                 // Find the index of the user in the sorted list
                 const userIndex = sortedUsers.findIndex(user => String(user._id) === String(userId));
@@ -88,8 +129,39 @@ const user_save_game = (req, res, next) => {
                 next(err);
             });
 
+        }).catch(next)
+    })
+}
+
+const get_user_current_ranking = (req, res, next) => {
+    User.findOneAndUpdate(
+        { _id: req.params.id },
+        { new: true } // To return the updated document
+    )
+        .then(updatedUser => {
+            const userId = req.params.id; // Assuming you have the user's ID
+            User.aggregate([
+                {
+                    $match: {
+                        "user_points.weeklyPoints.weekDate": { $gte: getLastSaturday(new Date()) }
+                    }
+                },
+                // Unwind the weeklyPoints array to get individual documents for each element
+                { $unwind: "$user_points.weeklyPoints" },
+
+                // Sort by the last index of weeklyPoints
+                { $sort: { "user_points.weeklyPoints.points": -1 } },
+            ]).then((sortedUsers) => {
+                // Find the index of the user in the sorted list
+                const userIndex = sortedUsers.findIndex(user => String(user._id) === String(userId));
+                const currentRank = userIndex + 1
+                res.status(200).send({ rank: currentRank, user: updatedUser, rankedUsers: sortedUsers });
+            }).catch((err) => {
+                next(err);
+            });
+
         })
         .catch(next);
 }
 
-module.exports = { get_users, get_current_user, get_single_user, delete_user, update_user, user_save_game }
+module.exports = { get_users, get_current_user, get_single_user, delete_user, update_user, user_save_game, get_user_current_ranking }

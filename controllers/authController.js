@@ -37,7 +37,7 @@ const signup_post = async (req, res, next) => {
 };
 const login_post = async (req, res) => {
     try {
-        const user = await User.login(req.body.username, req.body.password)
+        const user = await User.login(req.body.username.trim(), req.body.password)
         const token = createToken(user._id)
         res.cookie('token', token, { httpOnly: true, maxAge: 1 * 24 * 60 * 60 * 100000 })
         res.status(200).send({ accessToken: token })
