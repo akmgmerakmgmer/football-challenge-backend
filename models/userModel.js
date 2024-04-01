@@ -35,7 +35,7 @@ const UserSchema = new Schema({
                     default: 0
                 },
                 year: {
-                    type: Schema.Types.Mixed
+                    type: Number
                 },
                 games_played: {
                     type: Number,
@@ -50,10 +50,10 @@ const UserSchema = new Schema({
                     default: 0
                 },
                 month: {
-                    type: Schema.Types.Mixed
+                    type: Number
                 },
                 year: {
-                    type: Schema.Types.Mixed
+                    type: Number
                 },
                 games_played: {
                     type: Number,
@@ -84,6 +84,20 @@ const UserSchema = new Schema({
     games_played: {
         type: Number,
         default: 0
+    },
+    avatars: {
+        type: [Object],
+        default: [{
+            image: 'http://res.cloudinary.com/do0qe5hin/image/upload/v1711999092/y1ubiaq6qm7xsya07qg8.jpg',
+            price: 0
+        }]
+    },
+    selectedAvatar: {
+        type: Object,
+        default: {
+            image: 'http://res.cloudinary.com/do0qe5hin/image/upload/v1711999092/y1ubiaq6qm7xsya07qg8.jpg',
+            price: 0
+        }
     },
     roles: {
         type: [String],

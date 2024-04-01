@@ -5,6 +5,7 @@ const usersController = require('../controllers/usersController.js')
 const questionsController = require('../controllers/questionsController.js')
 const playersController = require('../controllers/playersController.js')
 const cloudinary = require('../utilities/cloudinary')
+require("dotenv").config()
 const upload = require('../utilities/multer')
 const tinify = require('tinify');
 tinify.key = process.env.TINIFY_KEY;
@@ -23,6 +24,8 @@ router.delete('/users/:id', usersController.delete_user)
 router.put('/users/:id', usersController.update_user)
 router.post('/user-save-game/:id', usersController.user_save_game)
 router.get('/get-user-rank/:id', usersController.get_user_current_ranking)
+router.get('/get-rankings', usersController.get_rankings)
+router.put('/buy-avatar/:id', usersController.buy_avatar)
 
 //Question Routes
 router.post('/questions', questionsController.create_questions)

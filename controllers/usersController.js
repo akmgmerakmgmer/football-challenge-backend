@@ -88,7 +88,7 @@ const user_save_game = (req, res, next) => {
             monthlyPoints[monthlyPoints.length - 1].month === currentMonth) {
             monthlyPoints[monthlyPoints.length - 1].points += points
             monthlyPoints[monthlyPoints.length - 1].games_played += 1
-        } else monthlyPoints.push({ year: currentYear, month: currentMonth, points: points })
+        } else monthlyPoints.push({ year: currentYear, month: currentMonth, points: points, games_played: 1 })
 
         //Calculate Weekly Points
         if (weeklyPoints.length && numberOfDaysToPlayerLastSaturday(weeklyPoints[weeklyPoints.length - 1].weekDate) <= 7) {
@@ -132,6 +132,44 @@ const user_save_game = (req, res, next) => {
         }).catch(next)
     })
 }
+const matchFilters = (req) => {
+    const match = { $and: [{ $or: [{ username: { $regex: req.query.search, $options: "i" } }] }] }
+    if (req.query.searchByTime === 'weekly') match.$and.push({ "user_points.weeklyPoints.weekDate": { $gte: getLastSaturday(new Date()) } })
+    else if (req.query.searchByTime === 'monthly') match.$and.push({ "user_points.monthlyPoints.year": parseInt(req.query.year), "user_points.monthlyPoints.month": parseInt(req.query.month) })
+
+    else if (req.query.searchByTime === 'yearly') match.$and.push({ "user_points.yearlyPoints.year": parseInt(req.query.year) })
+    return match
+}
+const unwindUsers = (req) => {
+    if (req.query.searchByTime === 'weekly') return "$user_points.weeklyPoints"
+    if (req.query.searchByTime === 'monthly') return "$user_points.monthlyPoints"
+    if (req.query.searchByTime === 'yearly') return "$user_points.yearlyPoints"
+}
+const sortUsers = (req) => {
+    if (req.query.searchByTime === 'weekly') return { "user_points.weeklyPoints.points": -1 }
+    if (req.query.searchByTime === 'monthly') return { "user_points.monthlyPoints.points": -1 }
+    if (req.query.searchByTime === 'yearly') return { "user_points.yearlyPoints.points": -1 }
+}
+const updatedSortedUsers = (sortedUsers, searchTime) => {
+    for (let i in sortedUsers) {
+        if (searchTime === 'weekly') {
+            const sortedUsersPoints = sortedUsers[i].user_points
+            sortedUsers[i].points = sortedUsersPoints.weeklyPoints.points
+            sortedUsers[i].games_played = sortedUsersPoints.weeklyPoints.games_played
+        }
+        if (searchTime === 'monthly') {
+            const sortedUsersPoints = sortedUsers[i].user_points
+            sortedUsers[i].points = sortedUsersPoints.monthlyPoints.points
+            sortedUsers[i].games_played = sortedUsersPoints.monthlyPoints.games_played
+        }
+        if (searchTime === 'yearly') {
+            const sortedUsersPoints = sortedUsers[i].user_points
+            sortedUsers[i].points = sortedUsersPoints.yearlyPoints.points
+            sortedUsers[i].games_played = sortedUsersPoints.yearlyPoints.games_played
+        }
+    }
+    return sortedUsers
+}
 
 const get_user_current_ranking = (req, res, next) => {
     User.findOneAndUpdate(
@@ -142,20 +180,18 @@ const get_user_current_ranking = (req, res, next) => {
             const userId = req.params.id; // Assuming you have the user's ID
             User.aggregate([
                 {
-                    $match: {
-                        "user_points.weeklyPoints.weekDate": { $gte: getLastSaturday(new Date()) }
-                    }
+                    $match: matchFilters(req)
                 },
                 // Unwind the weeklyPoints array to get individual documents for each element
-                { $unwind: "$user_points.weeklyPoints" },
+                { $unwind: unwindUsers(req) },
 
                 // Sort by the last index of weeklyPoints
-                { $sort: { "user_points.weeklyPoints.points": -1 } },
+                { $sort: sortUsers(req) },
             ]).then((sortedUsers) => {
                 // Find the index of the user in the sorted list
                 const userIndex = sortedUsers.findIndex(user => String(user._id) === String(userId));
                 const currentRank = userIndex + 1
-                res.status(200).send({ rank: currentRank, user: updatedUser, rankedUsers: sortedUsers });
+                res.status(200).send({ rank: currentRank, user: updatedUser, rankedUsers: updatedSortedUsers(sortedUsers, req.query.searchByTime) });
             }).catch((err) => {
                 next(err);
             });
@@ -163,5 +199,38 @@ const get_user_current_ranking = (req, res, next) => {
         })
         .catch(next);
 }
+const get_rankings = (req, res, next) => {
+    User.aggregate([
+        {
+            $match: matchFilters(req)
+        },
+        // Unwind the weeklyPoints array to get individual documents for each element
+        { $unwind: unwindUsers(req) },
 
-module.exports = { get_users, get_current_user, get_single_user, delete_user, update_user, user_save_game, get_user_current_ranking }
+        // Sort by the last index of weeklyPoints
+        { $sort: sortUsers(req) },
+        { $limit: 10 }
+    ]).then((sortedUsers) => {
+        // Find the index of the user in the sorted list
+        res.status(200).send({ rankedUsers: updatedSortedUsers(sortedUsers, req.query.searchByTime) });
+    }).catch((err) => {
+        next(err);
+    });
+}
+
+const buy_avatar = (req, res, next) => {
+    User.findOne({ _id: req.params.id }).then(user => {
+        for (let i in user.avatars) {
+            if (user.avatars[i].image === req.body.avatar.image) return res.status(400).send({ message: { en: "You already have this avatar", ar: "انت بالفعل لديك هذا الرمز" } })
+        }
+        if (user.coins < req.body.avatar.price) return res.status(400).send({ message: { en: "You don't have enough coins", ar: "انت لا تملك عملات كافية" } })
+        User.findOneAndUpdate({ _id: req.params.id },
+            { $push: { avatars: req.body.avatar }, $inc: { coins: -req.body.avatar.price } }, // Update operation using $push
+            { new: true }).then(updatedUser => {
+                res.status(200).send({ user: updatedUser })
+            }).catch(next)
+    })
+
+}
+
+module.exports = { get_users, get_current_user, get_single_user, delete_user, update_user, user_save_game, get_user_current_ranking, get_rankings, buy_avatar }
