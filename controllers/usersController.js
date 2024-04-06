@@ -59,6 +59,19 @@ function getLastSaturday(currentDate) {
     // Convert the date to 'YYYY-MM-DD' format using moment.js
     return moment(lastSaturday).format('YYYY-MM-DD');
 }
+function getSaturdayBeforeLast(currentDate) {
+    // Get the last Saturday
+    const lastSaturday = getLastSaturday(currentDate);
+
+    // Convert the last Saturday to a Date object
+    const lastSaturdayDate = new Date(lastSaturday);
+
+    // Subtract 7 days to get the Saturday before the last Saturday
+    const saturdayBeforeLast = new Date(lastSaturdayDate);
+    saturdayBeforeLast.setDate(lastSaturdayDate.getDate() - 7);
+    // Convert the date to 'YYYY-MM-DD' format using moment.js
+    return moment(saturdayBeforeLast).format('YYYY-MM-DD');
+}
 const numberOfDaysToPlayerLastSaturday = (playerLastSaturday) => {
     // Example usage:
     var currentDate = moment(new Date(), 'YYYY-MM-DD');
@@ -91,7 +104,7 @@ const user_save_game = (req, res, next) => {
         } else monthlyPoints.push({ year: currentYear, month: currentMonth, points: points, games_played: 1 })
 
         //Calculate Weekly Points
-        if (weeklyPoints.length && numberOfDaysToPlayerLastSaturday(weeklyPoints[weeklyPoints.length - 1].weekDate) <= 7) {
+        if (weeklyPoints.length && numberOfDaysToPlayerLastSaturday(weeklyPoints[weeklyPoints.length - 1].weekDate) < 7) {
             weeklyPoints[weeklyPoints.length - 1].points += points
             weeklyPoints[weeklyPoints.length - 1].games_played += 1
             weeklyPoints[weeklyPoints.length - 1].weekDate = getLastSaturday(new Date())
@@ -134,7 +147,7 @@ const user_save_game = (req, res, next) => {
 }
 const matchFilters = (req) => {
     const match = { $and: [{ $or: [{ username: { $regex: req.query.search, $options: "i" } }] }] }
-    if (req.query.searchByTime === 'weekly') match.$and.push({ "user_points.weeklyPoints.weekDate": { $gte: getLastSaturday(new Date()) } })
+    if (req.query.searchByTime === 'weekly') match.$and.push({ "user_points.weeklyPoints.weekDate": req.query.week === 'thisWeek' ? getLastSaturday(new Date()) : getSaturdayBeforeLast(new Date()) })
     else if (req.query.searchByTime === 'monthly') match.$and.push({ "user_points.monthlyPoints.year": parseInt(req.query.year), "user_points.monthlyPoints.month": parseInt(req.query.month) })
 
     else if (req.query.searchByTime === 'yearly') match.$and.push({ "user_points.yearlyPoints.year": parseInt(req.query.year) })
@@ -168,9 +181,27 @@ const updatedSortedUsers = (sortedUsers, searchTime) => {
             sortedUsers[i].games_played = sortedUsersPoints.yearlyPoints.games_played
         }
     }
-    return sortedUsers
+    return sortedUsers.slice(0, 10)
 }
-
+const updatedCurrentUser = (user, searchTime) => {
+    if (searchTime === 'weekly') {
+        const currentUser = user.user_points
+        user.points = currentUser.weeklyPoints.points
+        user.games_played = currentUser.weeklyPoints.games_played
+    }
+    if (searchTime === 'monthly') {
+        const currentUser = user.user_points
+        user.points = currentUser.monthlyPoints.points
+        user.games_played = currentUser.monthlyPoints.games_played
+    }
+    if (searchTime === 'yearly') {
+        const currentUser = user.user_points
+        user.points = currentUser.yearlyPoints.points
+        user.games_played = currentUser.yearlyPoints.games_played
+    }
+    console.log(user)
+    return user
+}
 const get_user_current_ranking = (req, res, next) => {
     User.findOneAndUpdate(
         { _id: req.params.id },
@@ -184,14 +215,22 @@ const get_user_current_ranking = (req, res, next) => {
                 },
                 // Unwind the weeklyPoints array to get individual documents for each element
                 { $unwind: unwindUsers(req) },
-
+                {
+                    $match: matchFilters(req)
+                },
                 // Sort by the last index of weeklyPoints
                 { $sort: sortUsers(req) },
             ]).then((sortedUsers) => {
                 // Find the index of the user in the sorted list
+
                 const userIndex = sortedUsers.findIndex(user => String(user._id) === String(userId));
+                let user;
+                if (sortedUsers.length) user = sortedUsers.filter(user => String(user._id) === String(userId));
+                if (user && user.length) user = updatedCurrentUser(user[0], req.query.searchByTime)
+
+                else user = updatedUser
                 const currentRank = userIndex + 1
-                res.status(200).send({ rank: currentRank, user: updatedUser, rankedUsers: updatedSortedUsers(sortedUsers, req.query.searchByTime) });
+                res.status(200).send({ rank: currentRank, user: user, rankedUsers: updatedSortedUsers(sortedUsers, req.query.searchByTime) });
             }).catch((err) => {
                 next(err);
             });
@@ -206,7 +245,9 @@ const get_rankings = (req, res, next) => {
         },
         // Unwind the weeklyPoints array to get individual documents for each element
         { $unwind: unwindUsers(req) },
-
+        {
+            $match: matchFilters(req)
+        },
         // Sort by the last index of weeklyPoints
         { $sort: sortUsers(req) },
         { $limit: 10 }

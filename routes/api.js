@@ -43,11 +43,9 @@ router.delete('/players/:id', playersController.delete_player)
 router.put('/players/:id', playersController.update_player)
 
 router.post('/translate', (req, res, next) => {
-    translate(req.body.msg, { from: 'en', to: 'ar' }).then(response => {
+    translate(req.body.msg, { from: req.body.from, to: req.body.to}).then(response => {
         res.status(200).send(response);
-    }).catch(err => {
-        console.error(err)
-    })
+    }).catch(next)
 })
 
 const compressImage = function (req, res, next) {
