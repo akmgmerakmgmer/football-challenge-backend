@@ -262,9 +262,9 @@ const get_rankings = (req, res, next) => {
 const buy_avatar = (req, res, next) => {
     User.findOne({ _id: req.params.id }).then(user => {
         for (let i in user.avatars) {
-            if (user.avatars[i].image === req.body.avatar.image) return res.status(400).send({ message: { en: "You already have this avatar", ar: "انت بالفعل لديك هذا الرمز" } })
+            if (user.avatars[i].image === req.body.avatar.image) return res.status(422).send({ message: { en: "You already have this avatar", ar: "انت بالفعل لديك هذا الرمز" } })
         }
-        if (user.coins < req.body.avatar.price) return res.status(400).send({ message: { en: "You don't have enough coins", ar: "انت لا تملك عملات كافية" } })
+        if (user.coins < req.body.avatar.price) return res.status(422).send({ message: { en: "You don't have enough coins", ar: "انت لا تملك عملات كافية" } })
         User.findOneAndUpdate({ _id: req.params.id },
             { $push: { avatars: req.body.avatar }, $inc: { coins: -req.body.avatar.price } }, // Update operation using $push
             { new: true }).then(updatedUser => {
