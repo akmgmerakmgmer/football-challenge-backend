@@ -3,17 +3,18 @@ const { handleErrors } = require('../utilities/handle_errors')
 
 const questionCreation = async (payload, req, res) => {
     await Question.create(payload).then(question => {
-        res.sendStatus(200)
-    }).catch(err => {
-        return res.status(422).send(handleErrors(err, req, 'question'))
     })
+
 }
 const create_questions = async (req, res, next) => {
     if (Array.isArray(req.body)) {
+        //addValue(res)
+        //deleteDuplicates(res)
         for (let i in req.body) {
             if (req.body[i].questionMode === 'trueOrFalse') req.body[i].choices = [{ en: 'Yes', ar: 'نعم', value: 'true' }, { en: "No", ar: "لا", value: 'false' }]
             await questionCreation(req.body[i], req, res)
         }
+        res.sendStatus(200)
     } else {
         if (req.body.questionMode === 'passwordChallenge') {
             req.body.question.en = 'Password Challenge'
@@ -31,7 +32,37 @@ const create_questions = async (req, res, next) => {
         await questionCreation(req.body, req, res)
     }
 }
+const addValue = (res) => {
+    Question.find({}).then(async questions => {
+        for (let i in questions) {
+            if (questions[i].questionMode == 'multipleChoices' && !questions[i].choices[0].value) {
+                for (let j in questions[i]['choices']) {
+                    questions[i]['choices'][j].value = questions[i]['choices'][j].en
+                }
+                await Question.findOneAndUpdate({ _id: questions[i]['_id'] }, questions[i]).then(response => {
+                })
+            }
+        }
+        res.sendStatus(200)
+    })
+}
+const deleteDuplicates = async (res) => {
+    const questionsDeleted = [];
+    Question.find({}).then(async questions => {
+        for (let i in questions) {
+            for (let j in questions) {
+                if ((questions[i].questionMode == 'trueOrFalse' || questions[i].questionMode == 'multipleChoices') && questions[i].question.en == questions[j].question.en && i != j && questionsDeleted.indexOf(questions[i].question.en) == -1) {
+                    await Question.findByIdAndDelete({ _id: questions[i]._id }).then(question => {
+                        questionsDeleted.push(questions[i].question.en)
+                        console.log(questions[i].question.en)
+                    })
+                }
+            }
 
+        }
+        res.sendStatus(200)
+    })
+}
 const get_admin_questions = (req, res, next) => {
     const page = req.query.page - 1 || 0
     const per_page = 16

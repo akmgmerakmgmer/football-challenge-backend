@@ -274,4 +274,10 @@ const buy_avatar = (req, res, next) => {
 
 }
 
-module.exports = { get_users, get_current_user, get_single_user, delete_user, update_user, user_save_game, get_user_current_ranking, get_rankings, buy_avatar }
+const notify_about = (req, res, next) => {
+    User.findByIdAndUpdate({ _id: req.params.id }, { $push: { notifyAbout: req.body.mode } }).then(user => {
+        User.findOne({ _id: req.params.id }).then(user => res.status(200).send(user))
+    }).catch(next)
+}
+
+module.exports = { get_users, get_current_user, get_single_user, delete_user, update_user, user_save_game, get_user_current_ranking, get_rankings, buy_avatar, notify_about }

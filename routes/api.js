@@ -26,6 +26,7 @@ router.post('/user-save-game/:id', usersController.user_save_game)
 router.get('/get-user-rank/:id', usersController.get_user_current_ranking)
 router.get('/get-rankings', usersController.get_rankings)
 router.put('/buy-avatar/:id', usersController.buy_avatar)
+router.put('/notify-about/:id', usersController.notify_about)
 
 //Question Routes
 router.post('/questions', questionsController.create_questions)
