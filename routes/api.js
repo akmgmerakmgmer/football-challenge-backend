@@ -4,6 +4,7 @@ const authController = require('../controllers/authController.js')
 const usersController = require('../controllers/usersController.js')
 const questionsController = require('../controllers/questionsController.js')
 const playersController = require('../controllers/playersController.js')
+const advertismentController = require('../controllers/advertismentController.js')
 const cloudinary = require('../utilities/cloudinary')
 require("dotenv").config()
 const upload = require('../utilities/multer')
@@ -43,8 +44,16 @@ router.get('/players/:id', playersController.get_single_player)
 router.delete('/players/:id', playersController.delete_player)
 router.put('/players/:id', playersController.update_player)
 
+//Advertisment Routes
+router.post('/advertisments', advertismentController.create_advertisment)
+router.get('/advertisments', advertismentController.get_advertisment)
+router.get('/advertisments/:id', advertismentController.get_single_advertisment)
+router.delete('/advertisments/:id', advertismentController.delete_advertisment)
+router.put('/advertisments/:id', advertismentController.update_advertisment)
+router.put('/ad-clicked/:id', advertismentController.ad_clicked)
+
 router.post('/translate', (req, res, next) => {
-    translate(req.body.msg, { from: req.body.from, to: req.body.to}).then(response => {
+    translate(req.body.msg, { from: req.body.from, to: req.body.to }).then(response => {
         res.status(200).send(response);
     }).catch(next)
 })

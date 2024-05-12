@@ -9,7 +9,7 @@ const questionCreation = async (payload, req, res) => {
 const create_questions = async (req, res, next) => {
     if (Array.isArray(req.body)) {
         //addValue(res)
-        //deleteDuplicates(res)
+        // deleteDuplicates(res)
         for (let i in req.body) {
             if (req.body[i].questionMode === 'trueOrFalse') req.body[i].choices = [{ en: 'Yes', ar: 'نعم', value: 'true' }, { en: "No", ar: "لا", value: 'false' }]
             await questionCreation(req.body[i], req, res)
