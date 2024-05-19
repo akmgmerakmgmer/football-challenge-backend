@@ -46,5 +46,5 @@ app.use('/api', require('./routes/api.js'))
 
 
 app.use((err, req, res, next) => {
-    res.status(400).send({ error: err.message })
+    res.status(400).send({ error: err.message || 'server_error' })
 })

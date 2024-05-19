@@ -11,7 +11,7 @@ const upload = require('../utilities/multer')
 const tinify = require('tinify');
 tinify.key = process.env.TINIFY_KEY;
 const translate = require('translate-google')
-
+const cache = require('../route_cache.js')
 
 //Auth Routes
 router.post('/signup', authController.signup_post)
@@ -31,7 +31,7 @@ router.put('/notify-about/:id', usersController.notify_about)
 
 //Question Routes
 router.post('/questions', questionsController.create_questions)
-router.get('/questions', questionsController.get_questions)
+router.get('/questions', cache(3000), questionsController.get_questions)
 router.get('/admin-questions', questionsController.get_admin_questions)
 router.get('/questions/:id', questionsController.get_single_question)
 router.delete('/questions/:id', questionsController.delete_question)
@@ -46,7 +46,7 @@ router.put('/players/:id', playersController.update_player)
 
 //Advertisment Routes
 router.post('/advertisments', advertismentController.create_advertisment)
-router.get('/advertisments', advertismentController.get_advertisment)
+router.get('/advertisments', cache(300), advertismentController.get_advertisment)
 router.get('/advertisments/:id', advertismentController.get_single_advertisment)
 router.delete('/advertisments/:id', advertismentController.delete_advertisment)
 router.put('/advertisments/:id', advertismentController.update_advertisment)
