@@ -24,6 +24,7 @@ mongoose.connect(database, { writeConcern: { w: 'majority', j: true, wtimeout: 1
     });
     // Set server timeout to 60 seconds
     server.timeout = 60000;
+    server.keepAliveTimeout = 60000
 })
 
 //Middlewares
