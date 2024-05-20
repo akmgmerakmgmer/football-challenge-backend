@@ -37,7 +37,6 @@ const delete_advertisment = (req, res, next) => {
 
 const update_advertisment = (req, res, next) => {
     Advertisment.find({ priority: req.body.priority, status: 'active', advertiseAt: req.body.advertiseAt }).then(advertisments => {
-        console.log(advertisments, req.body)
         if (advertisments.length > 1 || (advertisments.length == 1 && req.body.prevStatus != 'active')) {
             res.status(422).send({ message: { en: "You already have that priority number on an active ad", ar: "لديك نفس الأولوية لاعلان نشط الان" } })
         } else {

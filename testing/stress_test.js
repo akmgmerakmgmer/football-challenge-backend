@@ -7,10 +7,10 @@ export const options = {
     noConnectionReuse: true,
     stages: [
         { duration: '2m', target: 1500 },
-        { duration: '5m', target: 2000 }
+        { duration: '5m', target: 2000 },
     ]
 }
 export default () => {
-    http.get('http://localhost:4000/api/questions')
+    http.get('http://localhost:4000/api/admin-questions')
     sleep(1)
 }

@@ -199,7 +199,6 @@ const updatedCurrentUser = (user, searchTime) => {
         user.points = currentUser.yearlyPoints.points
         user.games_played = currentUser.yearlyPoints.games_played
     }
-    console.log(user)
     return user
 }
 const get_user_current_ranking = (req, res, next) => {

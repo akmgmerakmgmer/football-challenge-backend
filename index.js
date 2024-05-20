@@ -12,8 +12,8 @@ require("dotenv").config()
 
 // const UglifyJS = require('uglify-js');
 // const fs = require('fs');
-// const result = UglifyJS.minify(fs.readFileSync('./middlewares/authMiddleware.js', 'utf8'));
-// fs.writeFileSync('./middlewares/authMiddleware.min.js', result.code);
+// const result = UglifyJS.minify(fs.readFileSync('./controllers/advertismentController.js', 'utf8'));
+// fs.writeFileSync('./controllers/advertismentController.min.js', result.code);
 
 //Database Connection
 const port = process.env.PORT || 4000
@@ -43,7 +43,7 @@ app.use(xssClean())
 app.use('/images', express.static('images'))
 app.use(bodyParser.json({ limit: '50mb' }))
 app.use(bodyParser.json({ limit: '500mb' }))
-app.use('/api', require('./routes/api.js'))
+app.use('/api', require('./routes/api.min.js'))
 
 
 app.use((err, req, res, next) => {
