@@ -71,34 +71,40 @@ const get_admin_questions = (req, res, next) => {
     })
 }
 
-const get_questions = (req, res, next) => {
-    const page = (req.query.page || 1) - 1;
-    const per_page = 20;
+const get_questions = async (req, res, next) => {
+    try {
+        const page = parseInt(req.query.page) || 1; // Parse the page number
+        const per_page = 20;
 
-    // Calculate the skip value based on the page number and number of documents per page
-    const skip = page * per_page;
+        // Calculate the skip value based on the page number and number of documents per page
+        const skip = (page - 1) * per_page;
 
-    Question.aggregate([
-        {
-            $match: {
-                $nor: [
-                    { questionMode: "guessTheTeam" },
-                    { questionMode: "guessThePlayer" },
-                    { questionMode: "passwordChallenge" }
-                ]
-            }
-        },
-        { $skip: skip },                   // Skip based on pagination
-        { $sample: { size: per_page } },   // Add this stage to get random questions
-        { $limit: per_page }                // Limit based on pagination
-    ]).then((questions) => {
-        return Question.countDocuments().then((total_questions) => {
-            res.status(200).send({ questions, total_questions, per_page });
-        });
-    }).catch((err) => {
+        // Aggregate pipeline to fetch questions excluding certain modes and paginate results efficiently
+        const pipeline = [
+            {
+                $match: {
+                    $nor: [
+                        { questionMode: "guessTheTeam" },
+                        { questionMode: "guessThePlayer" },
+                        { questionMode: "passwordChallenge" }
+                    ]
+                }
+            },
+            { $skip: skip },                         // Skip based on pagination
+            { $limit: per_page },                    // Limit based on pagination
+            { $sample: { size: per_page } }          // Add this stage to get random questions
+        ];
+
+        const [questions, total_questions] = await Promise.all([
+            Question.aggregate(pipeline),
+            Question.countDocuments()
+        ]);
+
+        res.status(200).send({ questions, total_questions, per_page });
+    } catch (err) {
         next(err);
-    });
-}
+    }
+};
 
 const get_single_question = (req, res, next) => {
     Question.findById({ _id: req.params.id }).then(question => res.status(200).send(question)).catch(next)
