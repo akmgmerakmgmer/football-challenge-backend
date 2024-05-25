@@ -6,11 +6,11 @@ export const options = {
     insecureSkipTLSVerify: true,
     noConnectionReuse: true,
     stages: [
-        { duration: '2m', target: 1500 },
-        { duration: '5m', target: 2000 },
+        { duration: '2m', target: 1000 },
+        // { duration: '5m', target: 1400 },
     ]
 }
 export default () => {
-    http.get('http://localhost:4000/api/admin-questions')
+    http.get('https://football-challenge-backend.vercel.app/api/questions')
     sleep(1)
 }

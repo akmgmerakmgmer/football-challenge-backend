@@ -31,7 +31,7 @@ router.put('/notify-about/:id', usersController.notify_about)
 
 //Question Routes
 router.post('/questions', questionsController.create_questions)
-router.get('/questions', cache(3000), questionsController.get_questions)
+router.get('/questions', cache(300), questionsController.get_questions)
 router.get('/admin-questions', questionsController.get_admin_questions)
 router.get('/questions/:id', questionsController.get_single_question)
 router.delete('/questions/:id', questionsController.delete_question)
