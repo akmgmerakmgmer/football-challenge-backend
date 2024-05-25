@@ -83,11 +83,7 @@ const get_questions = async (req, res, next) => {
         const pipeline = [
             {
                 $match: {
-                    $nor: [
-                        { questionMode: "guessTheTeam" },
-                        { questionMode: "guessThePlayer" },
-                        { questionMode: "passwordChallenge" }
-                    ]
+                    questionMode: { $in: ["trueOrFalse", "multipleChoices"] }
                 }
             },
             { $skip: skip },                         // Skip based on pagination
