@@ -80,6 +80,16 @@ const numberOfDaysToPlayerLastSaturday = (playerLastSaturday) => {
     return differenceInDays;
 
 }
+const getCurrentDay = () => {
+    let today = new Date();
+    function addLeadingZero(num) {
+        return num < 10 ? `0${num}` : num;
+    }
+    let day = addLeadingZero(today.getDate());
+    let month = addLeadingZero(today.getMonth() + 1); // Months are zero-based
+    let year = today.getFullYear();
+    return `${year}-${month}-${day}`;
+}
 const user_save_game = (req, res, next) => {
     const { coins, points } = req.body
     User.findOne({ _id: req.params.id }).then(user => {
@@ -87,6 +97,7 @@ const user_save_game = (req, res, next) => {
         const yearlyPoints = user.user_points.yearlyPoints
         const monthlyPoints = user.user_points.monthlyPoints
         const weeklyPoints = user.user_points.weeklyPoints
+        const dailyPoints = user.user_points.dailyPoints
         const currentYear = currentDate.getFullYear();
         const currentMonth = currentDate.getMonth() + 1
         // Calculate Yearly Points
@@ -110,40 +121,27 @@ const user_save_game = (req, res, next) => {
             weeklyPoints[weeklyPoints.length - 1].weekDate = getLastSaturday(new Date())
         } else weeklyPoints.push({ weekDate: getLastSaturday(new Date()), points: points, games_played: 1 })
 
+        //Calculate Daily Points
+        if (dailyPoints.day === getCurrentDay()) {
+            dailyPoints.points += points
+            dailyPoints.games_played += 1
+        }
+        else {
+            dailyPoints.points = points
+            dailyPoints.day = getCurrentDay()
+        }
 
         // Assign Values to user
-        user.user_points.yearlyPoints = yearlyPoints
-        user.user_points.monthlyPoints = monthlyPoints
-        user.user_points.weeklyPoints = weeklyPoints
         user.user_points.totalPoints += points
         user.coins += coins
         user.games_played += 1
         User.findOneAndUpdate({ _id: req.params.id }, user, { new: true }).then(updatedUser => {
-            const userId = req.params.id; // Assuming you have the user's ID
-            User.aggregate([
-                // Unwind the weeklyPoints array to get individual documents for each element
-                { $unwind: "$user_points.weeklyPoints" },
+            res.status(200).send({ user: updatedUser });
+        }).catch((err) => {
+            next(err);
+        });
 
-                // Sort by the last index of weeklyPoints
-                { $sort: { "user_points.weeklyPoints.points": -1 } },
-            ]).then((sortedUsers) => {
-                // Find the index of the user in the sorted list
-                const userIndex = sortedUsers.findIndex(user => String(user._id) === String(userId));
-
-                if (userIndex !== -1) {
-                    // User found
-                    const currentUserRank = userIndex + 1;
-                    res.status(200).send({ rank: currentUserRank, user: updatedUser });
-                } else {
-                    // User not found
-                    res.status(404).send({ message: "User not found" });
-                }
-            }).catch((err) => {
-                next(err);
-            });
-
-        }).catch(next)
-    })
+    }).catch(next)
 }
 const matchFilters = (req) => {
     const match = { $and: [{ $or: [{ username: { $regex: req.query.search, $options: "i" } }] }] }
@@ -154,17 +152,24 @@ const matchFilters = (req) => {
     return match
 }
 const unwindUsers = (req) => {
+    if (req.query.searchByTime === 'daily') return "$user_points.dailyPoints"
     if (req.query.searchByTime === 'weekly') return "$user_points.weeklyPoints"
     if (req.query.searchByTime === 'monthly') return "$user_points.monthlyPoints"
     if (req.query.searchByTime === 'yearly') return "$user_points.yearlyPoints"
 }
 const sortUsers = (req) => {
+    if (req.query.searchByTime === 'daily') return { "user_points.dailyPoints.points": -1 }
     if (req.query.searchByTime === 'weekly') return { "user_points.weeklyPoints.points": -1 }
     if (req.query.searchByTime === 'monthly') return { "user_points.monthlyPoints.points": -1 }
     if (req.query.searchByTime === 'yearly') return { "user_points.yearlyPoints.points": -1 }
 }
 const updatedSortedUsers = (sortedUsers, searchTime) => {
     for (let i in sortedUsers) {
+        if (searchTime === 'daily') {
+            const sortedUsersPoints = sortedUsers[i].user_points
+            sortedUsers[i].points = sortedUsersPoints.dailyPoints.points
+            sortedUsers[i].games_played = sortedUsersPoints.dailyPoints.games_played
+        }
         if (searchTime === 'weekly') {
             const sortedUsersPoints = sortedUsers[i].user_points
             sortedUsers[i].points = sortedUsersPoints.weeklyPoints.points
@@ -180,10 +185,16 @@ const updatedSortedUsers = (sortedUsers, searchTime) => {
             sortedUsers[i].points = sortedUsersPoints.yearlyPoints.points
             sortedUsers[i].games_played = sortedUsersPoints.yearlyPoints.games_played
         }
+        delete sortedUsers[i].number
     }
     return sortedUsers.slice(0, 10)
 }
 const updatedCurrentUser = (user, searchTime) => {
+    if (searchTime === 'daily') {
+        const currentUser = user.user_points
+        user.points = currentUser.dailyPoints.points
+        user.games_played = currentUser.dailyPoints.games_played
+    }
     if (searchTime === 'weekly') {
         const currentUser = user.user_points
         user.points = currentUser.weeklyPoints.points

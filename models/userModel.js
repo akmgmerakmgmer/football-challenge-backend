@@ -28,6 +28,18 @@ const UserSchema = new Schema({
         totalPoints: {
             type: Number
         },
+        dailyPoints: {
+            day: {
+                type: String
+            },
+            points: {
+                type: Number
+            },
+            games_played: {
+                type: Number,
+                default: 0
+            }
+        },
         yearlyPoints: [
             {
                 points: {

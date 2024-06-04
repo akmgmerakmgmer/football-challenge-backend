@@ -65,7 +65,7 @@ const deleteDuplicates = async (res) => {
 }
 const get_admin_questions = (req, res, next) => {
     const page = req.query.page - 1 || 0
-    const per_page = 16
+    const per_page = 30
     Question.find({ $or: [{ 'question.en': { $regex: req.query.question, $options: "i" } }, { 'question.ar': { $regex: req.query.question, $options: "i" } }] }).count().then(total_questions => {
         Question.find({ $or: [{ 'question.en': { $regex: req.query.question, $options: "i" } }, { 'question.ar': { $regex: req.query.question, $options: "i" } }] }).sort({ createdAt: -1 }).skip(page * per_page).limit(per_page).then(question => res.status(200).send({ question, total_questions, per_page })).catch(next)
     })
@@ -74,7 +74,7 @@ const get_admin_questions = (req, res, next) => {
 const get_questions = async (req, res, next) => {
     try {
         const page = parseInt(req.query.page) || 1; // Parse the page number
-        const per_page = 20;
+        const per_page = 30;
 
         // Calculate the skip value based on the page number and number of documents per page
         const skip = (page - 1) * per_page;
