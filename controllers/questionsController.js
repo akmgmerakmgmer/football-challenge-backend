@@ -66,41 +66,34 @@ const deleteDuplicates = async (res) => {
 const get_admin_questions = (req, res, next) => {
     const page = req.query.page - 1 || 0
     const per_page = 30
-    Question.find({ $or: [{ 'question.en': { $regex: req.query.question, $options: "i" } }, { 'question.ar': { $regex: req.query.question, $options: "i" } }] }).count().then(total_questions => {
-        Question.find({ $or: [{ 'question.en': { $regex: req.query.question, $options: "i" } }, { 'question.ar': { $regex: req.query.question, $options: "i" } }] }).sort({ createdAt: -1 }).skip(page * per_page).limit(per_page).then(question => res.status(200).send({ question, total_questions, per_page })).catch(next)
+    Question.find({ $and: [{ $or: [{ 'question.en': { $regex: req.query.question, $options: "i" } }, { 'question.ar': { $regex: req.query.question, $options: "i" } }] }, { questionMode: { $regex: req.query.questionMode, $options: "i" } }] }).count().then(total_questions => {
+        Question.find({ $and: [{ $or: [{ 'question.en': { $regex: req.query.question, $options: "i" } }, { 'question.ar': { $regex: req.query.question, $options: "i" } }] }, { questionMode: { $regex: req.query.questionMode, $options: "i" } }] }).sort({ createdAt: -1 }).skip(page * per_page).limit(per_page).then(question => res.status(200).send({ question, total_questions, per_page })).catch(next)
     })
 }
 
-const get_questions = async (req, res, next) => {
-    try {
-        const page = parseInt(req.query.page) || 1; // Parse the page number
-        const per_page = 30;
+const get_questions = (req, res, next) => {
+    const page = (req.query.page || 1) - 1;
+    const per_page = 20;
 
-        // Calculate the skip value based on the page number and number of documents per page
-        const skip = (page - 1) * per_page;
+    // Calculate the skip value based on the page number and number of documents per page
+    const skip = page * per_page;
 
-        // Aggregate pipeline to fetch questions excluding certain modes and paginate results efficiently
-        const pipeline = [
-            {
-                $match: {
-                    questionMode: { $in: ["trueOrFalse", "multipleChoices"] }
-                }
-            },
-            { $skip: skip },                         // Skip based on pagination
-            { $limit: per_page },                    // Limit based on pagination
-            { $sample: { size: per_page } }          // Add this stage to get random questions
-        ];
-
-        const [questions, total_questions] = await Promise.all([
-            Question.aggregate(pipeline),
-            Question.countDocuments()
-        ]);
-
-        res.status(200).send({ questions, total_questions, per_page });
-    } catch (err) {
+    Question.aggregate([
+        {
+            $match: {
+                questionMode: { $in: ["trueOrFalse", "multipleChoices"] }
+            }
+        },
+        { $skip: skip },                   // Skip based on pagination
+        { $sample: { size: per_page } },   // Add this stage to get random questions
+        { $limit: per_page }                // Limit based on pagination
+    ]).then(async (questions) => {
+        const total_questions = await Question.countDocuments()
+        res.status(200).send({ questions, total_questions, per_page })
+    }).catch((err) => {
         next(err);
-    }
-};
+    });
+}
 
 const get_single_question = (req, res, next) => {
     Question.findById({ _id: req.params.id }).then(question => res.status(200).send(question)).catch(next)
