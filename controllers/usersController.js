@@ -145,7 +145,8 @@ const user_save_game = (req, res, next) => {
 }
 const matchFilters = (req) => {
     const match = { $and: [{ $or: [{ username: { $regex: req.query.search, $options: "i" } }] }] }
-    if (req.query.searchByTime === 'weekly') match.$and.push({ "user_points.weeklyPoints.weekDate": req.query.week === 'thisWeek' ? getLastSaturday(new Date()) : getSaturdayBeforeLast(new Date()) })
+    if(req.query.searchByTime==='daily') match.$and.push({ "user_points.dailyPoints.day": getCurrentDay() })
+    else if (req.query.searchByTime === 'weekly') match.$and.push({ "user_points.weeklyPoints.weekDate": req.query.week === 'thisWeek' ? getLastSaturday(new Date()) : getSaturdayBeforeLast(new Date()) })
     else if (req.query.searchByTime === 'monthly') match.$and.push({ "user_points.monthlyPoints.year": parseInt(req.query.year), "user_points.monthlyPoints.month": parseInt(req.query.month) })
 
     else if (req.query.searchByTime === 'yearly') match.$and.push({ "user_points.yearlyPoints.year": parseInt(req.query.year) })
