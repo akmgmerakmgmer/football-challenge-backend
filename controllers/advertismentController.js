@@ -18,7 +18,15 @@ const create_advertisment = async (req, res, next) => {
 }
 
 const get_advertisment = (req, res, next) => {
-    Advertisment.aggregate().then(async (advertisments) => {
+    Advertisment.aggregate([]).then(async (advertisments) => {
+        res.status(200).send({ advertisments })
+    }).catch((err) => {
+        next(err);
+    });
+}
+
+const get_admin_advertisments = (req, res, next) => {
+    Advertisment.find({}).then(async (advertisments) => {
         res.status(200).send({ advertisments })
     }).catch((err) => {
         next(err);

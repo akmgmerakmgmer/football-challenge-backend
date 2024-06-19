@@ -47,7 +47,7 @@ router.put('/players/:id', playersController.update_player)
 //Advertisment Routes
 router.post('/advertisments', advertismentController.create_advertisment)
 router.get('/advertisments', cache(300), advertismentController.get_advertisment)
-router.get('/admin-advertisments', advertismentController.get_advertisment)
+router.get('/admin-advertisments', advertismentController.get_admin_advertisments)
 router.get('/advertisments/:id', advertismentController.get_single_advertisment)
 router.delete('/advertisments/:id', advertismentController.delete_advertisment)
 router.put('/advertisments/:id', advertismentController.update_advertisment)
