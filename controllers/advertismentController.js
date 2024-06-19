@@ -18,15 +18,31 @@ const create_advertisment = async (req, res, next) => {
 }
 
 const get_advertisment = (req, res, next) => {
-    Advertisment.aggregate([]).then(async (advertisments) => {
-        res.status(200).send({ advertisments })
+    const page = (req.query.page || 1) - 1;
+    const per_page = 20;
+
+    // Calculate the skip value based on the page number and number of documents per page
+    const skip = page * per_page;
+
+    Advertisment.aggregate([
+        {
+            $match: {
+                advertiseAt: 'gamePage'
+            }
+        },
+        { $skip: skip },                   // Skip based on pagination
+        { $sample: { size: per_page } },   // Add this stage to get random questions
+        { $limit: per_page }                // Limit based on pagination
+    ]).then(async (advertisments) => {
+        const total_advertisments = await Advertisment.countDocuments()
+        res.status(200).send({ advertisments, total_advertisments, per_page })
     }).catch((err) => {
         next(err);
     });
 }
 
 const get_admin_advertisments = (req, res, next) => {
-    Advertisment.find({ company: req.body.company }).then(async (advertisments) => {
+    Advertisment.find({ 'company': { $regex: req.query.company, $options: "i" } }).then(async (advertisments) => {
         res.status(200).send({ advertisments })
     }).catch((err) => {
         next(err);
