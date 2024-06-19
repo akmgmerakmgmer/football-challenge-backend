@@ -18,11 +18,11 @@ const create_advertisment = async (req, res, next) => {
 }
 
 const get_advertisment = (req, res, next) => {
-    const page = req.query.page - 1 || 0
-    const per_page = 16
-    Advertisment.find({ $or: [{ company: { $regex: req.query.company, $options: "i" }, advertiseAt: { $regex: req.query.advertiseAt, $options: "i" } }] }).count().then(total_ads => {
-        Advertisment.find({ $or: [{ company: { $regex: req.query.company, $options: "i" }, advertiseAt: { $regex: req.query.advertiseAt, $options: "i" } }] }).sort({ priority: 1 }).sort({ createdAt: -1 }).skip(page * per_page).limit(per_page).then(advertisments => res.status(200).send({ advertisments, total_ads, per_page })).catch(next)
-    })
+    Advertisment.aggregate().then(async (advertisments) => {
+        res.status(200).send({ advertisments })
+    }).catch((err) => {
+        next(err);
+    });
 }
 
 const get_single_advertisment = (req, res, next) => {
