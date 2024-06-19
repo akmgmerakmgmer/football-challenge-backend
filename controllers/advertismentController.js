@@ -26,7 +26,7 @@ const get_advertisment = (req, res, next) => {
 }
 
 const get_admin_advertisments = (req, res, next) => {
-    Advertisment.find({}).then(async (advertisments) => {
+    Advertisment.find({ company: req.body.company }).then(async (advertisments) => {
         res.status(200).send({ advertisments })
     }).catch((err) => {
         next(err);
@@ -60,4 +60,4 @@ const ad_clicked = (req, res, next) => {
     Advertisment.findByIdAndUpdate({ _id: req.params.id }, { $inc: { clicks: 1 } }).then(advertisment => res.status(200).send(advertisment)).catch(next)
 }
 
-module.exports = { create_advertisment, get_advertisment, get_single_advertisment, delete_advertisment, update_advertisment, ad_clicked }
+module.exports = { create_advertisment, get_advertisment, get_single_advertisment, delete_advertisment, update_advertisment, ad_clicked, get_admin_advertisments }
