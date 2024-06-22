@@ -77,12 +77,13 @@ const get_questions = (req, res, next) => {
 
     // Calculate the skip value based on the page number and number of documents per page
     const skip = page * per_page;
-
+    const match = { $and: [{ questionMode: { $in: ["trueOrFalse", "multipleChoices"] } }] }
+    if (req.query.search) {
+        match.$and.push({ $or: [{ 'question.en': { $regex: req.query.search, $options: "i" } }, { 'question.ar': { $regex: req.query.search, $options: "i" } }] })
+    }
     Question.aggregate([
         {
-            $match: {
-                questionMode: { $in: ["trueOrFalse", "multipleChoices"] }
-            }
+            $match: match
         },
         { $skip: skip },                   // Skip based on pagination
         { $sample: { size: per_page } },   // Add this stage to get random questions
