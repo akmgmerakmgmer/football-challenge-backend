@@ -5,6 +5,8 @@ const usersController = require('../controllers/usersController.min.js')
 const questionsController = require('../controllers/questionsController.min.js')
 const playersController = require('../controllers/playersController.min.js')
 const advertismentController = require('../controllers/advertismentController.min.js')
+const challengeController = require('../controllers/challengesController.min.js')
+
 const cloudinary = require('../utilities/cloudinary')
 require("dotenv").config()
 const upload = require('../utilities/multer')
@@ -52,6 +54,14 @@ router.get('/advertisments/:id', advertismentController.get_single_advertisment)
 router.delete('/advertisments/:id', advertismentController.delete_advertisment)
 router.put('/advertisments/:id', advertismentController.update_advertisment)
 router.put('/ad-clicked/:id', advertismentController.ad_clicked)
+
+// Challenges
+router.post('/challenges', challengeController.create_challenge)
+router.get('/challenges', cache(3600), challengeController.get_challenges)
+router.get('/admin-challenges', challengeController.get_admin_challenges)
+router.get('/challenges/:id', challengeController.get_single_challenge)
+router.delete('/challenges/:id', challengeController.delete_challenge)
+router.put('/challenges/:id', challengeController.update_challenge)
 
 router.post('/translate', (req, res, next) => {
     translate(req.body.msg, { from: req.body.from, to: req.body.to }).then(response => {
