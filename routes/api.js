@@ -6,6 +6,7 @@ const questionsController = require('../controllers/questionsController.min.js')
 const playersController = require('../controllers/playersController.min.js')
 const advertismentController = require('../controllers/advertismentController.min.js')
 const challengeController = require('../controllers/challengesController.min.js')
+const avatarController = require('../controllers/avatarsController.min.js')
 
 const cloudinary = require('../utilities/cloudinary')
 require("dotenv").config()
@@ -62,6 +63,14 @@ router.get('/admin-challenges', challengeController.get_admin_challenges)
 router.get('/challenges/:id', challengeController.get_single_challenge)
 router.delete('/challenges/:id', challengeController.delete_challenge)
 router.put('/challenges/:id', challengeController.update_challenge)
+
+// Avatars
+router.post('/avatars', avatarController.create_avatar)
+router.get('/avatars', cache(3600), avatarController.get_avatars)
+router.get('/admin-avatars', avatarController.get_admin_avatars)
+router.get('/avatars/:id', avatarController.get_single_avatar)
+router.delete('/avatars/:id', avatarController.delete_avatar)
+router.put('/avatars/:id', avatarController.update_avatar)
 
 router.post('/translate', (req, res, next) => {
     translate(req.body.msg, { from: req.body.from, to: req.body.to }).then(response => {
