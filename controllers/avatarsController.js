@@ -32,7 +32,8 @@ const get_single_avatar = (req, res, next) => {
 const update_avatar = (req, res, next) => {
     Avatar.findByIdAndUpdate({ _id: req.params.id }, req.body).then(avatar => {
         Avatar.findOne({ _id: req.params.id }).then(avatar => res.status(200).send(avatar))
-    }).catch(next)}
+    }).catch(next)
+}
 
 const delete_avatar = (req, res, next) => {
     Avatar.findByIdAndDelete({ _id: req.params.id }).then(avatar => {

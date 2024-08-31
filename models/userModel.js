@@ -97,6 +97,23 @@ const UserSchema = new Schema({
         type: Number,
         default: 0
     },
+    challenges: {
+        type: [
+            {
+                id: {
+                    type: Schema.Types.ObjectId,
+                    ref: 'challenge'
+                },
+                lastPlayedDate: {
+                    type: String
+                },
+                index: {
+                    type: Number
+                }
+            },
+        ],
+        default: []
+    },
     avatars: {
         type: [Object],
         default: [{
@@ -121,6 +138,44 @@ const UserSchema = new Schema({
     },
     notifyAbout: {
         type: [String]
+    },
+    perks: {
+        type: [
+            {
+                id: {
+                    type: Schema.Types.ObjectId,
+                    ref: 'perk'
+                },
+                quantity: {
+                    type: Number
+                },
+                selected: {
+                    type: Boolean
+                }
+            }
+        ],
+        default: [
+            {
+                id: '66c9ee28fc6e3ce9479dc9c6',
+                quantity: 3,
+                selected: true,
+            },
+            {
+                id: '66c9ee72fc6e3ce9479dc9cc',
+                quantity: 3,
+                selected: true,
+            },
+            {
+                id: '66c9eea4fc6e3ce9479dc9d2',
+                quantity: 3,
+                selected: true,
+            },
+            {
+                id: '66c9eef9fc6e3ce9479dc9e0',
+                quantity: 3,
+                selected: true,
+            }
+        ]
     }
 }, {
     timestamps: true

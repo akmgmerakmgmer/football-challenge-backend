@@ -24,6 +24,14 @@ const AdvertismentSchema = new Schema({
             required: [true, 'field_required']
         }
     },
+    description: {
+        en: {
+            type: String,
+        },
+        ar: {
+            type: String,
+        }
+    },
     advertiseAt: {
         type: String,
         required: [true, 'field_required']

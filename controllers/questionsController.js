@@ -1,5 +1,7 @@
 const Question = require('../models/questionModel')
+const User = require('../models/userModel')
 const { handleErrors } = require('../utilities/handle_errors')
+const moment = require('moment');
 
 const questionCreation = async (payload, req, res) => {
     await Question.create(payload).then(question => {
@@ -71,16 +73,15 @@ const get_admin_questions = (req, res, next) => {
     })
 }
 
-const get_questions = (req, res, next) => {
+const getQuestionsMethod = (req, res, next, match, user, searchName) => {
+    if (searchName) {
+        match.$and.push({ $or: [{ 'question.en': { $regex: searchName, $options: "i" } }, { 'question.ar': { $regex: searchName, $options: "i" } }] })
+    }
     const page = (req.query.page || 1) - 1;
     const per_page = 20;
 
     // Calculate the skip value based on the page number and number of documents per page
     const skip = page * per_page;
-    const match = { $and: [{ questionMode: { $in: ["trueOrFalse", "multipleChoices"] } }] }
-    if (req.query.search) {
-        match.$and.push({ $or: [{ 'question.en': { $regex: req.query.search, $options: "i" } }, { 'question.ar': { $regex: req.query.search, $options: "i" } }] })
-    }
     Question.aggregate([
         {
             $match: match
@@ -90,10 +91,49 @@ const get_questions = (req, res, next) => {
         { $limit: per_page }                // Limit based on pagination
     ]).then(async (questions) => {
         const total_questions = await Question.countDocuments()
-        res.status(200).send({ questions, total_questions, per_page })
+        const sendValues = user ? { questions, total_questions, per_page, user: user } : { questions, total_questions, per_page }
+        res.status(200).send(sendValues)
     }).catch((err) => {
         next(err);
-    });
+    })
+}
+
+const get_questions = async (req, res, next) => {
+
+    const match = { $and: [{ questionMode: { $in: ["trueOrFalse", "multipleChoices"] } }] }
+    if (req.query.search && req.query.userId && req.query.name) {
+        await User.findById({ _id: req.query.userId }).populate('challenges').then(async user => {
+            let searchName = ''
+            const payload = {
+                id: req.query.search,
+                lastPlayedDate: moment(new Date).format('YYYY-MM-DD'),
+                index: user.challenges.length
+            }
+            const fetchedChallenge = user.challenges.filter(challenge => challenge.id == req.query.search)
+            if (fetchedChallenge.length == 0) {
+                user.challenges.push(payload)
+                searchName = req.query.name
+                await User.findByIdAndUpdate({ _id: req.query.userId }, user, { new: true }).then(updatedUser => {
+                    getQuestionsMethod(req, res, next, match, updatedUser, searchName)
+                })
+                    .catch(next)
+            } else {
+                payload.index = fetchedChallenge[0].index
+                user.challenges[fetchedChallenge[0].index] = payload
+                if (fetchedChallenge[0].lastPlayedDate !== user.challenges[fetchedChallenge[0].index].lastPlayedDate || req.query.page != 1) {
+                    searchName = req.query.name
+                    await User.findByIdAndUpdate({ _id: req.query.userId }, user, { new: true }).then(updatedUser => {
+                        getQuestionsMethod(req, res, next, match, updatedUser, searchName)
+                    })
+                        .catch(next)
+                } else if (req.query.page == 1) {
+                    return res.status(422).send({ message: 'already_played_this_challenge' })
+                }
+            }
+        })
+    } else {
+        getQuestionsMethod(req, res, next, match, false, false)
+    }
 }
 
 const get_single_question = (req, res, next) => {

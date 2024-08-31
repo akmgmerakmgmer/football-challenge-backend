@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken')
 const User = require('../models/userModel')
 const moment = require('moment');
+const Perk = require('../models/perksModel');
 
 const get_users = (req, res, next) => {
     const page = req.query.page - 1 || 0
@@ -17,7 +18,7 @@ const get_current_user = (req, res, next) => {
             if (err) {
                 res.sendStatus(401)
             } else {
-                let user = await User.findById(decodedToken.id)
+                let user = await User.findById(decodedToken.id).populate('perks.id')
                 if (user === null) {
                     res.status(400).send({ message: 'user_not_found' })
                     return;
@@ -29,7 +30,7 @@ const get_current_user = (req, res, next) => {
 }
 
 const get_single_user = (req, res, next) => {
-    User.findById({ _id: req.params.id }).then(user => res.status(200).send(user)).catch(next)
+    User.findById({ _id: req.params.id }).populate('perks.id').then(user => res.status(200).send(user)).catch(next)
 }
 
 const delete_user = (req, res, next) => {
@@ -39,8 +40,20 @@ const delete_user = (req, res, next) => {
 }
 
 const update_user = (req, res, next) => {
-    User.findByIdAndUpdate({ _id: req.params.id }, req.body).then(user => {
-        User.findOne({ _id: req.params.id }).then(user => res.status(200).send(user))
+    User.findByIdAndUpdate({ _id: req.params.id }, req.body, { new: true }).populate('perks.id').then(user => res.status(200).send(user)).catch(next)
+}
+
+const select_perk = (req, res, next) => {
+    User.findById({ _id: req.params.id }).then(user => {
+        user.perks[req.body.index].selected = true
+        User.findByIdAndUpdate({ _id: req.params.id }, user, { new: true }).populate('perks.id').then(user => res.status(200).send(user)).catch(next)
+    }).catch(next)
+}
+
+const remove_perk = (req, res, next) => {
+    User.findById({ _id: req.params.id }).then(user => {
+        user.perks[req.body.index].selected = false
+        User.findByIdAndUpdate({ _id: req.params.id }, user, { new: true }).populate('perks.id').then(user => res.status(200).send(user)).catch(next)
     }).catch(next)
 }
 
@@ -91,7 +104,7 @@ const getCurrentDay = () => {
     return `${year}-${month}-${day}`;
 }
 const user_save_game = (req, res, next) => {
-    const { coins, points } = req.body
+    const { coins, points, usedPerks } = req.body
     User.findOne({ _id: req.params.id }).then(user => {
         const currentDate = new Date();
         const yearlyPoints = user.user_points.yearlyPoints
@@ -131,12 +144,18 @@ const user_save_game = (req, res, next) => {
             dailyPoints.games_played = 1
             dailyPoints.day = getCurrentDay()
         }
-
+        if (usedPerks.length) {
+            for (let i in user.perks) {
+                if (usedPerks.indexOf(user.perks[i].id.toString()) > -1) {
+                    user.perks[i].quantity -= 1
+                }
+            }
+        }
         // Assign Values to user
         user.user_points.totalPoints += points
         user.coins += coins
         user.games_played += 1
-        User.findOneAndUpdate({ _id: req.params.id }, user, { new: true }).then(updatedUser => {
+        User.findOneAndUpdate({ _id: req.params.id }, user, { new: true }).populate('perks.id').then(updatedUser => {
             res.status(200).send({ user: updatedUser });
         }).catch((err) => {
             next(err);
@@ -286,10 +305,37 @@ const buy_avatar = (req, res, next) => {
 
 }
 
+const buy_perks = (req, res, next) => {
+    User.findOne({ _id: req.params.id }).populate('perks.id').then(user => {
+        Perk.findOne({ _id: req.body.perkId }).then(perk => {
+            const isPerkWithUser = user.perks.filter(item => item.id._id.toString() === perk._id.toString()).length > 0 ? true : false
+            if (user.coins < (perk.price * req.body.quantity)) return res.status(422).send({ message: { en: "You don't have enough coins", ar: "انت لا تملك عملات كافية" } })
+            if (isPerkWithUser) {
+                for (let i in user.perks) {
+                    if (user.perks[i].id._id.toString() === perk._id.toString()) {
+                        user.perks[i].quantity += req.body.quantity
+                    }
+                }
+            } else {
+                user.perks.push({
+                    id: perk._id,
+                    quantity: req.body.quantity,
+                    selected: false
+                })
+            }
+            user.coins -= perk.price * req.body.quantity
+            User.findByIdAndUpdate({ _id: req.params.id }, user, { new: true }).populate('perks.id').then(updatedUser => {
+                res.status(200).send({ user: updatedUser })
+            }).catch(next)
+        }).catch(next)
+    }).catch(next)
+
+}
+
 const notify_about = (req, res, next) => {
     User.findByIdAndUpdate({ _id: req.params.id }, { $push: { notifyAbout: req.body.mode } }).then(user => {
         User.findOne({ _id: req.params.id }).then(user => res.status(200).send(user))
     }).catch(next)
 }
 
-module.exports = { get_users, get_current_user, get_single_user, delete_user, update_user, user_save_game, get_user_current_ranking, get_rankings, buy_avatar, notify_about }
+module.exports = { get_users, get_current_user, get_single_user, delete_user, update_user, user_save_game, get_user_current_ranking, get_rankings, buy_avatar, notify_about, buy_perks, remove_perk, select_perk }

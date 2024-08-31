@@ -7,6 +7,9 @@ const playersController = require('../controllers/playersController.min.js')
 const advertismentController = require('../controllers/advertismentController.min.js')
 const challengeController = require('../controllers/challengesController.min.js')
 const avatarController = require('../controllers/avatarsController.min.js')
+const transactionController = require('../controllers/transactionController.min.js')
+const shopItemsController = require('../controllers/shopItemsController.min.js')
+const perksController = require('../controllers/perksController.min.js')
 
 const cloudinary = require('../utilities/cloudinary')
 require("dotenv").config()
@@ -26,15 +29,18 @@ router.post('/current-user', usersController.get_current_user)
 router.get('/users/:id', usersController.get_single_user)
 router.delete('/users/:id', usersController.delete_user)
 router.put('/users/:id', usersController.update_user)
+router.put('/remove-perk/:id', usersController.remove_perk)
+router.put('/select-perk/:id', usersController.select_perk)
 router.post('/user-save-game/:id', usersController.user_save_game)
 router.get('/get-user-rank/:id', usersController.get_user_current_ranking)
 router.get('/get-rankings', usersController.get_rankings)
 router.put('/buy-avatar/:id', usersController.buy_avatar)
+router.put('/buy-perks/:id', usersController.buy_perks)
 router.put('/notify-about/:id', usersController.notify_about)
 
 //Question Routes
 router.post('/questions', questionsController.create_questions)
-router.get('/questions', cache(300), questionsController.get_questions)
+router.get('/questions', questionsController.get_questions)
 router.get('/admin-questions', questionsController.get_admin_questions)
 router.get('/questions/:id', questionsController.get_single_question)
 router.delete('/questions/:id', questionsController.delete_question)
@@ -49,7 +55,7 @@ router.put('/players/:id', playersController.update_player)
 
 //Advertisment Routes
 router.post('/advertisments', advertismentController.create_advertisment)
-router.get('/advertisments', cache(300), advertismentController.get_advertisment)
+router.get('/advertisments', advertismentController.get_advertisment)
 router.get('/admin-advertisments', advertismentController.get_admin_advertisments)
 router.get('/advertisments/:id', advertismentController.get_single_advertisment)
 router.delete('/advertisments/:id', advertismentController.delete_advertisment)
@@ -58,7 +64,7 @@ router.put('/ad-clicked/:id', advertismentController.ad_clicked)
 
 // Challenges
 router.post('/challenges', challengeController.create_challenge)
-router.get('/challenges', cache(3600), challengeController.get_challenges)
+router.get('/challenges', challengeController.get_challenges)
 router.get('/admin-challenges', challengeController.get_admin_challenges)
 router.get('/challenges/:id', challengeController.get_single_challenge)
 router.delete('/challenges/:id', challengeController.delete_challenge)
@@ -66,11 +72,36 @@ router.put('/challenges/:id', challengeController.update_challenge)
 
 // Avatars
 router.post('/avatars', avatarController.create_avatar)
-router.get('/avatars', cache(3600), avatarController.get_avatars)
+router.get('/avatars', avatarController.get_avatars)
 router.get('/admin-avatars', avatarController.get_admin_avatars)
 router.get('/avatars/:id', avatarController.get_single_avatar)
 router.delete('/avatars/:id', avatarController.delete_avatar)
 router.put('/avatars/:id', avatarController.update_avatar)
+
+// Transactions
+router.post('/card-payment', transactionController.create_payment)
+router.post('/payment-success', transactionController.payment_success)
+router.get('/transactions', transactionController.get_transactions)
+router.get('/transactions/:id', transactionController.get_single_transaction)
+router.delete('/transactions/:id', transactionController.delete_transaction)
+router.put('/transactions/:id', transactionController.update_transaction)
+
+// Perks
+router.post('/perks', perksController.create_perk)
+router.get('/perks', perksController.get_perks)
+router.get('/admin-perks', perksController.get_admin_perks)
+router.get('/perks/:id', perksController.get_single_perk)
+router.delete('/perks/:id', perksController.delete_perk)
+router.put('/perks/:id', perksController.update_perk)
+
+// ShopItems
+router.post('/shopItems', shopItemsController.create_shopItem)
+router.get('/shopItems', shopItemsController.get_shopItems)
+router.get('/admin-shopItems', shopItemsController.get_admin_shopItems)
+router.get('/shopItems/:id', shopItemsController.get_single_shopItem)
+router.delete('/shopItems/:id', shopItemsController.delete_shopItem)
+router.put('/shopItems/:id', shopItemsController.update_shopItem)
+
 
 router.post('/translate', (req, res, next) => {
     translate(req.body.msg, { from: req.body.from, to: req.body.to }).then(response => {

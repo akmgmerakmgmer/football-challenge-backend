@@ -3,39 +3,36 @@ const { handleErrors } = require('../utilities/handle_errors')
 
 const create_advertisment = async (req, res, next) => {
     Advertisment.findOne({ priority: req.body.priority, status: 'active', advertiseAt: req.body.advertiseAt }).then(advertisment => {
-        if (advertisment) {
-            res.status(422).send({ message: { en: "You already have that priority number on an active ad", ar: "لديك نفس الأولوية لاعلان نشط الان" } })
-        } else {
-            Advertisment.create(req.body).then(advertisment => {
-                res.status(200).send(advertisment)
-            }).catch(err => {
-                res.status(422).send(handleErrors(err, req, 'advertisment'))
-            })
-        }
+        Advertisment.create(req.body).then(advertisment => {
+            res.status(200).send(advertisment)
+        }).catch(err => {
+            res.status(422).send(handleErrors(err, req, 'advertisment'))
+        })
     })
-
 
 }
 
 const get_advertisment = (req, res, next) => {
     const page = (req.query.page || 1) - 1;
-    const per_page = 20;
+    const per_page = 30;
 
     // Calculate the skip value based on the page number and number of documents per page
     const skip = page * per_page;
 
     Advertisment.aggregate([
-        {
-            $match: {
-                advertiseAt: 'gamePage'
-            }
-        },
+        // {
+        //     $match: {
+        //         advertiseAt: 'gamePage'
+        //     }
+        // },
         { $skip: skip },                   // Skip based on pagination
         { $sample: { size: per_page } },   // Add this stage to get random questions
         { $limit: per_page }                // Limit based on pagination
     ]).then(async (advertisments) => {
         const total_advertisments = await Advertisment.countDocuments()
-        res.status(200).send({ advertisments, total_advertisments, per_page })
+        const bestOffersAds = advertisments.filter(ad => ad.advertiseAt == 'bestOffers')
+        const realAds = advertisments.filter(ad => ad.advertiseAt == 'websitePages')
+        res.status(200).send({ advertisments: realAds, bestOffers: bestOffersAds, total_advertisments, per_page })
     }).catch((err) => {
         next(err);
     });
@@ -60,16 +57,9 @@ const delete_advertisment = (req, res, next) => {
 }
 
 const update_advertisment = (req, res, next) => {
-    Advertisment.find({ priority: req.body.priority, status: 'active', advertiseAt: req.body.advertiseAt }).then(advertisments => {
-        if (advertisments.length > 1 || (advertisments.length == 1 && req.body.prevStatus != 'active')) {
-            res.status(422).send({ message: { en: "You already have that priority number on an active ad", ar: "لديك نفس الأولوية لاعلان نشط الان" } })
-        } else {
-            Advertisment.findByIdAndUpdate({ _id: req.params.id }, req.body).then(advertisment => {
-                Advertisment.findOne({ _id: req.params.id }).then(advertisment => res.status(200).send(advertisment))
-            }).catch(next)
-        }
-    })
-
+    Advertisment.findByIdAndUpdate({ _id: req.params.id }, req.body).then(advertisment => {
+        Advertisment.findOne({ _id: req.params.id }).then(advertisment => res.status(200).send(advertisment))
+    }).catch(next)
 }
 
 const ad_clicked = (req, res, next) => {
