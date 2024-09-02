@@ -298,7 +298,7 @@ const buy_avatar = (req, res, next) => {
         if (user.coins < req.body.avatar.price) return res.status(422).send({ message: { en: "You don't have enough coins", ar: "انت لا تملك عملات كافية" } })
         User.findOneAndUpdate({ _id: req.params.id },
             { $push: { avatars: req.body.avatar }, $inc: { coins: -req.body.avatar.price } }, // Update operation using $push
-            { new: true }).then(updatedUser => {
+            { new: true }).populate('perks.id').then(updatedUser => {
                 res.status(200).send({ user: updatedUser })
             }).catch(next)
     })

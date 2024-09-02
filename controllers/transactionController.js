@@ -87,7 +87,7 @@ const payment_success = (req, res, next) => {
                 { username: transaction.username }, // The filter to find the user by username
                 { $inc: { coins: transaction.itemQuantity } }, // The $inc operator to increment the coins
                 { new: true }, // Options: return the updated document
-            ).then(user => {
+            ).populate('perks.id').then(user => {
                 Transaction.findOneAndUpdate({ transactionId: id }, { isPaid: true }, { new: true }).then(transaction => {
                     res.status(200).send({ user, transaction })
                 })
