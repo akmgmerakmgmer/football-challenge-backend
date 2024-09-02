@@ -113,7 +113,7 @@ const get_questions = async (req, res, next) => {
             if (fetchedChallenge.length == 0) {
                 user.challenges.push(payload)
                 searchName = req.query.name
-                await User.findByIdAndUpdate({ _id: req.query.userId }, user, { new: true }).then(updatedUser => {
+                await User.findByIdAndUpdate({ _id: req.query.userId }, user, { new: true }).populate('perks.id').then(updatedUser => {
                     getQuestionsMethod(req, res, next, match, updatedUser, searchName)
                 })
                     .catch(next)
@@ -122,7 +122,7 @@ const get_questions = async (req, res, next) => {
                 user.challenges[fetchedChallenge[0].index] = payload
                 if (fetchedChallenge[0].lastPlayedDate !== user.challenges[fetchedChallenge[0].index].lastPlayedDate || req.query.page != 1) {
                     searchName = req.query.name
-                    await User.findByIdAndUpdate({ _id: req.query.userId }, user, { new: true }).then(updatedUser => {
+                    await User.findByIdAndUpdate({ _id: req.query.userId }, user, { new: true }).populate('perks.id').then(updatedUser => {
                         getQuestionsMethod(req, res, next, match, updatedUser, searchName)
                     })
                         .catch(next)
