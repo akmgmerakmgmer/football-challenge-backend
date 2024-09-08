@@ -102,7 +102,7 @@ const get_questions = async (req, res, next) => {
 
     const match = { $and: [{ questionMode: { $in: ["trueOrFalse", "multipleChoices"] } }] }
     if (req.query.search && req.query.userId && req.query.name) {
-        await User.findById({ _id: req.query.userId }).populate('challenges').then(async user => {
+        await User.findById({ _id: req.query.userId }).populate('challenges').populate('perks.id').then(async user => {
             let searchName = ''
             const payload = {
                 id: req.query.search,
