@@ -17,8 +17,8 @@ require("dotenv").config()
 
 // const UglifyJS = require('uglify-js');
 // const fs = require('fs');
-// const result = UglifyJS.minify(fs.readFileSync('./controllers/avatarsController.js', 'utf8'));
-// fs.writeFileSync('./controllers/avatarsController.min.js', result.code);
+// const result = UglifyJS.minify(fs.readFileSync('./controllers/questionsController.js', 'utf8'));
+// fs.writeFileSync('./controllers/questionsController.min.js', result.code);
 
 //Database Connection
 const port = process.env.PORT || 4000

@@ -13,8 +13,20 @@ const create_questions = async (req, res, next) => {
         //addValue(res)
         // deleteDuplicates(res)
         for (let i in req.body) {
+            const questionNumber = parseInt(i) + 1
             if (req.body[i].questionMode === 'trueOrFalse') req.body[i].choices = [{ en: 'Yes', ar: 'نعم', value: 'true' }, { en: "No", ar: "لا", value: 'false' }]
-            await questionCreation(req.body[i], req, res)
+            if (req.body[i].question.en === '' || req.body[i].question.ar === '') return res.status(422).send({ message: `Error in question number ${questionNumber}` })
+            if (!req.body[i].answer) return res.status(422).send({ message: `No Answer for Question number ${questionNumber}` })
+            if (req.body[i].questionMode === 'multipleChoices') {
+                if (req.body[i].choices.length != 4) return res.status(422).send({ message: `Error in choices quantity in question number ${questionNumber}}` })
+                for (let j in req.body[i].choices) {
+                    const currentChoice = req.body[i].choices[j]
+                    if (!currentChoice.en || !currentChoice.ar || !currentChoice.value) {
+                        return res.status(422).send({ message: `Error in choices in question number ${questionNumber}` })
+                    }
+                }
+            }
+            // await questionCreation(req.body[i], req, res)
         }
         res.sendStatus(200)
     } else {
