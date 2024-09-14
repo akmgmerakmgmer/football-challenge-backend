@@ -40,7 +40,23 @@ const delete_user = (req, res, next) => {
 }
 
 const update_user = (req, res, next) => {
-    User.findByIdAndUpdate({ _id: req.params.id }, req.body, { new: true }).populate('perks.id').then(user => res.status(200).send(user)).catch(next)
+    if (req.body.username) {
+        User.findById({ _id: req.params.id }).then(user => {
+            if (user.username === req.body.username) {
+                User.findByIdAndUpdate({ _id: req.params.id }, req.body, { new: true }).populate('perks.id').then(user => res.status(200).send(user)).catch(next)
+            } else {
+                User.findOne({ username: req.body.username }).then(user => {
+                    if (user) {
+                        return res.status(422).send({ message: 'username_unique' })
+                    } else {
+                        User.findByIdAndUpdate({ _id: req.params.id }, req.body, { new: true }).populate('perks.id').then(user => res.status(200).send(user)).catch(next)
+                    }
+                })
+            }
+        })
+    } else {
+        User.findByIdAndUpdate({ _id: req.params.id }, req.body, { new: true }).populate('perks.id').then(user => res.status(200).send(user)).catch(next)
+    }
 }
 
 const select_perk = (req, res, next) => {
