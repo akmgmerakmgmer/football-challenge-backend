@@ -28,7 +28,7 @@ const onlyAdminAuth = (req, res, next) => {
             return res.sendStatus(403)
         } else {
             let user = await User.findById(decodedToken.id)
-            if (user && (user.roles.includes('admin') || user.roles.includes('developer'))) {
+            if (user && (user.roles.includes('superAdmin') || user.roles.includes('admin') || user.roles.includes('developer'))) {
                 next()
                 return;
             } else {
