@@ -26,7 +26,7 @@ const create_questions = async (req, res, next) => {
                     }
                 }
             }
-            // await questionCreation(req.body[i], req, res)
+            await questionCreation(req.body[i], req, res)
         }
         res.sendStatus(200)
     } else {
