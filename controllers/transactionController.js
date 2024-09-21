@@ -1,82 +1,55 @@
 require("dotenv").config()
-const axios = require('axios');
 const Transaction = require("../models/transactionModel");
 const User = require("../models/userModel");
 
-const create_payment = async (req, res, next) => {
 
-    const { amount, username, phoneNumber, itemBought, itemQuantity } = req.body;
+const new_payment_method = async (req, res, next) => {
+    const { amount, username, userId, phoneNumber, itemBought, itemQuantity } = req.body;
+    const myHeaders = new Headers();
+    myHeaders.append("Authorization", `Token ${process.env.PAYMOB_API_KEY}`);
+    myHeaders.append("Content-Type", "application/json");
 
-    try {
-        // Authentication request
-        const authResponse = await axios.post('https://accept.paymobsolutions.com/api/auth/tokens', {
-            api_key: process.env.PAYMOB_API_KEY,
-        });
-        const token = authResponse.data.token;
+    const raw = JSON.stringify({
+        "amount": amount,
+        "notification_url": "https://www.inzonegaming.com/payment-success",
+        "currency": "EGP",
+        "special_reference": `${userId}${numberOfTransactionsCount + 1}`,
+        "payment_methods": [
+            12,
+            "card",
+            4622714
+        ],
+        "billing_data": {
+            "first_name": username,
+            "last_name": username,
+            "phone_number": phoneNumber,
+            "country": "EGY",
+            "state": "Cairo"
+        },
 
-        // Order registration
-        const orderResponse = await axios.post(
-            'https://accept.paymobsolutions.com/api/ecommerce/orders',
-            {
-                auth_token: token,
-                delivery_needed: false,
-                amount_cents: amount,
-                currency: 'EGP',
-                items: [
-                    {
-                        name: itemBought,
-                        amount_cents: amount,
-                        quantity: itemQuantity,
-                        description: 'Hi'
-                    }
-                ],
-                shipping_data: {
-                    first_name: username,
-                    last_name: username,
-                    email: 'ahmedever80@gmail.com',
-                    phone_number: phoneNumber,
-                },
+    });
+
+    const requestOptions = {
+        method: 'POST',
+        headers: myHeaders,
+        body: raw,
+        redirect: 'follow'
+    };
+
+    fetch("https://accept.paymob.com/v1/intention/", requestOptions)
+        .then(response => response.text())
+        .then(async result => {
+            const transactionCreationPayload = {
+                itemBought,
+                itemQuantity,
+                transactionId: `${userId}${numberOfTransactionsCount + 1}`,
+                username,
+                number: phoneNumber
             }
-        );
-        const transactionCreationPayload = {
-            itemBought,
-            itemQuantity,
-            transactionId: orderResponse.data.id,
-            username,
-            number: phoneNumber
-        }
-        await Transaction.create(transactionCreationPayload)
-        // Payment key request
-        const paymentKeyResponse = await axios.post(
-            'https://accept.paymobsolutions.com/api/acceptance/payment_keys',
-            {
-                auth_token: token,
-                amount_cents: amount,
-                expiration: 3600,
-                order_id: orderResponse.data.id,
-                integration_id: 4622714,
-                currency: "EGP",
-                billing_data: {
-                    apartment: '52',
-                    email: "inzone.gaming2023@gmail.com",
-                    floor: '3',
-                    first_name: "Ahmed",
-                    street: 'Zahraa',
-                    building: '52A',
-                    last_name: 'Gharib',
-                    phone_number: '+201119683676',
-                    shipping_method: 'UNK',
-                    postal_code: '11511',
-                    city: 'Cairo',
-                    country: 'Egypt',
-                    state: 'Cairo'
-                }
-            }
-        );
-        res.send({ paymentKey: paymentKeyResponse.data.token });
-    } catch (error) {
-        next()
-    }
+            await Transaction.create(transactionCreationPayload)
+            res.status(200).send(result)
+        })
+        .catch(next);
 }
 
 const payment_success = (req, res, next) => {
@@ -129,4 +102,4 @@ const delete_transaction = (req, res, next) => {
     }).catch(next)
 }
 
-module.exports = { create_payment, get_transactions, get_single_transaction, update_transaction, delete_transaction, payment_success }
+module.exports = { get_transactions, get_single_transaction, update_transaction, delete_transaction, payment_success, new_payment_method }

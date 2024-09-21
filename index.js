@@ -12,8 +12,8 @@ require("dotenv").config()
 
 // const UglifyJS = require('uglify-js');
 // const fs = require('fs');
-// const result = UglifyJS.minify(fs.readFileSync('./middlewares/auth.js', 'utf8'));
-// fs.writeFileSync('./middlewares/auth.min.js', result.code);
+// const result = UglifyJS.minify(fs.readFileSync('./routes/api.js', 'utf8'));
+// fs.writeFileSync('./routes/api.min.js', result.code);
 
 // const UglifyJS = require('uglify-js');
 // const fs = require('fs');

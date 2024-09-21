@@ -79,7 +79,7 @@ router.delete('/avatars/:id',onlyAdminAuth, avatarController.delete_avatar)
 router.put('/avatars/:id',onlyAdminAuth, avatarController.update_avatar)
 
 // Transactions
-router.post('/card-payment', transactionController.create_payment)
+router.post('/card-payment', transactionController.new_payment_method)
 router.post('/payment-success', transactionController.payment_success)
 router.get('/transactions',onlyAdminAuth, transactionController.get_transactions)
 router.get('/transactions/:id',onlyAdminAuth, transactionController.get_single_transaction)
