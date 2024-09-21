@@ -5,13 +5,13 @@ const User = require("../models/userModel");
 
 const new_payment_method = async (req, res, next) => {
     const { amount, username, userId, phoneNumber, itemBought, itemQuantity } = req.body;
+    const numberOfTransactionsCount = (await Transaction.find({ username: username })).length
     const myHeaders = new Headers();
-    myHeaders.append("Authorization", `Token ${process.env.PAYMOB_API_KEY}`);
+    myHeaders.append("Authorization", "Token egy_sk_test_334a79dbb597a3a561629971ba2c6689bcdde0480c138c6ce6b842af105b67e4");
     myHeaders.append("Content-Type", "application/json");
 
     const raw = JSON.stringify({
         "amount": amount,
-        "notification_url": "https://www.inzonegaming.com/payment-success",
         "currency": "EGP",
         "special_reference": `${userId}${numberOfTransactionsCount + 1}`,
         "payment_methods": [
