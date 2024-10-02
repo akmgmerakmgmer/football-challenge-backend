@@ -1,6 +1,7 @@
 const Question = require('../models/questionModel')
 const User = require('../models/userModel')
 const { handleErrors } = require('../utilities/handle_errors')
+const crypto = require('crypto');
 const moment = require('moment');
 
 const questionCreation = async (payload, req, res) => {
@@ -9,12 +10,13 @@ const questionCreation = async (payload, req, res) => {
 
 }
 const create_questions = async (req, res, next) => {
+    // return changeChoicesNames(res)
     if (Array.isArray(req.body)) {
         //addValue(res)
         // deleteDuplicates(res)
         for (let i in req.body) {
             const questionNumber = parseInt(i) + 1
-            if (req.body[i].questionMode === 'trueOrFalse') req.body[i].choices = [{ en: 'Yes', ar: 'نعم', value: 'true' }, { en: "No", ar: "لا", value: 'false' }]
+            if (req.body[i].questionMode === 'trueOrFalse') req.body[i].choices = [{ en: 'Yes/True', ar: 'نعم/صح', value: 'true' }, { en: "No/False", ar: "لا/خطأ", value: 'false' }]
             if (req.body[i].question.en === '' || req.body[i].question.ar === '') return res.status(422).send({ message: `Error in question number ${questionNumber}` })
             if (!req.body[i].answer) return res.status(422).send({ message: `No Answer for Question number ${questionNumber}` })
             if (req.body[i].questionMode === 'multipleChoices') {
@@ -77,6 +79,54 @@ const deleteDuplicates = async (res) => {
         res.sendStatus(200)
     })
 }
+
+function shuffleArray(array) {
+    let shuffledArray = array.slice(); // Create a copy of the array to avoid modifying the original
+    for (let i = shuffledArray.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1)); // Random index from 0 to i
+        [shuffledArray[i], shuffledArray[j]] = [shuffledArray[j], shuffledArray[i]]; // Swap elements
+    }
+    return shuffledArray;
+}
+
+const shuffleChoices = (res) => {
+    Question.find({}).then(async questions => {
+        for (let i in questions) {
+            if (questions[i].questionMode === 'multipleChoices' && questions[i].choices.length === 4) {
+                questions[i].choices = shuffleArray(questions[i].choices)
+                await Question.findByIdAndUpdate({ _id: questions[i]._id }, questions[i]).then(question => {
+                    console.log(questions[i].choices)
+                })
+            }
+        }
+        res.sendStatus(200)
+    })
+}
+
+const checkIfQuestionEnglishAndArabicAreThere = (res) => {
+    Question.find({}).then(async questions => {
+        for (let i in questions) {
+            if (!questions[i].question || !questions[i].question.en || !questions[i].question.ar) {
+                console.log(questions[i].question)
+            }
+        }
+        res.sendStatus(200)
+    })
+}
+
+const changeChoicesNames = (res) => {
+    Question.find({}).then(async questions => {
+        for (let i in questions) {
+            if (questions[i].questionMode === 'trueOrFalse') {
+                questions[i].choices = [{ en: 'Yes/True', ar: 'نعم/صح', value: 'true' }, { en: "No/False", ar: "لا/خطأ", value: 'false' }]
+                await Question.findByIdAndUpdate({ _id: questions[i]._id }, questions[i]).then(question => {
+                    console.log(questions[i].choices)
+                })
+            }
+        }
+        res.sendStatus(200)
+    })
+}
 const get_admin_questions = (req, res, next) => {
     const page = req.query.page - 1 || 0
     const per_page = 30
@@ -103,6 +153,9 @@ const getQuestionsMethod = (req, res, next, match, user, searchName) => {
         { $limit: per_page }                // Limit based on pagination
     ]).then(async (questions) => {
         const total_questions = await Question.countDocuments()
+        for (let i in questions) {
+            questions[i].answer = crypto.createHash('sha256').update(questions[i].answer).digest('hex');
+        }
         const sendValues = user ? { questions, total_questions, per_page, user: user } : { questions, total_questions, per_page }
         res.status(200).send(sendValues)
     }).catch((err) => {
