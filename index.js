@@ -20,6 +20,10 @@ require("dotenv").config()
 // const result = UglifyJS.minify(fs.readFileSync('./controllers/usersController.js', 'utf8'));
 // fs.writeFileSync('./controllers/usersController.min.js', result.code);
 
+// User.collection.getIndexes().then(res=>{
+//     console.log(res)
+// })
+// User.collection.dropIndex({ "user_points.yearlyPoints.points": -1 })
 //Database Connection
 const port = process.env.PORT || 4000
 const database = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}@cluster0.0nhrwlp.mongodb.net/?retryWrites=true&w=${process.env.MONGO_DATABASE}`

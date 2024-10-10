@@ -1,13 +1,13 @@
 const express = require('express')
 const router = express.Router()
-const authController = require('../controllers/authController.js')
-const usersController = require('../controllers/usersController.js')
+const authController = require('../controllers/authController.min.js')
+const usersController = require('../controllers/usersController.min.js')
 const questionsController = require('../controllers/questionsController.min.js')
 const playersController = require('../controllers/playersController.min.js')
-const advertismentController = require('../controllers/advertismentController.js')
+const advertismentController = require('../controllers/advertismentController.min.js')
 const challengeController = require('../controllers/challengesController.min.js')
 const avatarController = require('../controllers/avatarsController.min.js')
-const transactionController = require('../controllers/transactionController.js')
+const transactionController = require('../controllers/transactionController.min.js')
 const shopItemsController = require('../controllers/shopItemsController.min.js')
 const perksController = require('../controllers/perksController.min.js')
 const { onlyAdminAuth, onlyUserAuth, requireAuth } = require('../middlewares/auth.min.js')
@@ -41,7 +41,7 @@ router.put('/notify-about/:id', onlyUserAuth, usersController.notify_about)
 
 //Question Routes
 router.post('/questions', onlyAdminAuth, questionsController.create_questions)
-router.get('/questions', requireAuth, questionsController.get_questions)
+router.get('/questions', requireAuth, cache(60), questionsController.get_questions)
 router.get('/admin-questions', onlyAdminAuth, questionsController.get_admin_questions)
 router.get('/questions/:id', onlyAdminAuth, questionsController.get_single_question)
 router.delete('/questions/:id', onlyAdminAuth, questionsController.delete_question)
@@ -56,7 +56,7 @@ router.put('/players/:id', onlyAdminAuth, playersController.update_player)
 
 //Advertisment Routes
 router.post('/advertisments', onlyAdminAuth, advertismentController.create_advertisment)
-router.get('/advertisments', advertismentController.get_advertisment)
+router.get('/advertisments', cache(5 * 60), advertismentController.get_advertisment)
 router.get('/admin-advertisments', onlyAdminAuth, advertismentController.get_admin_advertisments)
 router.get('/advertisments/:id', onlyAdminAuth, advertismentController.get_single_advertisment)
 router.delete('/advertisments/:id', onlyAdminAuth, advertismentController.delete_advertisment)
@@ -65,7 +65,7 @@ router.put('/ad-clicked/:id', advertismentController.ad_clicked)
 
 // Challenges
 router.post('/challenges', onlyAdminAuth, challengeController.create_challenge)
-router.get('/challenges', challengeController.get_challenges)
+router.get('/challenges', cache(5 * 60), challengeController.get_challenges)
 router.get('/admin-challenges', onlyAdminAuth, challengeController.get_admin_challenges)
 router.get('/challenges/:id', onlyAdminAuth, challengeController.get_single_challenge)
 router.delete('/challenges/:id', onlyAdminAuth, challengeController.delete_challenge)
@@ -73,7 +73,7 @@ router.put('/challenges/:id', onlyAdminAuth, challengeController.update_challeng
 
 // Avatars
 router.post('/avatars', onlyAdminAuth, avatarController.create_avatar)
-router.get('/avatars', avatarController.get_avatars)
+router.get('/avatars', cache(5 * 60), avatarController.get_avatars)
 router.get('/admin-avatars', onlyAdminAuth, avatarController.get_admin_avatars)
 router.get('/avatars/:id', onlyAdminAuth, avatarController.get_single_avatar)
 router.delete('/avatars/:id', onlyAdminAuth, avatarController.delete_avatar)
@@ -89,7 +89,7 @@ router.put('/transactions/:id', onlyAdminAuth, transactionController.update_tran
 
 // Perks
 router.post('/perks', onlyAdminAuth, perksController.create_perk)
-router.get('/perks', perksController.get_perks)
+router.get('/perks', cache(5 * 60), perksController.get_perks)
 router.get('/admin-perks', onlyAdminAuth, perksController.get_admin_perks)
 router.get('/perks/:id', onlyAdminAuth, perksController.get_single_perk)
 router.delete('/perks/:id', onlyAdminAuth, perksController.delete_perk)
@@ -97,7 +97,7 @@ router.put('/perks/:id', onlyAdminAuth, perksController.update_perk)
 
 // ShopItems
 router.post('/shopItems', onlyAdminAuth, shopItemsController.create_shopItem)
-router.get('/shopItems', shopItemsController.get_shopItems)
+router.get('/shopItems', cache(5 * 60), shopItemsController.get_shopItems)
 router.get('/admin-shopItems', onlyAdminAuth, shopItemsController.get_admin_shopItems)
 router.get('/shopItems/:id', onlyAdminAuth, shopItemsController.get_single_shopItem)
 router.delete('/shopItems/:id', onlyAdminAuth, shopItemsController.delete_shopItem)

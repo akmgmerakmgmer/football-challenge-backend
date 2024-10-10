@@ -183,6 +183,32 @@ const user_save_game = (req, res, next) => {
 
     }).catch(next)
 }
+
+const getUserPoints = (req, user) => {
+    if (req.query.searchByTime === 'daily' && user.user_points.dailyPoints && user.user_points.dailyPoints.points) return user.user_points.dailyPoints.points
+
+    if (req.query.searchByTime === 'weekly' && user.user_points.weeklyPoints.length) {
+        for (let i in user.user_points.weeklyPoints) {
+            if (req.query.week === 'thisWeek' && user.user_points.weeklyPoints[i].weekDate === getLastSaturday(new Date())) return user.user_points.weeklyPoints[i].points
+            else if (user.user_points.weeklyPoints[i].weekDate === getSaturdayBeforeLast(new Date())) return user.user_points.weeklyPoints[i].points
+        }
+    }
+
+    if (req.query.searchByTime === 'monthly' && user.user_points.monthlyPoints.length) {
+        const monthlyPoints = user.user_points.monthlyPoints
+        for (let i in monthlyPoints) {
+            if (monthlyPoints[i].year === parseInt(req.query.year) && monthlyPoints[i].month === parseInt(req.query.month)) return monthlyPoints[i].points
+            else return 0
+        }
+    }
+
+    if (req.query.searchByTime === 'yearly' && user.user_points.yearlyPoints.length) {
+        const yearlyPoints = user.user_points.yearlyPoints
+        for (let i in yearlyPoints) {
+            if (yearlyPoints[i].year === parseInt(req.query.year)) return yearlyPoints[i].points
+        }
+    }
+}
 const matchFilters = (req) => {
     const match = { $and: [{ $or: [{ username: { $regex: req.query.search, $options: "i" } }] }] }
     if (req.query.searchByTime === 'daily') match.$and.push({ "user_points.dailyPoints.day": getCurrentDay() })
@@ -190,6 +216,15 @@ const matchFilters = (req) => {
     else if (req.query.searchByTime === 'monthly') match.$and.push({ "user_points.monthlyPoints.year": parseInt(req.query.year), "user_points.monthlyPoints.month": parseInt(req.query.month) })
 
     else if (req.query.searchByTime === 'yearly') match.$and.push({ "user_points.yearlyPoints.year": parseInt(req.query.year) })
+    return match
+}
+const userMatchFilters = (req, user) => {
+    const match = { $and: [{ $or: [{ username: { $regex: req.query.search, $options: "i" } }] }] }
+    if (req.query.searchByTime === 'daily') match.$and.push({ 'user_points.weeklyPoints.points': { $gt: getUserPoints(req, user) }, "user_points.dailyPoints.day": getCurrentDay() })
+    else if (req.query.searchByTime === 'weekly') match.$and.push({ 'user_points.weeklyPoints.points': { $gt: getUserPoints(req, user) }, "user_points.weeklyPoints.weekDate": req.query.week === 'thisWeek' ? getLastSaturday(new Date()) : getSaturdayBeforeLast(new Date()) })
+    else if (req.query.searchByTime === 'monthly') match.$and.push({ 'user_points.weeklyPoints.points': { $gt: getUserPoints(req, user) }, "user_points.monthlyPoints.year": parseInt(req.query.year), "user_points.monthlyPoints.month": parseInt(req.query.month) })
+
+    else if (req.query.searchByTime === 'yearly') match.$and.push({ 'user_points.weeklyPoints.points': { $gt: getUserPoints(req, user) }, "user_points.yearlyPoints.year": parseInt(req.query.year) })
     return match
 }
 const unwindUsers = (req) => {
@@ -254,12 +289,13 @@ const updatedCurrentUser = (user, searchTime) => {
     return user
 }
 const get_user_current_ranking = (req, res, next) => {
-    User.findOneAndUpdate(
-        { _id: req.params.id },
-        { new: true } // To return the updated document
-    )
-        .then(updatedUser => {
-            const userId = req.params.id; // Assuming you have the user's ID
+    User.findById({ _id: req.params.id }).then(user => {
+        User.aggregate([
+            { $unwind: unwindUsers(req) },
+            { $match: userMatchFilters(req, user) },// Find users with more points
+            { $count: "rank" } // Count how many users have more points
+        ]).then(response => {
+            const rank = response.length ? response[0].rank + 1 : 1
             User.aggregate([
                 {
                     $match: matchFilters(req)
@@ -271,23 +307,17 @@ const get_user_current_ranking = (req, res, next) => {
                 },
                 // Sort by the last index of weeklyPoints
                 { $sort: sortUsers(req) },
-            ], { allowDiskUse: true }).then((sortedUsers) => {
+                { $limit: 10 }
+            ]).then((sortedUsers) => {
                 // Find the index of the user in the sorted list
-
-                const userIndex = sortedUsers.findIndex(user => String(user._id) === String(userId));
-                let user;
-                if (sortedUsers.length) user = sortedUsers.filter(user => String(user._id) === String(userId));
-                if (user && user.length) user = updatedCurrentUser(user[0], req.query.searchByTime)
-
-                else user = updatedUser
-                const currentRank = userIndex + 1
-                res.status(200).send({ rank: currentRank, user: user, rankedUsers: updatedSortedUsers(sortedUsers, req.query.searchByTime) });
+                if (user) user = updatedCurrentUser(user, req.query.searchByTime)
+                res.status(200).send({ rank: rank, user: user, rankedUsers: updatedSortedUsers(sortedUsers, req.query.searchByTime) });
             }).catch((err) => {
                 next(err);
             });
-
         })
-        .catch(next);
+    })
+
 }
 const get_rankings = (req, res, next) => {
     User.aggregate([
@@ -302,7 +332,7 @@ const get_rankings = (req, res, next) => {
         // Sort by the last index of weeklyPoints
         { $sort: sortUsers(req) },
         { $limit: 10 }
-    ], { allowDiskUse: true }).then((sortedUsers) => {
+    ]).then((sortedUsers) => {
         // Find the index of the user in the sorted list
         res.status(200).send({ rankedUsers: updatedSortedUsers(sortedUsers, req.query.searchByTime) });
     }).catch((err) => {
