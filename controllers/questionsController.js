@@ -150,8 +150,8 @@ const getQuestionsMethod = (req, res, next, match, user, searchName) => {
         },
         { $skip: skip },                   // Skip based on pagination
         { $sample: { size: per_page } },   // Add this stage to get random questions
-        { $limit: per_page }                // Limit based on pagination
-    ]).then(async (questions) => {
+        { $limit: per_page },              // Limit based on pagination
+    ], { allowDiskUse: true }).then(async (questions) => {
         const total_questions = await Question.countDocuments()
         for (let i in questions) {
             questions[i].answer = crypto.createHash('sha256').update(questions[i].answer).digest('hex');

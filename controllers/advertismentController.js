@@ -14,7 +14,7 @@ const create_advertisment = async (req, res, next) => {
 
 const get_advertisment = (req, res, next) => {
     const page = (req.query.page || 1) - 1;
-    const per_page = 30;
+    const per_page = 100;
 
     // Calculate the skip value based on the page number and number of documents per page
     const skip = page * per_page;
@@ -32,7 +32,8 @@ const get_advertisment = (req, res, next) => {
         const total_advertisments = await Advertisment.countDocuments()
         const bestOffersAds = advertisments.filter(ad => ad.advertiseAt == 'bestOffers')
         const realAds = advertisments.filter(ad => ad.advertiseAt == 'websitePages')
-        res.status(200).send({ advertisments: realAds, bestOffers: bestOffersAds, total_advertisments, per_page })
+        const videoAds = advertisments.filter(ad => ad.advertiseAt == 'videoAds')
+        res.status(200).send({ advertisments: realAds, bestOffers: bestOffersAds, videoAds: videoAds, total_advertisments, per_page })
     }).catch((err) => {
         next(err);
     });

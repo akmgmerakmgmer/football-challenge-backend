@@ -17,8 +17,8 @@ require("dotenv").config()
 
 // const UglifyJS = require('uglify-js');
 // const fs = require('fs');
-// const result = UglifyJS.minify(fs.readFileSync('./controllers/questionsController.js', 'utf8'));
-// fs.writeFileSync('./controllers/questionsController.min.js', result.code);
+// const result = UglifyJS.minify(fs.readFileSync('./controllers/usersController.js', 'utf8'));
+// fs.writeFileSync('./controllers/usersController.min.js', result.code);
 
 //Database Connection
 const port = process.env.PORT || 4000
@@ -46,8 +46,8 @@ app.use(helmet())
 app.use(compression())
 app.use(xssClean())
 app.use('/images', express.static('images'))
-app.use(bodyParser.json({ limit: '50mb' }))
-app.use(bodyParser.json({ limit: '500mb' }))
+app.use(bodyParser.json({ limit: '100mb' }))
+app.use(bodyParser.urlencoded({ limit: '100mb', extended: true }));
 app.use('/api', require('./routes/api.min.js'))
 
 

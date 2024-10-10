@@ -8,7 +8,7 @@ const TransactionSchema = new Schema({
     itemQuantity: {
         type: Number
     },
-    transactionId: {
+    userId: {
         type: String
     },
     username: {

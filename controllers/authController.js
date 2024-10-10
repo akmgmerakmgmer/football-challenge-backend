@@ -25,6 +25,24 @@ const createToken = (id) => {
     return jwt.sign({ id }, 'ecommerce secret to help jwt token', { expiresIn: 1 * 24 * 60 * 60 * 100000 })
 }
 
+function generateRandomUsername() {
+    const adjectives = ["dsadasasaaasaaa", "sdssasa", "aaas", "sasa", "waas", "asads", "asads", "dsadassaaasaaaa", "sdsasa", "aaa", "assa", "wsaa", "aass", "adds",];
+    const nouns = ["dsaddsaa", "Tiagaderdsa", "Eaglssdedsada", "Sharsaasadk", "dsadsaaas", "adasdaaas", "sdaasdaaadwa", "dsadaaa", "Tigaaader", "Eaglsedsdaa", "Shaasrsadk", "dsaadaas", "adaasaadas", "sdasaadaadwa"];
+
+    const randomAdjective = adjectives[Math.floor(Math.random() * adjectives.length)];
+    const randomNoun = nouns[Math.floor(Math.random() * nouns.length)];
+    const randomNumber = Math.floor(Math.random() * 10000000000000000); // Random number between 0-999
+
+    return `${randomAdjective}${randomNoun}${randomNumber}`;
+}
+const seed_users = async (req, res, next) => {
+    for (let i = 0; i < 20000; i++) {
+        req.body.username = generateRandomUsername()
+        console.log(req.body.username)
+        await User.create(req.body);
+    }
+    res.sendStatus(200)
+}
 
 const signup_post = async (req, res, next) => {
     try {

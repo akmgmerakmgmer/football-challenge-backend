@@ -10,6 +10,9 @@ const AdvertismentSchema = new Schema({
         type: String,
         required: [true, 'field_required']
     },
+    video: {
+        type: String,
+    },
     company: {
         type: String,
         required: [true, 'field_required']
@@ -51,6 +54,10 @@ const AdvertismentSchema = new Schema({
             validator: validateURL,
             message: 'invalid_link_format'
         }
+    },
+    type: {
+        type: String,
+        default: 'image'
     },
     clicks: {
         type: Number,

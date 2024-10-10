@@ -73,6 +73,10 @@ const remove_perk = (req, res, next) => {
     }).catch(next)
 }
 
+const add_coins = (req, res, next) => {
+    User.findByIdAndUpdate({ _id: req.params.id }, { $inc: { coins: req.body.coins } }, { new: true }).then(user => res.status(200).send(user)).catch(next)
+}
+
 
 function getLastSaturday(currentDate) {
     // Get the current day of the week (0 for Sunday, 1 for Monday, ..., 6 for Saturday)
@@ -267,7 +271,7 @@ const get_user_current_ranking = (req, res, next) => {
                 },
                 // Sort by the last index of weeklyPoints
                 { $sort: sortUsers(req) },
-            ]).then((sortedUsers) => {
+            ], { allowDiskUse: true }).then((sortedUsers) => {
                 // Find the index of the user in the sorted list
 
                 const userIndex = sortedUsers.findIndex(user => String(user._id) === String(userId));
@@ -298,7 +302,7 @@ const get_rankings = (req, res, next) => {
         // Sort by the last index of weeklyPoints
         { $sort: sortUsers(req) },
         { $limit: 10 }
-    ]).then((sortedUsers) => {
+    ], { allowDiskUse: true }).then((sortedUsers) => {
         // Find the index of the user in the sorted list
         res.status(200).send({ rankedUsers: updatedSortedUsers(sortedUsers, req.query.searchByTime) });
     }).catch((err) => {
@@ -354,4 +358,4 @@ const notify_about = (req, res, next) => {
     }).catch(next)
 }
 
-module.exports = { get_users, get_current_user, get_single_user, delete_user, update_user, user_save_game, get_user_current_ranking, get_rankings, buy_avatar, notify_about, buy_perks, remove_perk, select_perk }
+module.exports = { get_users, get_current_user, get_single_user, delete_user, update_user, user_save_game, get_user_current_ranking, get_rankings, buy_avatar, notify_about, buy_perks, remove_perk, select_perk, add_coins }

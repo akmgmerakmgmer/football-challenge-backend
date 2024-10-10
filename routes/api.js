@@ -1,13 +1,13 @@
 const express = require('express')
 const router = express.Router()
-const authController = require('../controllers/authController.min.js')
-const usersController = require('../controllers/usersController.min.js')
+const authController = require('../controllers/authController.js')
+const usersController = require('../controllers/usersController.js')
 const questionsController = require('../controllers/questionsController.min.js')
 const playersController = require('../controllers/playersController.min.js')
-const advertismentController = require('../controllers/advertismentController.min.js')
+const advertismentController = require('../controllers/advertismentController.js')
 const challengeController = require('../controllers/challengesController.min.js')
 const avatarController = require('../controllers/avatarsController.min.js')
-const transactionController = require('../controllers/transactionController.min.js')
+const transactionController = require('../controllers/transactionController.js')
 const shopItemsController = require('../controllers/shopItemsController.min.js')
 const perksController = require('../controllers/perksController.min.js')
 const { onlyAdminAuth, onlyUserAuth, requireAuth } = require('../middlewares/auth.min.js')
@@ -31,6 +31,7 @@ router.delete('/users/:id', onlyAdminAuth, usersController.delete_user)
 router.put('/users/:id', requireAuth, usersController.update_user)
 router.put('/remove-perk/:id', onlyUserAuth, usersController.remove_perk)
 router.put('/select-perk/:id', onlyUserAuth, usersController.select_perk)
+router.put('/add-coins/:id', requireAuth, usersController.add_coins)
 router.post('/user-save-game/:id', onlyUserAuth, usersController.user_save_game)
 router.get('/get-user-rank/:id', onlyUserAuth, usersController.get_user_current_ranking)
 router.get('/get-rankings', usersController.get_rankings)
@@ -71,36 +72,36 @@ router.delete('/challenges/:id', onlyAdminAuth, challengeController.delete_chall
 router.put('/challenges/:id', onlyAdminAuth, challengeController.update_challenge)
 
 // Avatars
-router.post('/avatars',onlyAdminAuth, avatarController.create_avatar)
+router.post('/avatars', onlyAdminAuth, avatarController.create_avatar)
 router.get('/avatars', avatarController.get_avatars)
-router.get('/admin-avatars',onlyAdminAuth, avatarController.get_admin_avatars)
-router.get('/avatars/:id',onlyAdminAuth, avatarController.get_single_avatar)
-router.delete('/avatars/:id',onlyAdminAuth, avatarController.delete_avatar)
-router.put('/avatars/:id',onlyAdminAuth, avatarController.update_avatar)
+router.get('/admin-avatars', onlyAdminAuth, avatarController.get_admin_avatars)
+router.get('/avatars/:id', onlyAdminAuth, avatarController.get_single_avatar)
+router.delete('/avatars/:id', onlyAdminAuth, avatarController.delete_avatar)
+router.put('/avatars/:id', onlyAdminAuth, avatarController.update_avatar)
 
 // Transactions
-router.post('/card-payment', transactionController.new_payment_method)
+router.post('/card-payment', transactionController.kashierPaymentMethod)
 router.post('/payment-success', transactionController.payment_success)
-router.get('/transactions',onlyAdminAuth, transactionController.get_transactions)
-router.get('/transactions/:id',onlyAdminAuth, transactionController.get_single_transaction)
-router.delete('/transactions/:id',onlyAdminAuth, transactionController.delete_transaction)
-router.put('/transactions/:id',onlyAdminAuth, transactionController.update_transaction)
+router.get('/transactions', onlyAdminAuth, transactionController.get_transactions)
+router.get('/transactions/:id', onlyAdminAuth, transactionController.get_single_transaction)
+router.delete('/transactions/:id', onlyAdminAuth, transactionController.delete_transaction)
+router.put('/transactions/:id', onlyAdminAuth, transactionController.update_transaction)
 
 // Perks
-router.post('/perks',onlyAdminAuth, perksController.create_perk)
+router.post('/perks', onlyAdminAuth, perksController.create_perk)
 router.get('/perks', perksController.get_perks)
-router.get('/admin-perks',onlyAdminAuth, perksController.get_admin_perks)
-router.get('/perks/:id',onlyAdminAuth, perksController.get_single_perk)
-router.delete('/perks/:id',onlyAdminAuth, perksController.delete_perk)
-router.put('/perks/:id',onlyAdminAuth, perksController.update_perk)
+router.get('/admin-perks', onlyAdminAuth, perksController.get_admin_perks)
+router.get('/perks/:id', onlyAdminAuth, perksController.get_single_perk)
+router.delete('/perks/:id', onlyAdminAuth, perksController.delete_perk)
+router.put('/perks/:id', onlyAdminAuth, perksController.update_perk)
 
 // ShopItems
-router.post('/shopItems',onlyAdminAuth, shopItemsController.create_shopItem)
+router.post('/shopItems', onlyAdminAuth, shopItemsController.create_shopItem)
 router.get('/shopItems', shopItemsController.get_shopItems)
-router.get('/admin-shopItems',onlyAdminAuth, shopItemsController.get_admin_shopItems)
-router.get('/shopItems/:id',onlyAdminAuth, shopItemsController.get_single_shopItem)
-router.delete('/shopItems/:id',onlyAdminAuth, shopItemsController.delete_shopItem)
-router.put('/shopItems/:id',onlyAdminAuth, shopItemsController.update_shopItem)
+router.get('/admin-shopItems', onlyAdminAuth, shopItemsController.get_admin_shopItems)
+router.get('/shopItems/:id', onlyAdminAuth, shopItemsController.get_single_shopItem)
+router.delete('/shopItems/:id', onlyAdminAuth, shopItemsController.delete_shopItem)
+router.put('/shopItems/:id', onlyAdminAuth, shopItemsController.update_shopItem)
 
 
 router.post('/translate', (req, res, next) => {
@@ -123,4 +124,16 @@ router.post('/upload-single', upload.single('image'), compressImage, async (req,
         res.status(200).send(result)
     }
 })
+
+router.post('/upload-video', upload.single('file'), async (req, res) => {
+    if (!req.file) {
+        return res.status(422).send({ code: 422, msg: 'field_required' });
+    }
+    try {
+        const result = await cloudinary.uploader.upload(req.file.path, { resource_type: 'video' });
+        res.status(200).send(result);
+    } catch (err) {
+        res.status(500).send({ code: 500, msg: 'upload_error', error: err.message });
+    }
+});
 module.exports = router
