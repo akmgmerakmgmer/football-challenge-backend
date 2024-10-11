@@ -14,6 +14,6 @@ export const options = {
     ],
 };
 export default () => {
-    http.get('https://football-challenge-backend.vercel.app/api/questions')
+    http.get('https://football-challenge-backend.onrender.com/api/questions')
     sleep(1)
 }

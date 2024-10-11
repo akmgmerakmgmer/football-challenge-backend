@@ -7,10 +7,10 @@ export const options = {
     noConnectionReuse: true,
     stages: [
         { duration: '2m', target: 1000 },
-        // { duration: '5m', target: 1400 },
+        { duration: '5m', target: 1400 },
     ]
 }
 export default () => {
-    http.get('https://football-challenge-backend.vercel.app/api/questions')
+    http.get('https://football-challenge-backend-eg83.vercel.app/api/questions')
     sleep(1)
 }

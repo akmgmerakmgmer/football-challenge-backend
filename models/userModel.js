@@ -91,7 +91,7 @@ const UserSchema = new Schema({
     },
     coins: {
         type: Number,
-        default: 0
+        default: 1000
     },
     games_played: {
         type: Number,
