@@ -11,8 +11,8 @@ const create_shopItem = (req, res, next) => {
 }
 
 const get_shopItems = async (req, res, next) => {
-    const perksItems = await Perk.find({}).populate('title').populate('description')
-    ShopItem.find({}).populate('title').then(shopItems => {
+    const perksItems = await Perk.find({})
+    ShopItem.find({}).then(shopItems => {
         const perks = perksItems
         const coins = shopItems.filter(item => item.itemType === 'coins')
         const bundles = shopItems.filter(item => item.itemType === 'bundles')

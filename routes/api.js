@@ -97,7 +97,7 @@ router.put('/perks/:id', onlyAdminAuth, perksController.update_perk)
 
 // ShopItems
 router.post('/shopItems', onlyAdminAuth, shopItemsController.create_shopItem)
-router.get('/shopItems', cache(5 * 60), shopItemsController.get_shopItems)
+router.get('/shopItems', shopItemsController.get_shopItems)
 router.get('/admin-shopItems', onlyAdminAuth, shopItemsController.get_admin_shopItems)
 router.get('/shopItems/:id', onlyAdminAuth, shopItemsController.get_single_shopItem)
 router.delete('/shopItems/:id', onlyAdminAuth, shopItemsController.delete_shopItem)
