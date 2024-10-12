@@ -273,8 +273,8 @@ const updatedCurrentUser = (user, searchTime) => {
     }
     if (searchTime === 'weekly') {
         const currentUser = user.user_points
-        user.points = currentUser.weeklyPoints.points
-        user.games_played = currentUser.weeklyPoints.games_played
+        user.points = currentUser.weeklyPoints[0].points
+        user.games_played = currentUser.weeklyPoints[0].games_played
     }
     if (searchTime === 'monthly') {
         const currentUser = user.user_points
