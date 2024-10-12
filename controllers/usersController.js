@@ -185,29 +185,29 @@ const user_save_game = (req, res, next) => {
 }
 
 const getUserPoints = (req, user) => {
-    if (req.query.searchByTime === 'daily' && user.user_points.dailyPoints && user.user_points.dailyPoints.points) return user.user_points.dailyPoints.points
+    if (req.query.searchByTime === 'daily' && user.user_points.dailyPoints && user.user_points.dailyPoints.points) return { points: user.user_points.dailyPoints.points, games_played: user.user_points.dailyPoints.games_played }
 
     if (req.query.searchByTime === 'weekly' && user.user_points.weeklyPoints.length) {
         for (let i in user.user_points.weeklyPoints) {
-            if (req.query.week === 'thisWeek' && user.user_points.weeklyPoints[i].weekDate === getLastSaturday(new Date())) return user.user_points.weeklyPoints[i].points
-            else if (user.user_points.weeklyPoints[i].weekDate === getSaturdayBeforeLast(new Date())) return user.user_points.weeklyPoints[i].points
+            if (req.query.week === 'thisWeek' && user.user_points.weeklyPoints[i].weekDate === getLastSaturday(new Date())) return { points: user.user_points.weeklyPoints[i].points, games_played: user.user_points.weeklyPoints[i].games_played }
+            else if (user.user_points.weeklyPoints[i].weekDate === getSaturdayBeforeLast(new Date())) return { points: user.user_points.weeklyPoints[i].points, games_played: user.user_points.weeklyPoints[i].games_played }
         }
     }
 
     if (req.query.searchByTime === 'monthly' && user.user_points.monthlyPoints.length) {
         const monthlyPoints = user.user_points.monthlyPoints
         for (let i in monthlyPoints) {
-            if (monthlyPoints[i].year === parseInt(req.query.year) && monthlyPoints[i].month === parseInt(req.query.month)) return monthlyPoints[i].points
-            else return 0
+            if (monthlyPoints[i].year === parseInt(req.query.year) && monthlyPoints[i].month === parseInt(req.query.month)) return { points: monthlyPoints[i].points, games_played: monthlyPoints[i].games_played }
         }
     }
 
     if (req.query.searchByTime === 'yearly' && user.user_points.yearlyPoints.length) {
         const yearlyPoints = user.user_points.yearlyPoints
         for (let i in yearlyPoints) {
-            if (yearlyPoints[i].year === parseInt(req.query.year)) return yearlyPoints[i].points
+            if (yearlyPoints[i].year === parseInt(req.query.year)) return { points: yearlyPoints[i].points, games_played: yearlyPoints[i].games_played }
         }
     }
+    return { points: 0, games_played: 0 }
 }
 const matchFilters = (req) => {
     const match = { $and: [{ $or: [{ username: { $regex: req.query.search, $options: "i" } }] }] }
@@ -220,11 +220,11 @@ const matchFilters = (req) => {
 }
 const userMatchFilters = (req, user) => {
     const match = { $and: [{ $or: [{ username: { $regex: req.query.search, $options: "i" } }] }] }
-    if (req.query.searchByTime === 'daily') match.$and.push({ 'user_points.weeklyPoints.points': { $gt: getUserPoints(req, user) }, "user_points.dailyPoints.day": getCurrentDay() })
-    else if (req.query.searchByTime === 'weekly') match.$and.push({ 'user_points.weeklyPoints.points': { $gt: getUserPoints(req, user) }, "user_points.weeklyPoints.weekDate": req.query.week === 'thisWeek' ? getLastSaturday(new Date()) : getSaturdayBeforeLast(new Date()) })
-    else if (req.query.searchByTime === 'monthly') match.$and.push({ 'user_points.weeklyPoints.points': { $gt: getUserPoints(req, user) }, "user_points.monthlyPoints.year": parseInt(req.query.year), "user_points.monthlyPoints.month": parseInt(req.query.month) })
+    if (req.query.searchByTime === 'daily') match.$and.push({ 'user_points.weeklyPoints.points': { $gt: getUserPoints(req, user).points || 0 }, "user_points.dailyPoints.day": getCurrentDay() })
+    else if (req.query.searchByTime === 'weekly') match.$and.push({ 'user_points.weeklyPoints.points': { $gt: getUserPoints(req, user).points || 0 }, "user_points.weeklyPoints.weekDate": req.query.week === 'thisWeek' ? getLastSaturday(new Date()) : getSaturdayBeforeLast(new Date()) })
+    else if (req.query.searchByTime === 'monthly') match.$and.push({ 'user_points.weeklyPoints.points': { $gt: getUserPoints(req, user).points || 0 }, "user_points.monthlyPoints.year": parseInt(req.query.year), "user_points.monthlyPoints.month": parseInt(req.query.month) })
 
-    else if (req.query.searchByTime === 'yearly') match.$and.push({ 'user_points.weeklyPoints.points': { $gt: getUserPoints(req, user) }, "user_points.yearlyPoints.year": parseInt(req.query.year) })
+    else if (req.query.searchByTime === 'yearly') match.$and.push({ 'user_points.weeklyPoints.points': { $gt: getUserPoints(req, user).points || 0 }, "user_points.yearlyPoints.year": parseInt(req.query.year) })
     return match
 }
 const unwindUsers = (req) => {
@@ -296,6 +296,8 @@ const get_user_current_ranking = (req, res, next) => {
             { $count: "rank" } // Count how many users have more points
         ]).then(response => {
             const rank = response.length ? response[0].rank + 1 : 1
+            user.points = getUserPoints(req, user).points
+            user.games_played = getUserPoints(req, user).games_played
             User.aggregate([
                 {
                     $match: matchFilters(req)
@@ -310,7 +312,6 @@ const get_user_current_ranking = (req, res, next) => {
                 { $limit: 10 }
             ]).then((sortedUsers) => {
                 // Find the index of the user in the sorted list
-                if (user) user = updatedCurrentUser(user, req.query.searchByTime)
                 res.status(200).send({ rank: rank, user: user, rankedUsers: updatedSortedUsers(sortedUsers, req.query.searchByTime) });
             }).catch((err) => {
                 next(err);
