@@ -188,9 +188,9 @@ const getUserPoints = (req, user) => {
     if (req.query.searchByTime === 'daily' && user.user_points.dailyPoints && user.user_points.dailyPoints.points) return { points: user.user_points.dailyPoints.points, games_played: user.user_points.dailyPoints.games_played }
 
     if (req.query.searchByTime === 'weekly' && user.user_points.weeklyPoints.length) {
-        for (let i in user.user_points.weeklyPoints) {
+        for (let i = 0; i < user.user_points.weeklyPoints.length; i++) {
             if (req.query.week === 'thisWeek' && user.user_points.weeklyPoints[i].weekDate === getLastSaturday(new Date())) return { points: user.user_points.weeklyPoints[i].points, games_played: user.user_points.weeklyPoints[i].games_played }
-            else if (user.user_points.weeklyPoints[i].weekDate === getSaturdayBeforeLast(new Date())) return { points: user.user_points.weeklyPoints[i].points, games_played: user.user_points.weeklyPoints[i].games_played }
+            if (req.query.week === 'lastWeek' && user.user_points.weeklyPoints[i].weekDate === getSaturdayBeforeLast(new Date())) return { points: user.user_points.weeklyPoints[i].points, games_played: user.user_points.weeklyPoints[i].games_played }
         }
     }
 
@@ -265,29 +265,7 @@ const updatedSortedUsers = (sortedUsers, searchTime) => {
     }
     return sortedUsers.slice(0, 10)
 }
-const updatedCurrentUser = (user, searchTime) => {
-    if (searchTime === 'daily') {
-        const currentUser = user.user_points
-        user.points = currentUser.dailyPoints.points
-        user.games_played = currentUser.dailyPoints.games_played
-    }
-    if (searchTime === 'weekly') {
-        const currentUser = user.user_points
-        user.points = currentUser.weeklyPoints[0].points
-        user.games_played = currentUser.weeklyPoints[0].games_played
-    }
-    if (searchTime === 'monthly') {
-        const currentUser = user.user_points
-        user.points = currentUser.monthlyPoints.points
-        user.games_played = currentUser.monthlyPoints.games_played
-    }
-    if (searchTime === 'yearly') {
-        const currentUser = user.user_points
-        user.points = currentUser.yearlyPoints[0].points
-        user.games_played = currentUser.yearlyPoints[0].games_played
-    }
-    return user
-}
+
 const get_user_current_ranking = (req, res, next) => {
     User.findById({ _id: req.params.id }).then(user => {
         User.aggregate([
