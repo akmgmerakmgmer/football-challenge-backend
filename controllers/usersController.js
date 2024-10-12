@@ -283,8 +283,8 @@ const updatedCurrentUser = (user, searchTime) => {
     }
     if (searchTime === 'yearly') {
         const currentUser = user.user_points
-        user.points = currentUser.yearlyPoints.points
-        user.games_played = currentUser.yearlyPoints.games_played
+        user.points = currentUser.yearlyPoints[0].points
+        user.games_played = currentUser.yearlyPoints[0].games_played
     }
     return user
 }
