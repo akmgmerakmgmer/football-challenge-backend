@@ -2,6 +2,7 @@ const jwt = require('jsonwebtoken')
 const User = require('../models/userModel')
 const moment = require('moment');
 const Perk = require('../models/perksModel');
+const Avatar = require('../models/avatarsModel');
 
 const get_users = (req, res, next) => {
     const page = req.query.page - 1 || 0
@@ -329,6 +330,7 @@ const buy_avatar = (req, res, next) => {
             { $push: { avatars: req.body.avatar }, $inc: { coins: -req.body.avatar.price } }, // Update operation using $push
             { new: true }).populate('perks.id').then(updatedUser => {
                 res.status(200).send({ user: updatedUser })
+                Avatar.findOneAndUpdate({ image: req.body.avatar.image }, { $inc: { purchases: 1 } })
             }).catch(next)
     })
 
