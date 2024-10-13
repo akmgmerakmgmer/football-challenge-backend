@@ -126,6 +126,7 @@ const getCurrentDay = () => {
 }
 const user_save_game = (req, res, next) => {
     const { coins, points, usedPerks } = req.body
+    if (points > 3000) points = 0
     User.findOne({ _id: req.params.id }).then(user => {
         const currentDate = new Date();
         const yearlyPoints = user.user_points.yearlyPoints
