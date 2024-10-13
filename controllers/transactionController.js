@@ -25,7 +25,7 @@ const kashierPaymentMethod = (req, res, next) => {
     }
     Transaction.create(transactionCreationPayload).then(transaction => {
         const mode = 'live'
-        const path = `https://checkout.kashier.io/?merchantId=MID-28902-440&orderId=${transaction._id}&amount=${amount}&currency=EGP&hash=${generateKashierOrderHash(req.body, transaction._id)}&mode=${mode}&merchantRedirect=${'https://www.inzonegaming.com/ar/payment-success'}&display=ar&enable3DS=false&type=external&brandColor=%2300bcbc`
+        const path = `https://checkout.kashier.io/?merchantId=MID-28902-440&orderId=${transaction._id}&amount=${amount}&currency=EGP&hash=${generateKashierOrderHash(req.body, transaction._id)}&mode=${mode}&merchantRedirect=${'https://www.inzonegaming.com/ar/payment-success'}&display=ar&enable3DS=false&type=external&brandColor=%2300bcbc&defaultMethod=wallet`
         res.status(200).send({ path })
     })
 
