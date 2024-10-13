@@ -14,6 +14,8 @@ const AvatarModel = new Schema({
         type: Number,
         default: 0
     }
+}, {
+    timestamps: true
 })
 
 

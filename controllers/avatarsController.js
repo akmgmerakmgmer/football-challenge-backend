@@ -13,7 +13,7 @@ const get_avatars = (req, res, next) => {
     const page = req.query.page - 1 || 0
     const per_page = 8
     Avatar.find({}).count().then(total_avatars => {
-        Avatar.find({}).skip(page * per_page).limit(per_page).then(avatars => res.status(200).send({ avatars, total_avatars, per_page })).catch(next)
+        Avatar.find({}).sort({ createdAt: -1 }).skip(page * per_page).limit(per_page).then(avatars => res.status(200).send({ avatars, total_avatars, per_page })).catch(next)
     })
 }
 
