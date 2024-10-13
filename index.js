@@ -43,7 +43,7 @@ app.use(cors({
     credentials: true,
     allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
     origin: function (origin, callback) {
-        if (origin === 'https://www.inzonegaming.com' || origin === 'https://admin-football.vercel.app/' || !origin) {
+        if (origin === 'https://www.inzonegaming.com' || origin === 'https://admin-football.vercel.app' || !origin) {
             // Allow requests from your website and mobile apps (which may not have an origin header)
             callback(null, true);
         } else {
