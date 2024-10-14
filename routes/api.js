@@ -65,7 +65,7 @@ router.put('/ad-clicked/:id', advertismentController.ad_clicked)
 
 // Challenges
 router.post('/challenges', onlyAdminAuth, challengeController.create_challenge)
-router.get('/challenges', cache(5 * 60), challengeController.get_challenges)
+router.get('/challenges', challengeController.get_challenges)
 router.get('/admin-challenges', onlyAdminAuth, challengeController.get_admin_challenges)
 router.get('/challenges/:id', onlyAdminAuth, challengeController.get_single_challenge)
 router.delete('/challenges/:id', onlyAdminAuth, challengeController.delete_challenge)
