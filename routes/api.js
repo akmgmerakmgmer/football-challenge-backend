@@ -10,6 +10,7 @@ const avatarController = require('../controllers/avatarsController.min.js')
 const transactionController = require('../controllers/transactionController.min.js')
 const shopItemsController = require('../controllers/shopItemsController.min.js')
 const perksController = require('../controllers/perksController.min.js')
+const eventsController = require('../controllers/eventsController.js')
 const { onlyAdminAuth, onlyUserAuth, requireAuth } = require('../middlewares/auth.min.js')
 const cloudinary = require('../utilities/cloudinary')
 require("dotenv").config()
@@ -102,6 +103,14 @@ router.get('/admin-shopItems', onlyAdminAuth, shopItemsController.get_admin_shop
 router.get('/shopItems/:id', onlyAdminAuth, shopItemsController.get_single_shopItem)
 router.delete('/shopItems/:id', onlyAdminAuth, shopItemsController.delete_shopItem)
 router.put('/shopItems/:id', onlyAdminAuth, shopItemsController.update_shopItem)
+
+// Events
+router.post('/events', onlyAdminAuth, eventsController.create_events)
+router.get('/events', eventsController.get_events)
+router.get('/admin-events', onlyAdminAuth, eventsController.get_admin_events)
+router.get('/events/:id', onlyAdminAuth, eventsController.get_single_events)
+router.delete('/events/:id', onlyAdminAuth, eventsController.delete_events)
+router.put('/events/:id', onlyAdminAuth, eventsController.update_events)
 
 
 router.post('/translate', (req, res, next) => {
