@@ -39,6 +39,12 @@ mongoose.connect(database, { writeConcern: { w: 'majority', j: true, wtimeout: 1
 //Middlewares
 
 app.set('trust proxy', 1)
+// app.use(cors({
+//     credentials: true,
+//     allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Access-Control-Allow-Origin'],
+//     origin: '*',
+//     exposedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Access-Control-Allow-Origin']
+// }));
 app.use(cors({
     credentials: true,
     allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
