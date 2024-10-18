@@ -11,7 +11,7 @@ const transactionController = require('../controllers/transactionController.min.
 const shopItemsController = require('../controllers/shopItemsController.min.js')
 const perksController = require('../controllers/perksController.min.js')
 const { onlyAdminAuth, onlyUserAuth, requireAuth } = require('../middlewares/auth.min.js')
-const { loginHandler, signupHandler } = require('../middlewares/tiktok-events.js').default
+const { loginHandler, signupHandler } = require('../middlewares/tiktok-events.js')
 const cloudinary = require('../utilities/cloudinary')
 require("dotenv").config()
 const upload = require('../utilities/multer')
