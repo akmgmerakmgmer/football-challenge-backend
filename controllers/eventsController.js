@@ -1,16 +1,18 @@
 const Event = require("../models/eventsModel")
 const { handleErrors } = require('../utilities/handle_errors')
+const moment = require('moment');
 
 const create_events = (req, res, next) => {
     Event.create(req.body).then(events => {
         res.status(200).send(events)
     }).catch(err => {
-        res.status(422).send(handleErrors(err, req, 'events'))
+        res.status(422).send(handleErrors(err, req, 'event'))
     })
 }
 
 const get_events = async (req, res, next) => {
-    Event.find({ active: true }).then(events => {
+    const currentDate = moment(new Date()).format('YYYY-MM-DD');
+    Event.find({ active: true, endDate: { $gte: currentDate } }).then(events => {
         res.status(200).send(events)
     }).catch(next)
 }

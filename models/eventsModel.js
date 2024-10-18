@@ -38,6 +38,9 @@ const EventSchema = new Schema({
             }
         ]
     },
+    endDate: {
+        type: String
+    },
     active: {
         type: Boolean,
         default: true

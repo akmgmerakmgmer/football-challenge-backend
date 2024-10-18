@@ -3,6 +3,7 @@ const User = require('../models/userModel')
 const moment = require('moment');
 const Perk = require('../models/perksModel');
 const Avatar = require('../models/avatarsModel');
+const Event = require('../models/eventsModel');
 
 const get_users = (req, res, next) => {
     const page = req.query.page - 1 || 0
@@ -124,10 +125,28 @@ const getCurrentDay = () => {
     let year = today.getFullYear();
     return `${year}-${month}-${day}`;
 }
+const addPointsToEvents = (events, user, points) => {
+    for (let i in events) {
+        Event.findById({ _id: events[i].id }).then(event => {
+            const currentDate = moment(new Date()).format('YYYY-MM-DD');
+            if (currentDate.getTime() > event.endDate.getTime()) {
+                user.events = user.events.filter(item => item.id.toString() !== event._id.toString())
+            }
+            else {
+                for (let i in event.sides) {
+                    if (event.sides[i].nameEn === events[i].yourSide) event.sides[i].points += points
+                }
+            }
+
+        })
+    }
+
+}
 const user_save_game = (req, res, next) => {
     const { coins, points, usedPerks } = req.body
-    if (points > 3000) points = 0
-    User.findOne({ _id: req.params.id }).then(user => {
+    if (points > 4000) points = 0
+    User.findById({ _id: req.params.id }).then(user => {
+        addPointsToEvents(user.events, user, points)
         const currentDate = new Date();
         const yearlyPoints = user.user_points.yearlyPoints
         const monthlyPoints = user.user_points.monthlyPoints
@@ -365,10 +384,14 @@ const buy_perks = (req, res, next) => {
 
 }
 
+const choose_event = (req, res, next) => {
+    User.findByIdAndUpdate({ _id: req.params.id }, { $push: { events: { id: req.body.eventId, yourSide: req.body.side } } }, { new: true }).then(user => res.status(200).send(user)).catch(next)
+}
+
 const notify_about = (req, res, next) => {
     User.findByIdAndUpdate({ _id: req.params.id }, { $push: { notifyAbout: req.body.mode } }).then(user => {
         User.findOne({ _id: req.params.id }).then(user => res.status(200).send(user))
     }).catch(next)
 }
 
-module.exports = { get_users, get_current_user, get_single_user, delete_user, update_user, user_save_game, get_user_current_ranking, get_rankings, buy_avatar, notify_about, buy_perks, remove_perk, select_perk, add_coins }
+module.exports = { get_users, get_current_user, get_single_user, delete_user, update_user, user_save_game, get_user_current_ranking, get_rankings, buy_avatar, notify_about, buy_perks, remove_perk, select_perk, add_coins, choose_event }

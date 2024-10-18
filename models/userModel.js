@@ -176,6 +176,19 @@ const UserSchema = new Schema({
                 selected: true,
             }
         ]
+    },
+    events: {
+        type: [
+            {
+                id: {
+                    type: Schema.Types.ObjectId,
+                    ref: 'event'
+                },
+                yourSide: {
+                    type: String,
+                },
+            }
+        ]
     }
 }, {
     timestamps: true
