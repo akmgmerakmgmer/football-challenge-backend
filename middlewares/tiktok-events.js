@@ -1,4 +1,4 @@
-const handler = (eventName) => {
+const handler = (eventName, next) => {
     const payload = {
         pixel_code: '<CS99IHJC77UFDI751310>', // Replace with your actual TikTok Pixel Code
         event: eventName, // This could be "Purchase", "CompleteRegistration", etc.
@@ -15,13 +15,14 @@ const handler = (eventName) => {
         },
         body: JSON.stringify(payload),
     });
+    next()
 }
-const loginHandler = () => {
-    handler('Click button')
+const loginHandler = (req, res, next) => {
+    handler('Click button', next)
 
 }
-const signupHandler = () => {
-    handler('Complete Registration')
+const signupHandler = (req, res, next) => {
+    handler('Complete Registration', next)
 
 }
-module.exports = { loginHandler, signupHandler }
+export default { loginHandler, signupHandler }
