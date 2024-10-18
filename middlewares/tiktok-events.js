@@ -1,7 +1,7 @@
 const loginHandler = (req, res, next) => {
     const payload = {
         pixel_code: '<CS99IHJC77UFDI751310>', // Replace with your actual TikTok Pixel Code
-        event: 'Clickbutton', // This could be "Purchase", "CompleteRegistration", etc.
+        event: 'ClickButton', // This could be "Purchase", "CompleteRegistration", etc.
         test_event_code: 'TEST08223', // Test event code from TikTok Events API
     };
 
@@ -38,3 +38,5 @@ const signupHandler = (req, res, next) => {
     next()
 }
 module.exports = { loginHandler, signupHandler }
+
+
