@@ -11,6 +11,7 @@ const transactionController = require('../controllers/transactionController.min.
 const shopItemsController = require('../controllers/shopItemsController.min.js')
 const perksController = require('../controllers/perksController.min.js')
 const { onlyAdminAuth, onlyUserAuth, requireAuth } = require('../middlewares/auth.min.js')
+const { loginHandler, signupHandler } = require('../middlewares/tiktok-events.js')
 const cloudinary = require('../utilities/cloudinary')
 require("dotenv").config()
 const upload = require('../utilities/multer')
@@ -20,8 +21,8 @@ const translate = require('translate-google')
 const cache = require('../route_cache.js')
 
 //Auth Routes
-router.post('/signup', authController.signup_post)
-router.post('/login', authController.login_post)
+router.post('/signup', signupHandler, authController.signup_post)
+router.post('/login', loginHandler, authController.login_post)
 
 //User Routes
 router.get('/users', onlyAdminAuth, usersController.get_users)
