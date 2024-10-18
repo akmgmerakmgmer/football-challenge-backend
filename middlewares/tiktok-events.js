@@ -1,7 +1,7 @@
 const loginHandler = (req, res, next) => {
     const payload = {
         pixel_code: '<CS99IHJC77UFDI751310>', // Replace with your actual TikTok Pixel Code
-        event: 'Click button', // This could be "Purchase", "CompleteRegistration", etc.
+        event: 'Clickbutton', // This could be "Purchase", "CompleteRegistration", etc.
         test_event_code: 'TEST08223', // Test event code from TikTok Events API
     };
 
@@ -21,7 +21,7 @@ const loginHandler = (req, res, next) => {
 const signupHandler = (req, res, next) => {
     const payload = {
         pixel_code: '<CS99IHJC77UFDI751310>', // Replace with your actual TikTok Pixel Code
-        event: 'Complete Registration', // This could be "Purchase", "CompleteRegistration", etc.
+        event: 'CompleteRegistration', // This could be "Purchase", "CompleteRegistration", etc.
         test_event_code: 'TEST08223', // Test event code from TikTok Events API
     };
 
