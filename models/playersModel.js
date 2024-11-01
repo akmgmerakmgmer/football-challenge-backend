@@ -5,6 +5,9 @@ const PlayerSchema = new Schema({
     firstName: {
         type: String,
     },
+    fullName: {
+        type: String
+    },
     nameEn: {
         type: String,
         required: [true, 'field_required']

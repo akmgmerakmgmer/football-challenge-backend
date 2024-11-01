@@ -36,6 +36,9 @@ const QuestionSchema = new Schema({
             }
         }
     ],
+    reversedAnswer: {
+        type: Object
+    },
     teamImage: {
         type: String
     },

@@ -11,7 +11,10 @@ const loginHandler = (req, res, next) => {
                     "event": "ClickButton",
                     "event_time": 1729386489,
                     "user": {},
-                    "properties": {}
+                    "properties": {},
+                    "page": {
+                        "url": "https://www.inzonegaming.com"
+                    }
                 }
             ]
         },
@@ -39,7 +42,10 @@ const signupHandler = (req, res, next) => {
                     "event": "CompleteRegistration",
                     "event_time": 1729385500,
                     "user": {},
-                    "properties": {}
+                    "properties": {},
+                    "page": {
+                        "url": "https://www.inzonegaming.com/ar/signup"
+                    }
                 }
             ]
         },

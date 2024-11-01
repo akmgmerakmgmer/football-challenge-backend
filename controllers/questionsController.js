@@ -1,3 +1,4 @@
+const Player = require('../models/playersModel');
 const Question = require('../models/questionModel')
 const User = require('../models/userModel')
 const { handleErrors } = require('../utilities/handle_errors')
@@ -9,26 +10,83 @@ const questionCreation = async (payload, req, res) => {
     })
 
 }
+const createChoicesQuestions = async (req, res, next, i) => {
+    const questionNumber = parseInt(i) + 1
+    if (req.body[i].questionMode === 'trueOrFalse') req.body[i].choices = [{ en: 'Yes/True', ar: 'نعم/صح', value: 'true' }, { en: "No/False", ar: "لا/خطأ", value: 'false' }]
+    if (req.body[i].question.en === '' || req.body[i].question.ar === '') return res.status(422).send({ message: `Error in question number ${questionNumber}` })
+    if (!req.body[i].answer) return res.status(422).send({ message: `No Answer for Question number ${questionNumber}` })
+    if (req.body[i].questionMode === 'multipleChoices') {
+        if (req.body[i].choices.length != 4) return res.status(422).send({ message: `Error in choices quantity in question number ${questionNumber}}` })
+        for (let j in req.body[i].choices) {
+            const currentChoice = req.body[i].choices[j]
+            if (!currentChoice.en || !currentChoice.ar || !currentChoice.value) {
+                return res.status(422).send({ message: `Error in choices in question number ${questionNumber}` })
+            }
+        }
+    }
+    await questionCreation(req.body[i], req, res)
+}
+const createHintsQuestions = async (req, res, next, i) => {
+    let answer = req.body[i].answer
+    if (answer.includes('ã')) answer = answer.replace('á', 'a')
+    if (answer.includes('ã')) answer = answer.replace('ã', 'a')
+    if (answer.includes('à')) answer = answer.replace('à', 'a')
+    if (answer.includes('é')) answer = answer.replace('é', 'e')
+    if (answer.includes('ú')) answer = answer.replace('ú', 'u')
+    if (answer.includes('í')) answer = answer.replace('í', 'i')
+    if (answer.includes('ó')) answer = answer.replace('ó', 'o')
+    if (answer.includes('ö')) answer = answer.replace('ö', 'o')
+    if (answer.includes('ü')) answer = answer.replace('ü', 'u')
+    if (answer.includes('ñ')) answer = answer.replace('ñ', 'n')
+    if (answer.includes('č')) answer = answer.replace('č', 'c')
+    if (answer.includes('ę')) answer = answer.replace('ę', 'e')
+    if (answer.includes('ž')) answer = answer.replace('ž', 'z')
+    if (answer.includes('ć')) answer = answer.replace('ć', 'c')
+    if (answer.includes('ć')) answer = answer.replace('â', 'a')
+    if (answer.includes('š')) answer = answer.replace('š', 's')
+    if (answer.includes('ł')) answer = answer.replace('ł', 'l')
+    Player.findOne({ $or: [{ firstName: { $regex: answer, $options: "i" } }, { nameEn: { $regex: answer, $options: "i" } }, { nameAr: { $regex: answer, $options: "i" }, }, { fullName: { $regex: answer, $options: "i" } }] }).then(async res => {
+        if (res && res.nameEn && req.body[i].hints?.length) {
+            console.log(res.nameEn)
+            req.body[i].answer = res.nameEn
+            req.body[i].choices = []
+            await questionCreation(req.body[i], req, res)
+        }
+
+    })
+
+}
+function shuffleString(str) {
+    const arr = str.split('');  // Convert the string to an array of characters
+    for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));  // Generate a random index
+        [arr[i], arr[j]] = [arr[j], arr[i]];  // Swap the elements
+    }
+    return arr;
+}
+const createReversedWordQuestions = async (req, res, next, i) => {
+    if (req.body[i].answer.en && req.body[i].answer.ar) {
+        if (req.body[i].answer.ar.includes('قلب دفاع')) req.body[i].answer.ar.replace('قلب دفاع', 'CB')
+        if (req.body[i].answer.ar.includes('صندوق لصندوق')) req.body[i].answer.ar.replace('صندوق لصندوق', 'بوكس')
+        if (req.body[i].answer.ar.includes('رأس حربة')) req.body[i].answer.ar.replace('رأس حربة', 'حربة')
+        if (req.body[i].answer.ar.includes('ظهير ايسر')) req.body[i].answer.ar.replace('ظهير ايسر', 'ظهير')
+        if (req.body[i].answer.ar.includes('ظهير ايمن')) req.body[i].answer.ar.replace('ظهير ايمن', 'ظهير')
+        if (req.body[i].answer.ar.includes('تصدي للكرات')) req.body[i].answer.ar.replace('تصدي للكرات', 'بيصد')
+        req.body[i].reversedAnswer = { en: shuffleString(req.body[i].answer.en.toLowerCase()), ar: shuffleString(req.body[i].answer.ar.toLowerCase()) }
+        await questionCreation(req.body[i], req, res)
+    }
+
+}
 const create_questions = async (req, res, next) => {
     // return changeChoicesNames(res)
     if (Array.isArray(req.body)) {
         //addValue(res)
         // deleteDuplicates(res)
+        console.log('----------------------------------------')
         for (let i in req.body) {
-            const questionNumber = parseInt(i) + 1
-            if (req.body[i].questionMode === 'trueOrFalse') req.body[i].choices = [{ en: 'Yes/True', ar: 'نعم/صح', value: 'true' }, { en: "No/False", ar: "لا/خطأ", value: 'false' }]
-            if (req.body[i].question.en === '' || req.body[i].question.ar === '') return res.status(422).send({ message: `Error in question number ${questionNumber}` })
-            if (!req.body[i].answer) return res.status(422).send({ message: `No Answer for Question number ${questionNumber}` })
-            if (req.body[i].questionMode === 'multipleChoices') {
-                if (req.body[i].choices.length != 4) return res.status(422).send({ message: `Error in choices quantity in question number ${questionNumber}}` })
-                for (let j in req.body[i].choices) {
-                    const currentChoice = req.body[i].choices[j]
-                    if (!currentChoice.en || !currentChoice.ar || !currentChoice.value) {
-                        return res.status(422).send({ message: `Error in choices in question number ${questionNumber}` })
-                    }
-                }
-            }
-            await questionCreation(req.body[i], req, res)
+            if (req.body[i].hints?.length) await createHintsQuestions(req, res, next, i)
+            else if (req.body[i].answer.en && req.body[i].answer.ar) await createReversedWordQuestions(req, res, next, i)
+            else await createChoicesQuestions(req, res, next, i)
         }
         res.sendStatus(200)
     } else {
@@ -70,7 +128,6 @@ const deleteDuplicates = async (res) => {
                 if ((questions[i].questionMode == 'trueOrFalse' || questions[i].questionMode == 'multipleChoices') && questions[i].question.en == questions[j].question.en && i != j && questionsDeleted.indexOf(questions[i].question.en) == -1) {
                     await Question.findByIdAndDelete({ _id: questions[i]._id }).then(question => {
                         questionsDeleted.push(questions[i].question.en)
-                        console.log(questions[i].question.en)
                     })
                 }
             }
@@ -95,7 +152,6 @@ const shuffleChoices = (res) => {
             if (questions[i].questionMode === 'multipleChoices' && questions[i].choices.length === 4) {
                 questions[i].choices = shuffleArray(questions[i].choices)
                 await Question.findByIdAndUpdate({ _id: questions[i]._id }, questions[i]).then(question => {
-                    console.log(questions[i].choices)
                 })
             }
         }
@@ -107,7 +163,6 @@ const checkIfQuestionEnglishAndArabicAreThere = (res) => {
     Question.find({}).then(async questions => {
         for (let i in questions) {
             if (!questions[i].question || !questions[i].question.en || !questions[i].question.ar) {
-                console.log(questions[i].question)
             }
         }
         res.sendStatus(200)
@@ -120,7 +175,6 @@ const changeChoicesNames = (res) => {
             if (questions[i].questionMode === 'trueOrFalse') {
                 questions[i].choices = [{ en: 'Yes/True', ar: 'نعم/صح', value: 'true' }, { en: "No/False", ar: "لا/خطأ", value: 'false' }]
                 await Question.findByIdAndUpdate({ _id: questions[i]._id }, questions[i]).then(question => {
-                    console.log(questions[i].choices)
                 })
             }
         }
@@ -165,7 +219,7 @@ const getQuestionsMethod = (req, res, next, match, user, searchName) => {
 
 const get_questions = async (req, res, next) => {
 
-    const match = { $and: [{ questionMode: { $in: ["trueOrFalse", "multipleChoices"] } }] }
+    const match = { $and: [{ questionMode: { $in: ["passwordChallenge", "guessThePlayer"] } }] }
     if (req.query.search && req.query.userId && req.query.name) {
         await User.findById({ _id: req.query.userId }).populate('challenges').populate('perks.id').then(async user => {
             let searchName = ''
