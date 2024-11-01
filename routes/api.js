@@ -41,7 +41,7 @@ router.put('/buy-perks/:id', onlyUserAuth, usersController.buy_perks)
 router.put('/notify-about/:id', onlyUserAuth, usersController.notify_about)
 
 //Question Routes
-router.post('/questions', onlyAdminAuth, questionsController.create_questions)
+router.post('/questions', questionsController.create_questions)
 router.get('/questions', requireAuth, questionsController.get_questions)
 router.get('/admin-questions', onlyAdminAuth, questionsController.get_admin_questions)
 router.get('/questions/:id', onlyAdminAuth, questionsController.get_single_question)
