@@ -47,6 +47,14 @@ const createHintsQuestions = async (req, res, next, i) => {
     if (answer.includes('ł')) answer = answer.replace('ł', 'l')
     Player.findOne({ $or: [{ firstName: { $regex: answer, $options: "i" } }, { nameEn: { $regex: answer, $options: "i" } }, { nameAr: { $regex: answer, $options: "i" }, }, { fullName: { $regex: answer, $options: "i" } }] }).then(async res => {
         if (res && res.nameEn && req.body[i].hints?.length) {
+            for(let j in res.body[i].hints){
+                if (req.body[i].answer.ar.includes('قلب دفاع')) req.body[i].answer.ar.replace('قلب دفاع', 'CB')
+                    if (res.body[i].hints[j].ar.includes('صندوق لصندوق')) res.body[i].hints[j].ar.replace('صندوق لصندوق', 'بوكس')
+                    if (res.body[i].hints[j].ar.includes('رأس حربة')) res.body[i].hints[j].ar.replace('رأس حربة', 'حربة')
+                    if (res.body[i].hints[j].ar.includes('ظهير ايسر')) res.body[i].hints[j].ar.replace('ظهير ايسر', 'ظهير')
+                    if (res.body[i].hints[j].ar.includes('ظهير ايمن')) res.body[i].hints[j].ar.replace('ظهير ايمن', 'ظهير')
+                    if (res.body[i].hints[j].ar.includes('تصدي للكرات')) res.body[i].hints[j].ar.replace('تصدي للكرات', 'بيصد')
+            }
             console.log(res.nameEn)
             req.body[i].answer = res.nameEn
             req.body[i].choices = []
@@ -66,12 +74,6 @@ function shuffleString(str) {
 }
 const createReversedWordQuestions = async (req, res, next, i) => {
     if (req.body[i].answer.en && req.body[i].answer.ar) {
-        if (req.body[i].answer.ar.includes('قلب دفاع')) req.body[i].answer.ar.replace('قلب دفاع', 'CB')
-        if (req.body[i].answer.ar.includes('صندوق لصندوق')) req.body[i].answer.ar.replace('صندوق لصندوق', 'بوكس')
-        if (req.body[i].answer.ar.includes('رأس حربة')) req.body[i].answer.ar.replace('رأس حربة', 'حربة')
-        if (req.body[i].answer.ar.includes('ظهير ايسر')) req.body[i].answer.ar.replace('ظهير ايسر', 'ظهير')
-        if (req.body[i].answer.ar.includes('ظهير ايمن')) req.body[i].answer.ar.replace('ظهير ايمن', 'ظهير')
-        if (req.body[i].answer.ar.includes('تصدي للكرات')) req.body[i].answer.ar.replace('تصدي للكرات', 'بيصد')
         req.body[i].reversedAnswer = { en: shuffleString(req.body[i].answer.en.toLowerCase()), ar: shuffleString(req.body[i].answer.ar.toLowerCase()) }
         await questionCreation(req.body[i], req, res)
     }
@@ -219,7 +221,7 @@ const getQuestionsMethod = (req, res, next, match, user, searchName) => {
 
 const get_questions = async (req, res, next) => {
 
-    const match = { $and: [{ questionMode: { $in: ["passwordChallenge", "guessThePlayer"] } }] }
+    const match = { $and: [{ questionMode: { $in: ["multipleChoices", "trueOrFalse"] } }] }
     if (req.query.search && req.query.userId && req.query.name) {
         await User.findById({ _id: req.query.userId }).populate('challenges').populate('perks.id').then(async user => {
             let searchName = ''
