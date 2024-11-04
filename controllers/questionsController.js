@@ -26,8 +26,7 @@ const createChoicesQuestions = async (req, res, next, i) => {
     }
     await questionCreation(req.body[i], req, res)
 }
-const createHintsQuestions = async (req, res, next, i) => {
-    let answer = req.body[i].answer
+function modifyAnswer(answer) {
     if (answer.includes('ã')) answer = answer.replace('á', 'a')
     if (answer.includes('ã')) answer = answer.replace('ã', 'a')
     if (answer.includes('à')) answer = answer.replace('à', 'a')
@@ -45,15 +44,35 @@ const createHintsQuestions = async (req, res, next, i) => {
     if (answer.includes('ć')) answer = answer.replace('â', 'a')
     if (answer.includes('š')) answer = answer.replace('š', 's')
     if (answer.includes('ł')) answer = answer.replace('ł', 'l')
+    return answer
+}
+const createHintsQuestions = async (req, res, next, i) => {
+    let answer = modifyAnswer(req.body[i].answer)
     Player.findOne({ $or: [{ firstName: { $regex: answer, $options: "i" } }, { nameEn: { $regex: answer, $options: "i" } }, { nameAr: { $regex: answer, $options: "i" }, }, { fullName: { $regex: answer, $options: "i" } }] }).then(async res => {
         if (res && res.nameEn && req.body[i].hints?.length) {
-            for(let j in res.body[i].hints){
-                if (req.body[i].answer.ar.includes('قلب دفاع')) req.body[i].answer.ar.replace('قلب دفاع', 'CB')
-                    if (res.body[i].hints[j].ar.includes('صندوق لصندوق')) res.body[i].hints[j].ar.replace('صندوق لصندوق', 'بوكس')
-                    if (res.body[i].hints[j].ar.includes('رأس حربة')) res.body[i].hints[j].ar.replace('رأس حربة', 'حربة')
-                    if (res.body[i].hints[j].ar.includes('ظهير ايسر')) res.body[i].hints[j].ar.replace('ظهير ايسر', 'ظهير')
-                    if (res.body[i].hints[j].ar.includes('ظهير ايمن')) res.body[i].hints[j].ar.replace('ظهير ايمن', 'ظهير')
-                    if (res.body[i].hints[j].ar.includes('تصدي للكرات')) res.body[i].hints[j].ar.replace('تصدي للكرات', 'بيصد')
+            for (let j in req.body[i].hints) {
+                if (req.body[i].hints[j].ar.includes('قلب دفاع')) req.body[i].hints[j].ar = req.body[i].hints[j].ar.replace('قلب دفاع', 'مدافع')
+                if (req.body[i].hints[j].ar.includes('صندوق لصندوق')) req.body[i].hints[j].ar = req.body[i].hints[j].ar.replace('صندوق لصندوق', 'بوكس')
+                if (req.body[i].hints[j].ar.includes('رأس حربة')) req.body[i].hints[j].ar = req.body[i].hints[j].ar.replace('رأس حربة', 'حربة')
+                if (req.body[i].hints[j].ar.includes('ظهير ايسر')) req.body[i].hints[j].ar = req.body[i].hints[j].ar.replace('ظهير ايسر', 'ظهير')
+                if (req.body[i].hints[j].ar.includes('ظهير ايمن')) req.body[i].hints[j].ar = req.body[i].hints[j].ar.replace('ظهير ايمن', 'ظهير')
+                if (req.body[i].hints[j].ar.includes('تصدي للكرات')) req.body[i].hints[j].ar = req.body[i].hints[j].ar.replace('تصدي للكرات', 'بيصد')
+                if (req.body[i].hints[j].ar.includes('حارس مرمي')) req.body[i].hints[j].ar = req.body[i].hints[j].ar.replace('حارس مرمي', 'حارس')
+                if (req.body[i].hints[j].ar.includes('ريال مدريد')) req.body[i].hints[j].ar = req.body[i].hints[j].ar.replace('ريال مدريد', 'مدريد')
+                if (req.body[i].hints[j].ar.includes('رقم ')) req.body[i].hints[j].ar = req.body[i].hints[j].ar.replace('رقم ', '')
+                if (req.body[i].hints[j].en.includes('Number ')) req.body[i].hints[j].en = req.body[i].hints[j].en.replace('Number ', '')
+                if (req.body[i].hints[j].en.includes('Legend')) {
+                    req.body[i].hints[j].ar = 'اسطورة'
+                    req.body[i].hints[j].en = 'Legend'
+                }
+                if (req.body[i].hints[j].en.includes('Captain')) {
+                    req.body[i].hints[j].ar = 'Captain'
+                    req.body[i].hints[j].en = 'كابتن'
+                }
+                if (req.body[i].hints[j].en.includes('Work-rate')) req.body[i].hints[j].ar = 'بدني'
+                if (req.body[i].hints[j].en.includes('Target Man')) req.body[i].hints[j].ar = 'مهاجم'
+                if (req.body[i].hints[j].en.includes('Versatile')) req.body[i].hints[j].ar = 'متنوع'
+                if (req.body[i].hints[j].ar.includes('ركلة حرة')) req.body[i].hints[j].ar = 'فاولات'
             }
             console.log(res.nameEn)
             req.body[i].answer = res.nameEn
@@ -74,8 +93,20 @@ function shuffleString(str) {
 }
 const createReversedWordQuestions = async (req, res, next, i) => {
     if (req.body[i].answer.en && req.body[i].answer.ar) {
-        req.body[i].reversedAnswer = { en: shuffleString(req.body[i].answer.en.toLowerCase()), ar: shuffleString(req.body[i].answer.ar.toLowerCase()) }
-        await questionCreation(req.body[i], req, res)
+        let englishLetters = shuffleString(req.body[i].answer.en.toLowerCase())
+        let arabicLetters = shuffleString(req.body[i].answer.ar.toLowerCase())
+        let newEnglish = []
+        let newArabic = []
+        if (!englishLetters.some(letter => letter === ' ') && !arabicLetters.some(letter => letter === ' ')) {
+            for (let i in englishLetters) {
+                newEnglish.push({ letter: englishLetters[i], isChosen: false })
+            }
+            for (let i in arabicLetters) {
+                newArabic.push({ letter: arabicLetters[i], isChosen: false })
+            }
+            req.body[i].reversedAnswer = { en: newEnglish, ar: newArabic }
+            await questionCreation(req.body[i], req, res)
+        }
     }
 
 }
