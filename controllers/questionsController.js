@@ -49,7 +49,7 @@ function modifyAnswer(answer) {
 const createHintsQuestions = async (req, res, next, i) => {
     let answer = modifyAnswer(req.body[i].answer)
     Player.findOne({ $or: [{ firstName: { $regex: answer, $options: "i" } }, { nameEn: { $regex: answer, $options: "i" } }, { nameAr: { $regex: answer, $options: "i" }, }, { fullName: { $regex: answer, $options: "i" } }] }).then(async res => {
-        if (res && res.nameEn && req.body[i].hints?.length) {
+        if (res && res.nameEn && !res.nameEn.includes('undefined') && req.body[i].hints?.length) {
             for (let j in req.body[i].hints) {
                 if (req.body[i].hints[j].ar.includes('قلب دفاع')) req.body[i].hints[j].ar = req.body[i].hints[j].ar.replace('قلب دفاع', 'مدافع')
                 if (req.body[i].hints[j].ar.includes('صندوق لصندوق')) req.body[i].hints[j].ar = req.body[i].hints[j].ar.replace('صندوق لصندوق', 'بوكس')
