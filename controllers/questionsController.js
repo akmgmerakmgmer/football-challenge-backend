@@ -240,9 +240,9 @@ const getQuestionsMethod = (req, res, next, match, user, searchName) => {
         { $limit: per_page },              // Limit based on pagination
     ]).then(async (questions) => {
         const total_questions = await Question.countDocuments()
-        for (let i in questions) {
-            questions[i].answer = crypto.createHash('sha256').update(questions[i].answer).digest('hex');
-        }
+        // for (let i in questions) {
+        //     questions[i].answer = crypto.createHash('sha256').update(questions[i].answer).digest('hex');
+        // }
         const sendValues = user ? { questions, total_questions, per_page, user: user } : { questions, total_questions, per_page }
         res.status(200).send(sendValues)
     }).catch((err) => {
