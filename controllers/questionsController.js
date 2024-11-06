@@ -251,8 +251,8 @@ const getQuestionsMethod = (req, res, next, match, user, searchName) => {
 }
 
 const get_questions = async (req, res, next) => {
-
-    const match = { $and: [{ questionMode: { $in: ["multipleChoices", "trueOrFalse"] } }] }
+    let match = {}
+    if (req.query.questionMode) match = { questionMode: req.query.questionMode }
     if (req.query.search && req.query.userId && req.query.name) {
         await User.findById({ _id: req.query.userId }).populate('challenges').populate('perks.id').then(async user => {
             let searchName = ''
