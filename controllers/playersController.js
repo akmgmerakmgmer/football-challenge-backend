@@ -26,11 +26,41 @@ const create_player = async (req, res, next) => {
 
 }
 
+const modify_english_name = (req, res, next) => {
+    Player.find({}).then(players => {
+        for (let i in players) {
+            const nameEnglishSplit = players[i].nameEn.split(' ')
+            if (nameEnglishSplit.length > 1 && nameEnglishSplit[0].endsWith('.')) {
+                players[i].nameEn = `${players[i].firstName} ${nameEnglishSplit[1]}`
+            }
+            Player.findByIdAndUpdate({ _id: players[i]._id }, players[i]).then(res => {
+
+            })
+        }
+    })
+}
+
+const add_fullname = (req, res, next) => {
+    Player.find({}).then(players => {
+        for (let i in players) {
+            const firstPartOfFirstName = players[i].firstName.split(' ')[0]
+            const secondPartOfFirstName = players[i].firstName.split(' ')[1]
+            const secondPartOfName = players[i].nameEn.split(' ')[1] || ''
+            const fullName = secondPartOfFirstName == secondPartOfName ? `${firstPartOfFirstName} ${secondPartOfName}` : `${players[i].firstName} ${secondPartOfName}`
+            players[i].fullName = fullName
+            console.log(players[i].fullName)
+            Player.findByIdAndUpdate({ _id: players[i]._id }, players[i]).then(res => {
+
+            })
+        }
+    })
+}
+
 const get_players = (req, res, next) => {
     const page = req.query.page - 1 || 0
     const per_page = 16
-    Player.find({ $or: [{ firstName: { $regex: req.query.name, $options: "i" } }, { nameEn: { $regex: req.query.name, $options: "i" } }, { nameAr: { $regex: req.query.name, $options: "i" } }] }).count().then(total_players => {
-        Player.find({ $or: [{ firstName: { $regex: req.query.name, $options: "i" } }, { nameEn: { $regex: req.query.name, $options: "i" } }, { nameAr: { $regex: req.query.name, $options: "i" } }] }).sort({ createdAt: -1 }).skip(page * per_page).limit(per_page).then(player => res.status(200).send({ player, total_players, per_page })).catch(next)
+    Player.find({ $or: [{ firstName: { $regex: req.query.name, $options: "i" } }, { nameEn: { $regex: req.query.name, $options: "i" } }, { nameAr: { $regex: req.query.name, $options: "i" } }, { fullName: { $regex: req.query.name, $options: "i" } }] }).count().then(total_players => {
+        Player.find({ $or: [{ firstName: { $regex: req.query.name, $options: "i" } }, { nameEn: { $regex: req.query.name, $options: "i" } }, { nameAr: { $regex: req.query.name, $options: "i" }, }, { fullName: { $regex: req.query.name, $options: "i" } }] }).sort({ createdAt: -1 }).skip(page * per_page).limit(per_page).then(player => res.status(200).send({ player, total_players, per_page })).catch(next)
     })
 }
 

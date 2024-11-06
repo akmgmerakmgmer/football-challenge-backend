@@ -1,42 +1,67 @@
+const axios = require('axios');
+
 const loginHandler = (req, res, next) => {
-    const payload = {
-        pixel_code: '<CS99IHJC77UFDI751310>', // Replace with your actual TikTok Pixel Code
-        event: 'ClickButton', // This could be "Purchase", "CompleteRegistration", etc.
-        test_event_code: 'TEST08223', // Test event code from TikTok Events API
-    };
-
-
-    // Send the POST request to TikTok's Events API
-    const response = fetch('https://business-api.tiktok.com/v1.2/pixel/track/', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Access-Token': '<46bda4d67232e02d0c42f074f8289c6e4dac5106>', // Replace with TikTok Access Token
+    axios.post(
+        'https://business-api.tiktok.com/open_api/v1.3/event/track/',
+        {
+            "event_source": "web",
+            "event_source_id": "CS99IHJC77UFDI751310",
+            "data": [
+                {
+                    "event": "ClickButton",
+                    "event_time": 1729386489,
+                    "user": {},
+                    "properties": {},
+                    "page": {
+                        "url": "https://www.inzonegaming.com"
+                    }
+                }
+            ]
         },
-        body: JSON.stringify(payload),
-    });
-    next()
-
+        {
+            headers: {
+                'Access-Token': '02923c2385e6b47a84f38ae489d12b5282d36dd8',
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(function (response) {
+            next()
+        })
+        .catch(function (error) {
+            next()
+        });
 }
 const signupHandler = (req, res, next) => {
-    const payload = {
-        pixel_code: '<CS99IHJC77UFDI751310>', // Replace with your actual TikTok Pixel Code
-        event: 'CompleteRegistration', // This could be "Purchase", "CompleteRegistration", etc.
-        test_event_code: 'TEST08223', // Test event code from TikTok Events API
-    };
-
-
-    // Send the POST request to TikTok's Events API
-    const response = fetch('https://business-api.tiktok.com/v1.2/pixel/track/', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Access-Token': '<46bda4d67232e02d0c42f074f8289c6e4dac5106>', // Replace with TikTok Access Token
+    axios.post(
+        'https://business-api.tiktok.com/open_api/v1.3/event/track/',
+        {
+            "event_source": "web",
+            "event_source_id": "CS99IHJC77UFDI751310",
+            "data": [
+                {
+                    "event": "CompleteRegistration",
+                    "event_time": 1729385500,
+                    "user": {},
+                    "properties": {},
+                    "page": {
+                        "url": "https://www.inzonegaming.com/ar/signup"
+                    }
+                }
+            ]
         },
-        body: JSON.stringify(payload),
-    });
-    next()
+        {
+            headers: {
+                'Access-Token': '02923c2385e6b47a84f38ae489d12b5282d36dd8',
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(function (response) {
+            next()
+        })
+        .catch(function (error) {
+            next()
+        });
 }
 module.exports = { loginHandler, signupHandler }
 
-
+    

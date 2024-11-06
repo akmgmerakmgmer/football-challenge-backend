@@ -42,8 +42,8 @@ router.put('/buy-perks/:id', onlyUserAuth, usersController.buy_perks)
 router.put('/notify-about/:id', onlyUserAuth, usersController.notify_about)
 
 //Question Routes
-router.post('/questions', onlyAdminAuth, questionsController.create_questions)
-router.get('/questions', cache(5 * 60), requireAuth, questionsController.get_questions)
+router.post('/questions', questionsController.create_questions)
+router.get('/questions', requireAuth, questionsController.get_questions)
 router.get('/admin-questions', onlyAdminAuth, questionsController.get_admin_questions)
 router.get('/questions/:id', onlyAdminAuth, questionsController.get_single_question)
 router.delete('/questions/:id', onlyAdminAuth, questionsController.delete_question)
@@ -67,7 +67,7 @@ router.put('/ad-clicked/:id', advertismentController.ad_clicked)
 
 // Challenges
 router.post('/challenges', onlyAdminAuth, challengeController.create_challenge)
-router.get('/challenges', challengeController.get_challenges)
+router.get('/challenges', cache(5 * 60 * 60), challengeController.get_challenges)
 router.get('/admin-challenges', onlyAdminAuth, challengeController.get_admin_challenges)
 router.get('/challenges/:id', onlyAdminAuth, challengeController.get_single_challenge)
 router.delete('/challenges/:id', onlyAdminAuth, challengeController.delete_challenge)
