@@ -41,7 +41,7 @@ const get_current_user = (req, res, next) => {
                                         }
                                     }
                                     if (winningSide.toString() === user.events[i].yourSide.toString()) prizes = [...prizes, ...event.prizes]
-                                    user.events = user.events.filter(userEvent => userEvent.id.toString() !== event._id.toString())
+                                    user.events = user.events.filter(userEvent => userEvent && userEvent.id && userEvent.id.toString() !== event._id.toString())
                                 }
                             })
                         }

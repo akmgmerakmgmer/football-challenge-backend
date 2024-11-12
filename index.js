@@ -39,26 +39,26 @@ mongoose.connect(database, { writeConcern: { w: 'majority', j: true, wtimeout: 1
 //Middlewares
 
 app.set('trust proxy', 1)
-app.use(cors({
-    credentials: true,
-    allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Access-Control-Allow-Origin'],
-    origin: '*',
-    exposedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Access-Control-Allow-Origin']
-}));
 // app.use(cors({
 //     credentials: true,
-//     allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
-//     origin: function (origin, callback) {
-//         if (origin === 'https://www.inzonegaming.com' || origin === 'https://admin-football.vercel.app' || !origin) {
-//             // Allow requests from your website and mobile apps (which may not have an origin header)
-//             callback(null, true);
-//         } else {
-//             // Block other origins
-//             callback(new Error('Not allowed by CORS'));
-//         }
-//     },
-//     exposedHeaders: ['Content-Type', 'Authorization', 'Accept']
+//     allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Access-Control-Allow-Origin'],
+//     origin: '*',
+//     exposedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Access-Control-Allow-Origin']
 // }));
+app.use(cors({
+    credentials: true,
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+    origin: function (origin, callback) {
+        if (origin === 'https://www.inzonegaming.com' || origin === 'https://admin-football.vercel.app' || !origin) {
+            // Allow requests from your website and mobile apps (which may not have an origin header)
+            callback(null, true);
+        } else {
+            // Block other origins
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
+    exposedHeaders: ['Content-Type', 'Authorization', 'Accept']
+}));
 
 app.use(helmet())
 app.use(compression())
