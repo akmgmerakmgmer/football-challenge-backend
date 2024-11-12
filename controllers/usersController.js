@@ -25,7 +25,38 @@ const get_current_user = (req, res, next) => {
                     res.status(400).send({ message: 'user_not_found' })
                     return;
                 }
-                res.status(200).send(user)
+                let prizes = []
+                if (user.events.length) {
+                    for (let i in user.events) {
+                        let winningSide = ''
+                        const currentDate = moment(new Date()).format('YYYY-MM-DD')
+                        if (user.events[i].endDate && currentDate > user.events[i].endDate) {
+                            await Event.findById({ _id: user.events[i].id }).then(event => {
+                                if (event && currentDate > event.endDate) {
+                                    let maxPoints = 0
+                                    for (let i in event.sides) {
+                                        if (event.sides[i].points > maxPoints) {
+                                            maxPoints = event.sides[i].points
+                                            winningSide = event.sides[i]._id
+                                        }
+                                    }
+                                    if (winningSide.toString() === user.events[i].yourSide.toString()) prizes = [...prizes, ...event.prizes]
+                                    user.events = user.events.filter(userEvent => userEvent.id.toString() !== event._id.toString())
+                                }
+                            })
+                        }
+
+                    }
+                }
+                if (prizes.length) {
+                    for (let i in prizes) {
+                        if (prizes[i].prizeType == 'coins') user.coins += prizes[i].coins
+                        if (prizes[i].prizeType == 'avatar') user.avatars.push({ image: prizes[i].avatar, price: 0 })
+                    }
+                }
+                User.findByIdAndUpdate(decodedToken.id, user, { new: true }).populate('perks.id').then(updatedUser => {
+                    res.status(200).send({ user: updatedUser, prizes })
+                })
             }
         })
     }
@@ -125,28 +156,24 @@ const getCurrentDay = () => {
     let year = today.getFullYear();
     return `${year}-${month}-${day}`;
 }
-const addPointsToEvents = (events, user, points) => {
-    for (let i in events) {
-        Event.findById({ _id: events[i].id }).then(event => {
-            const currentDate = moment(new Date()).format('YYYY-MM-DD');
-            if (currentDate.getTime() > event.endDate.getTime()) {
-                user.events = user.events.filter(item => item.id.toString() !== event._id.toString())
+const addPointsToEvents = async (userEvents, eventId, points) => {
+    const userSide = userEvents.filter((userEvent) => userEvent.id.toString() === eventId)[0].yourSide
+    await Event.findById({ _id: eventId }).then(async event => {
+        const currentDate = moment(new Date()).format('YYYY-MM-DD')
+        if (currentDate <= event.endDate) {
+            event.total_points += points;
+            for (let i in event.sides) {
+                if (userSide === event.sides[i]._id.toString()) event.sides[i].points += points
+                await Event.findByIdAndUpdate({ _id: eventId }, event).then(res => { })
             }
-            else {
-                for (let i in event.sides) {
-                    if (event.sides[i].nameEn === events[i].yourSide) event.sides[i].points += points
-                }
-            }
-
-        })
-    }
-
+        }
+    })
 }
 const user_save_game = (req, res, next) => {
-    const { coins, points, usedPerks } = req.body
-    if (points > 4000) points = 0
-    User.findById({ _id: req.params.id }).then(user => {
-        addPointsToEvents(user.events, user, points)
+    const { coins, points, usedPerks, eventId } = req.body
+
+    User.findById({ _id: req.params.id }).then(async user => {
+        if (eventId) await addPointsToEvents(user.events, eventId, points)
         const currentDate = new Date();
         const yearlyPoints = user.user_points.yearlyPoints
         const monthlyPoints = user.user_points.monthlyPoints
@@ -155,36 +182,39 @@ const user_save_game = (req, res, next) => {
         const currentYear = currentDate.getFullYear();
         const currentMonth = currentDate.getMonth() + 1
         // Calculate Yearly Points
-        if (yearlyPoints.length && yearlyPoints[yearlyPoints.length - 1].year === currentYear) {
-            yearlyPoints[yearlyPoints.length - 1].points += points
-            yearlyPoints[yearlyPoints.length - 1].games_played += 1
-        } else yearlyPoints.push({ points: points, year: currentYear, games_played: 1 })
+        if (!eventId) {
+            if (yearlyPoints.length && yearlyPoints[yearlyPoints.length - 1].year === currentYear) {
+                yearlyPoints[yearlyPoints.length - 1].points += points
+                yearlyPoints[yearlyPoints.length - 1].games_played += 1
+            } else yearlyPoints.push({ points: points, year: currentYear, games_played: 1 })
 
-        //Calculate Monthly Points
-        if (monthlyPoints.length &&
-            monthlyPoints[monthlyPoints.length - 1].year === currentYear &&
-            monthlyPoints[monthlyPoints.length - 1].month === currentMonth) {
-            monthlyPoints[monthlyPoints.length - 1].points += points
-            monthlyPoints[monthlyPoints.length - 1].games_played += 1
-        } else monthlyPoints.push({ year: currentYear, month: currentMonth, points: points, games_played: 1 })
+            //Calculate Monthly Points
+            if (monthlyPoints.length &&
+                monthlyPoints[monthlyPoints.length - 1].year === currentYear &&
+                monthlyPoints[monthlyPoints.length - 1].month === currentMonth) {
+                monthlyPoints[monthlyPoints.length - 1].points += points
+                monthlyPoints[monthlyPoints.length - 1].games_played += 1
+            } else monthlyPoints.push({ year: currentYear, month: currentMonth, points: points, games_played: 1 })
 
-        //Calculate Weekly Points
-        if (weeklyPoints.length && numberOfDaysToPlayerLastSaturday(weeklyPoints[weeklyPoints.length - 1].weekDate) < 7) {
-            weeklyPoints[weeklyPoints.length - 1].points += points
-            weeklyPoints[weeklyPoints.length - 1].games_played += 1
-            weeklyPoints[weeklyPoints.length - 1].weekDate = getLastSaturday(new Date())
-        } else weeklyPoints.push({ weekDate: getLastSaturday(new Date()), points: points, games_played: 1 })
+            //Calculate Weekly Points
+            if (weeklyPoints.length && numberOfDaysToPlayerLastSaturday(weeklyPoints[weeklyPoints.length - 1].weekDate) < 7) {
+                weeklyPoints[weeklyPoints.length - 1].points += points
+                weeklyPoints[weeklyPoints.length - 1].games_played += 1
+                weeklyPoints[weeklyPoints.length - 1].weekDate = getLastSaturday(new Date())
+            } else weeklyPoints.push({ weekDate: getLastSaturday(new Date()), points: points, games_played: 1 })
 
-        //Calculate Daily Points
-        if (dailyPoints.day === getCurrentDay()) {
-            dailyPoints.points += points
-            dailyPoints.games_played += 1
+            //Calculate Daily Points
+            if (dailyPoints.day === getCurrentDay()) {
+                dailyPoints.points += points
+                dailyPoints.games_played += 1
+            }
+            else {
+                dailyPoints.points = points
+                dailyPoints.games_played = 1
+                dailyPoints.day = getCurrentDay()
+            }
         }
-        else {
-            dailyPoints.points = points
-            dailyPoints.games_played = 1
-            dailyPoints.day = getCurrentDay()
-        }
+
         if (usedPerks.length) {
             for (let i in user.perks) {
                 if (usedPerks.indexOf(user.perks[i].id.toString()) > -1) {
@@ -385,7 +415,7 @@ const buy_perks = (req, res, next) => {
 }
 
 const choose_event = (req, res, next) => {
-    User.findByIdAndUpdate({ _id: req.params.id }, { $push: { events: { id: req.body.eventId, yourSide: req.body.side } } }, { new: true }).then(user => res.status(200).send(user)).catch(next)
+    User.findByIdAndUpdate({ _id: req.params.id }, { $push: { events: { id: req.body.eventId, yourSide: req.body.side } } }, { new: true }).populate('perks.id').then(user => res.status(200).send(user)).catch(next)
 }
 
 const notify_about = (req, res, next) => {
@@ -394,4 +424,22 @@ const notify_about = (req, res, next) => {
     }).catch(next)
 }
 
-module.exports = { get_users, get_current_user, get_single_user, delete_user, update_user, user_save_game, get_user_current_ranking, get_rankings, buy_avatar, notify_about, buy_perks, remove_perk, select_perk, add_coins, choose_event }
+const add_event_to_user = async (req, res, next) => {
+    const eventPayload = {
+        id: req.body.eventId,
+        yourSide: req.body.sideId,
+        endDate: req.body.endDate
+    }
+    Event.findById({ _id: req.body.eventId }).then(event => {
+        for (let i in event.sides) {
+            if (event.sides[i]._id.toString() === req.body.sideId) {
+                event.sides[i].numberOfPlayers += 1
+                Event.findByIdAndUpdate({ _id: req.body.eventId }, event).then(event => {
+                    User.findByIdAndUpdate({ _id: req.params.id }, { $push: { events: eventPayload } }, { new: true }).populate('perks.id').then(user => res.status(200).send(user))
+                })
+            }
+        }
+    })
+}
+
+module.exports = { get_users, get_current_user, get_single_user, delete_user, update_user, user_save_game, get_user_current_ranking, get_rankings, buy_avatar, notify_about, buy_perks, remove_perk, select_perk, add_coins, choose_event, add_event_to_user }

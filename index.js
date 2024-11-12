@@ -17,8 +17,8 @@ require("dotenv").config()
 
 // const UglifyJS = require('uglify-js');
 // const fs = require('fs');
-// const result = UglifyJS.minify(fs.readFileSync('./controllers/questionsController.js', 'utf8'));
-// fs.writeFileSync('./controllers/questionsController.min.js', result.code);
+// const result = UglifyJS.minify(fs.readFileSync('./controllers/eventsController.js', 'utf8'));
+// fs.writeFileSync('./controllers/eventsController.min.js', result.code);
 
 // User.collection.getIndexes().then(res=>{
 //     console.log(res)
@@ -66,7 +66,7 @@ app.use(xssClean())
 app.use('/images', express.static('images'))
 app.use(bodyParser.json({ limit: '100mb' }))
 app.use(bodyParser.urlencoded({ limit: '100mb', extended: true }));
-app.use('/api', require('./routes/api.js'))
+app.use('/api', require('./routes/api.min.js'))
 
 
 app.use((err, req, res, next) => {

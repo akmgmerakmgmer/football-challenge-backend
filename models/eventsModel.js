@@ -16,6 +16,10 @@ const EventSchema = new Schema({
         type: String,
         required: [true, 'field_required']
     },
+    total_points: {
+        type: Number,
+        default: 0
+    },
     sides: {
         type: [
             {
@@ -37,6 +41,10 @@ const EventSchema = new Schema({
                 }
             }
         ]
+    },
+    prizes: {
+        type: [Object],
+        default: []
     },
     endDate: {
         type: String

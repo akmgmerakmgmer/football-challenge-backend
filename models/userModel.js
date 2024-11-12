@@ -186,7 +186,12 @@ const UserSchema = new Schema({
                 },
                 yourSide: {
                     type: String,
+                    default: ''
                 },
+                endDate: {
+                    type: String,
+                    default: ''
+                }
             }
         ]
     }

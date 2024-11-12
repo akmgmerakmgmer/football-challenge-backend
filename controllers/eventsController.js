@@ -12,7 +12,7 @@ const create_events = (req, res, next) => {
 
 const get_events = async (req, res, next) => {
     const currentDate = moment(new Date()).format('YYYY-MM-DD');
-    Event.find({ active: true, endDate: { $gte: currentDate } }).then(events => {
+    Event.find({ active: true }).then(events => {
         res.status(200).send(events)
     }).catch(next)
 }
@@ -26,16 +26,17 @@ const get_admin_events = (req, res, next) => {
 }
 
 const get_single_events = (req, res, next) => {
-    Event.findById({ _id: req.params.id }).then(events => res.status(200).send(events)).catch(next)
+    Event.findById({ _id: req.params.id }).then(event => res.status(200).send(event)).catch(next)
 }
 
 const update_events = (req, res, next) => {
-    Event.findByIdAndUpdate({ _id: req.params.id }, req.body, { new: true }).then(events => res.status(200).send(events)).catch(next)
+    Event.findByIdAndUpdate({ _id: req.params.id }, req.body, { new: true }).then(event => res.status(200).send(event)).catch(next)
 }
 
 const delete_events = (req, res, next) => {
-    Event.findByIdAndDelete({ _id: req.params.id }).then(events => res.status(200).send(events)).catch(next)
+    Event.findByIdAndDelete({ _id: req.params.id }).then(event => res.status(200).send(event)).catch(next)
 }
+
 
 
 module.exports = { create_events, update_events, get_single_events, get_admin_events, get_events, delete_events }

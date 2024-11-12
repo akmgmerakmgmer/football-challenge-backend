@@ -1,3 +1,4 @@
+const translate = require('translate-google');
 const Player = require('../models/playersModel');
 const Question = require('../models/questionModel')
 const User = require('../models/userModel')
@@ -30,6 +31,8 @@ function modifyAnswer(answer) {
     if (answer.includes('ã')) answer = answer.replace('á', 'a')
     if (answer.includes('ã')) answer = answer.replace('ã', 'a')
     if (answer.includes('à')) answer = answer.replace('à', 'a')
+    if (answer.includes('á')) answer = answer.replace('á', 'a')
+    if (answer.includes('ä')) answer = answer.replace('ä', 'a')
     if (answer.includes('é')) answer = answer.replace('é', 'e')
     if (answer.includes('ú')) answer = answer.replace('ú', 'u')
     if (answer.includes('í')) answer = answer.replace('í', 'i')
@@ -49,7 +52,7 @@ function modifyAnswer(answer) {
 const createHintsQuestions = async (req, res, next, i) => {
     let answer = modifyAnswer(req.body[i].answer)
     Player.findOne({ $or: [{ firstName: { $regex: answer, $options: "i" } }, { nameEn: { $regex: answer, $options: "i" } }, { nameAr: { $regex: answer, $options: "i" }, }, { fullName: { $regex: answer, $options: "i" } }] }).then(async res => {
-        if (res && res.nameEn && !res.nameEn.includes('undefined') && req.body[i].hints?.length) {
+        if (res && res.nameEn) {
             for (let j in req.body[i].hints) {
                 if (req.body[i].hints[j].ar.includes('قلب دفاع')) req.body[i].hints[j].ar = req.body[i].hints[j].ar.replace('قلب دفاع', 'مدافع')
                 if (req.body[i].hints[j].ar.includes('صندوق لصندوق')) req.body[i].hints[j].ar = req.body[i].hints[j].ar.replace('صندوق لصندوق', 'بوكس')
@@ -59,6 +62,7 @@ const createHintsQuestions = async (req, res, next, i) => {
                 if (req.body[i].hints[j].ar.includes('تصدي للكرات')) req.body[i].hints[j].ar = req.body[i].hints[j].ar.replace('تصدي للكرات', 'بيصد')
                 if (req.body[i].hints[j].ar.includes('حارس مرمي')) req.body[i].hints[j].ar = req.body[i].hints[j].ar.replace('حارس مرمي', 'حارس')
                 if (req.body[i].hints[j].ar.includes('ريال مدريد')) req.body[i].hints[j].ar = req.body[i].hints[j].ar.replace('ريال مدريد', 'مدريد')
+                if (req.body[i].hints[j].ar.includes('عودة')) req.body[i].hints[j].ar = req.body[i].hints[j].ar.replace('عودة', 'رجع')
                 if (req.body[i].hints[j].ar.includes('رقم ')) req.body[i].hints[j].ar = req.body[i].hints[j].ar.replace('رقم ', '')
                 if (req.body[i].hints[j].en.includes('Number ')) req.body[i].hints[j].en = req.body[i].hints[j].en.replace('Number ', '')
                 if (req.body[i].hints[j].en.includes('Legend')) {
@@ -76,10 +80,25 @@ const createHintsQuestions = async (req, res, next, i) => {
             }
             console.log(res.nameEn)
             req.body[i].answer = res.nameEn
+
             req.body[i].choices = []
             await questionCreation(req.body[i], req, res)
+        } else {
+            req.body[i].answer = answer
+            await translate(answer, { from: 'en', to: 'ar' }).then(async response => {
+                const payload = {
+                    fullName: answer,
+                    nameEn: answer,
+                    nameAr: response,
+                    firstName: answer,
+                    image: 'https://media.api-sports.io/football/players/168978.png'
+                }
+                await Player.create(payload).then(async res => {
+                    req.body[i].choices = []
+                    await questionCreation(req.body[i], req, res)
+                })
+            }).catch(next)
         }
-
     })
 
 }
@@ -217,8 +236,8 @@ const changeChoicesNames = (res) => {
 const get_admin_questions = (req, res, next) => {
     const page = req.query.page - 1 || 0
     const per_page = 30
-    Question.find({ $and: [{ $or: [{ 'question.en': { $regex: req.query.question, $options: "i" } }, { 'question.ar': { $regex: req.query.question, $options: "i" } }] }, { questionMode: { $regex: req.query.questionMode, $options: "i" } }] }).count().then(total_questions => {
-        Question.find({ $and: [{ $or: [{ 'question.en': { $regex: req.query.question, $options: "i" } }, { 'question.ar': { $regex: req.query.question, $options: "i" } }] }, { questionMode: { $regex: req.query.questionMode, $options: "i" } }] }).sort({ createdAt: -1 }).skip(page * per_page).limit(per_page).then(question => res.status(200).send({ question, total_questions, per_page })).catch(next)
+    Question.find({ $and: [{ $or: [{ 'question.en': { $regex: req.query.question, $options: "i" } }, { 'question.ar': { $regex: req.query.question, $options: "i" } }] }, { questionMode: { $regex: req.query.questionMode, $options: "i" } }, { answer: { $regex: req.query.answer, $options: "i" } }] }).count().then(total_questions => {
+        Question.find({ $and: [{ $or: [{ 'question.en': { $regex: req.query.question, $options: "i" } }, { 'question.ar': { $regex: req.query.question, $options: "i" } }] }, { questionMode: { $regex: req.query.questionMode, $options: "i" } }, { answer: { $regex: req.query.answer, $options: "i" } }] }).sort({ createdAt: -1 }).skip(page * per_page).limit(per_page).then(question => res.status(200).send({ question, total_questions, per_page })).catch(next)
     })
 }
 
@@ -251,7 +270,7 @@ const getQuestionsMethod = (req, res, next, match, user, searchName) => {
 }
 
 const get_questions = async (req, res, next) => {
-    let match = {}
+    let match = { $and: [{}] }
     if (req.query.questionMode) match = { questionMode: req.query.questionMode }
     if (req.query.search && req.query.userId && req.query.name) {
         await User.findById({ _id: req.query.userId }).populate('challenges').populate('perks.id').then(async user => {
