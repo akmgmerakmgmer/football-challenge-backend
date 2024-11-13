@@ -1,7 +1,7 @@
 const express = require('express')
 const router = express.Router()
 const authController = require('../controllers/authController.min.js')
-const usersController = require('../controllers/usersController.js')
+const usersController = require('../controllers/usersController.min.js')
 const questionsController = require('../controllers/questionsController.min.js')
 const playersController = require('../controllers/playersController.min.js')
 const advertismentController = require('../controllers/advertismentController.min.js')
@@ -11,6 +11,7 @@ const transactionController = require('../controllers/transactionController.min.
 const shopItemsController = require('../controllers/shopItemsController.min.js')
 const perksController = require('../controllers/perksController.min.js')
 const eventsController = require('../controllers/eventsController.min.js')
+const systemController = require('../controllers/systemController.min.js')
 const { onlyAdminAuth, onlyUserAuth, requireAuth } = require('../middlewares/auth.min.js')
 const { loginHandler, signupHandler } = require('../middlewares/tiktok-events.js')
 const cloudinary = require('../utilities/cloudinary')
@@ -114,6 +115,8 @@ router.get('/events/:id', requireAuth, eventsController.get_single_events)
 router.delete('/events/:id', onlyAdminAuth, eventsController.delete_events)
 router.put('/events/:id', onlyAdminAuth, eventsController.update_events)
 
+// System
+router.get('/initial-fetch', systemController.inital_fetch)
 
 router.post('/translate', (req, res, next) => {
     translate(req.body.msg, { from: req.body.from, to: req.body.to }).then(response => {
