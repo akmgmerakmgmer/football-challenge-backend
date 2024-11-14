@@ -236,6 +236,11 @@ const changeChoicesNames = (res) => {
 const get_admin_questions = (req, res, next) => {
     const page = req.query.page - 1 || 0
     const per_page = 30
+    if (req.query.questionMode == 'reversedWords') {
+        return Question.find({ $and: [{ $or: [{ 'question.en': { $regex: req.query.question, $options: "i" } }, { 'question.ar': { $regex: req.query.question, $options: "i" } }] }, { questionMode: { $regex: req.query.questionMode, $options: "i" } }] }).count().then(total_questions => {
+            Question.find({ $and: [{ $or: [{ 'question.en': { $regex: req.query.question, $options: "i" } }, { 'question.ar': { $regex: req.query.question, $options: "i" } }] }, { questionMode: { $regex: req.query.questionMode, $options: "i" } }] }).sort({ createdAt: -1 }).skip(page * per_page).limit(per_page).then(question => res.status(200).send({ question, total_questions, per_page })).catch(next)
+        })
+    }
     Question.find({ $and: [{ $or: [{ 'question.en': { $regex: req.query.question, $options: "i" } }, { 'question.ar': { $regex: req.query.question, $options: "i" } }] }, { questionMode: { $regex: req.query.questionMode, $options: "i" } }, { answer: { $regex: req.query.answer, $options: "i" } }] }).count().then(total_questions => {
         Question.find({ $and: [{ $or: [{ 'question.en': { $regex: req.query.question, $options: "i" } }, { 'question.ar': { $regex: req.query.question, $options: "i" } }] }, { questionMode: { $regex: req.query.questionMode, $options: "i" } }, { answer: { $regex: req.query.answer, $options: "i" } }] }).sort({ createdAt: -1 }).skip(page * per_page).limit(per_page).then(question => res.status(200).send({ question, total_questions, per_page })).catch(next)
     })
