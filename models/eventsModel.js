@@ -42,6 +42,9 @@ const EventSchema = new Schema({
             }
         ]
     },
+    price: {
+        type: Number,
+    },
     prizes: {
         type: [Object],
         default: []
