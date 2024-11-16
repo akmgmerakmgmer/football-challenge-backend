@@ -28,6 +28,6 @@ const inital_fetch = async (req, res, next) => {
     const advertisments = await get_advertisments()
     const events = await get_events()
     const challenges = await get_challenges()
-    res.status(200).send({ advertisments, events, challenges })
+    res.status(200).send({ advertisments, events, challenges, lowestBuildNumber: '25' })
 }
 module.exports = { inital_fetch }
