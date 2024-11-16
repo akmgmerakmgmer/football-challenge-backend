@@ -414,9 +414,6 @@ const buy_perks = (req, res, next) => {
 
 }
 
-const choose_event = (req, res, next) => {
-    User.findByIdAndUpdate({ _id: req.params.id }, { $push: { events: { id: req.body.eventId, yourSide: req.body.side } } }, { new: true }).populate('perks.id').then(user => res.status(200).send(user)).catch(next)
-}
 
 const notify_about = (req, res, next) => {
     User.findByIdAndUpdate({ _id: req.params.id }, { $push: { notifyAbout: req.body.mode } }).then(user => {
@@ -428,18 +425,18 @@ const add_event_to_user = async (req, res, next) => {
     const eventPayload = {
         id: req.body.eventId,
         yourSide: req.body.sideId,
-        endDate: req.body.endDate
+        endDate: req.body.endDate,
     }
     Event.findById({ _id: req.body.eventId }).then(event => {
         for (let i in event.sides) {
             if (event.sides[i]._id.toString() === req.body.sideId) {
                 event.sides[i].numberOfPlayers += 1
                 Event.findByIdAndUpdate({ _id: req.body.eventId }, event).then(event => {
-                    User.findByIdAndUpdate({ _id: req.params.id }, { $push: { events: eventPayload } }, { new: true }).populate('perks.id').then(user => res.status(200).send(user))
+                    User.findByIdAndUpdate({ _id: req.params.id }, { $inc: { coins: -req.body.price }, $push: { events: eventPayload } }, { new: true }).populate('perks.id').then(user => res.status(200).send(user))
                 })
             }
         }
     })
 }
 
-module.exports = { get_users, get_current_user, get_single_user, delete_user, update_user, user_save_game, get_user_current_ranking, get_rankings, buy_avatar, notify_about, buy_perks, remove_perk, select_perk, add_coins, choose_event, add_event_to_user }
+module.exports = { get_users, get_current_user, get_single_user, delete_user, update_user, user_save_game, get_user_current_ranking, get_rankings, buy_avatar, notify_about, buy_perks, remove_perk, select_perk, add_coins, add_event_to_user }
