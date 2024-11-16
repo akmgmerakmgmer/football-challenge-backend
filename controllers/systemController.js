@@ -13,7 +13,7 @@ const get_advertisments = async () => {
 
 const get_events = async () => {
     const currentDate = moment(new Date()).format('YYYY-MM-DD');
-    const events = await Event.find({ active: true })
+    const events = await Event.find({ active: true, endDate: { $gt: currentDate } })
     return events
 }
 
@@ -22,7 +22,8 @@ const get_challenges = async () => {
     const playersChallenges = challengesFetch.filter(challenge => challenge.type === 'playersChallenge').slice(0, 5)
     const nationalTeamsChallenge = challengesFetch.filter(challenge => challenge.type === 'nationalTeamsChallenge').slice(0, 5)
     const teamsChallenge = challengesFetch.filter(challenge => challenge.type === 'teamsChallenge').slice(0, 5)
-    return { playersChallenges, nationalTeamsChallenge, teamsChallenge }
+    const homeChallenges = challengesFetch.slice(0, 5)
+    return { playersChallenges, nationalTeamsChallenge, teamsChallenge, homeChallenges }
 }
 const inital_fetch = async (req, res, next) => {
     const advertisments = await get_advertisments()
