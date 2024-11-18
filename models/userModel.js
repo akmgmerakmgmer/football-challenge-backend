@@ -114,6 +114,22 @@ const UserSchema = new Schema({
         ],
         default: []
     },
+    questionModes: {
+        type: [
+            {
+                modeName: {
+                    type: String
+                },
+                lastPlayedDate: {
+                    type: String
+                },
+                index: {
+                    type: Number
+                }
+            },
+        ],
+        default: []
+    },
     avatars: {
         type: [Object],
         default: [{

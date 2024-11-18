@@ -116,7 +116,7 @@ router.delete('/events/:id', onlyAdminAuth, eventsController.delete_events)
 router.put('/events/:id', onlyAdminAuth, eventsController.update_events)
 
 // System
-router.get('/initial-fetch', systemController.inital_fetch)
+router.get('/initial-fetch', cache(5 * 60 * 60), systemController.inital_fetch)
 
 router.post('/translate', (req, res, next) => {
     translate(req.body.msg, { from: req.body.from, to: req.body.to }).then(response => {

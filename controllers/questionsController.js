@@ -276,10 +276,31 @@ const getQuestionsMethod = (req, res, next, match, user, searchName) => {
 
 const get_questions = async (req, res, next) => {
     let match = { $and: [{}] }
-    if (req.query.questionMode) match = { questionMode: req.query.questionMode }
-    if (req.query.search && req.query.userId && req.query.name) {
+    if (req.query.questionMode) {
+        match = { questionMode: req.query.questionMode }
+        return User.findById({ _id: req.query.userId }).populate('questionModes').populate('perks.id').then(async user => {
+            let searchName = ''
+            const payload = {
+                modeName: req.query.questionMode,
+                lastPlayedDate: moment(new Date).format('YYYY-MM-DD'),
+                index: user.questionModes.length
+            }
+            const fetchedQuestionModes = user.questionModes.filter(mode => mode.modeName == req.query.questionMode)
+            if (fetchedQuestionModes.length == 0) {
+                user.questionModes.push(payload)
+            } else {
+                payload.index = fetchedQuestionModes[0].index
+                user.questionModes[fetchedQuestionModes[0].index] = payload
+            }
+            if (req.query.price) user.coins -= req.query.price
+            await User.findByIdAndUpdate({ _id: req.query.userId }, user, { new: true }).populate('perks.id').then(updatedUser => {
+                getQuestionsMethod(req, res, next, match, updatedUser, searchName)
+            }).catch(next)
+        })
+    }
+    else if (req.query.search && req.query.userId && req.query.name) {
         match = { $and: [{ questionMode: { $in: ["trueOrFalse", "multipleChoices"] } }] }
-        await User.findById({ _id: req.query.userId }).populate('challenges').populate('perks.id').then(async user => {
+        return await User.findById({ _id: req.query.userId }).populate('challenges').populate('perks.id').then(async user => {
             let searchName = ''
             const payload = {
                 id: req.query.search,
