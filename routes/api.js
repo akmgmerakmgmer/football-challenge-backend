@@ -45,7 +45,7 @@ router.put('/add-event/:id', onlyUserAuth, usersController.add_event_to_user)
 
 //Question Routes
 router.post('/questions', questionsController.create_questions)
-router.get('/questions', requireAuth, cache(60), questionsController.get_questions)
+router.get('/questions', requireAuth, questionsController.get_questions)
 router.get('/admin-questions', onlyAdminAuth, questionsController.get_admin_questions)
 router.get('/questions/:id', onlyAdminAuth, questionsController.get_single_question)
 router.delete('/questions/:id', onlyAdminAuth, questionsController.delete_question)

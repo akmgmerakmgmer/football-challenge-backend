@@ -267,68 +267,64 @@ const getQuestionsMethod = (req, res, next, match, user, searchName) => {
         // for (let i in questions) {
         //     questions[i].answer = crypto.createHash('sha256').update(questions[i].answer).digest('hex');
         // }
-        const sendValues = user ? { questions, total_questions, per_page, user: user } : { questions, total_questions, per_page }
-        res.status(200).send(sendValues)
+        return res.status(200).send({ questions, total_questions, per_page, ...(user ? { user } : {}) })
     }).catch((err) => {
         next(err);
     })
 }
+const question_modes_method = async (req, res, next) => {
+    const match = { questionMode: req.query.questionMode }
+    const user = await User.findById({ _id: req.query.userId }).populate('perks.id')
+    let searchName = ''
+    const payload = {
+        modeName: req.query.questionMode,
+        lastPlayedDate: moment(new Date).format('YYYY-MM-DD'),
+        index: user.questionModes.length
+    }
+    const fetchedQuestionModes = user.questionModes.filter(mode => mode.modeName == req.query.questionMode)
+    if (fetchedQuestionModes.length == 0) {
+        user.questionModes.push(payload)
+    } else {
+        payload.index = fetchedQuestionModes[0].index
+        user.questionModes[fetchedQuestionModes[0].index] = payload
+    }
+    if (req.query.price) user.coins -= req.query.price
+    const updatedUser = await User.findByIdAndUpdate({ _id: req.query.userId }, user, { new: true }).populate('perks.id')
+    getQuestionsMethod(req, res, next, match, updatedUser, searchName)
+}
 
-const get_questions = async (req, res, next) => {
+const challenges_method = async (req, res, next) => {
+    const match = { $and: [{ questionMode: { $in: ["trueOrFalse", "multipleChoices"] } }] }
+    const user = await User.findById({ _id: req.query.userId }).populate('challenges').populate('perks.id')
+    let searchName = ''
+    const payload = {
+        id: req.query.search,
+        lastPlayedDate: moment(new Date).format('YYYY-MM-DD'),
+        index: user.challenges.length
+    }
+    const fetchedChallenge = user.challenges.filter(challenge => challenge.id == req.query.search)
+    if (fetchedChallenge.length == 0) {
+        user.challenges.push(payload)
+        searchName = req.query.name
+    } else {
+        payload.index = fetchedChallenge[0].index
+        user.challenges[fetchedChallenge[0].index] = payload
+        if (fetchedChallenge[0].lastPlayedDate !== user.challenges[fetchedChallenge[0].index].lastPlayedDate || req.query.page != 1) {
+            searchName = req.query.name
+        } else if (req.query.page == 1) {
+            return res.status(422).send({ message: 'already_played_this_challenge' })
+        }
+    }
+    const updatedUser = await User.findByIdAndUpdate({ _id: req.query.userId }, user, { new: true }).populate('perks.id')
+    getQuestionsMethod(req, res, next, match, updatedUser, searchName)
+}
+const get_questions = (req, res, next) => {
     let match = { $and: [{}] }
     if (req.query.questionMode) {
-        match = { questionMode: req.query.questionMode }
-        return User.findById({ _id: req.query.userId }).populate('questionModes').populate('perks.id').then(async user => {
-            let searchName = ''
-            const payload = {
-                modeName: req.query.questionMode,
-                lastPlayedDate: moment(new Date).format('YYYY-MM-DD'),
-                index: user.questionModes.length
-            }
-            const fetchedQuestionModes = user.questionModes.filter(mode => mode.modeName == req.query.questionMode)
-            if (fetchedQuestionModes.length == 0) {
-                user.questionModes.push(payload)
-            } else {
-                payload.index = fetchedQuestionModes[0].index
-                user.questionModes[fetchedQuestionModes[0].index] = payload
-            }
-            if (req.query.price) user.coins -= req.query.price
-            await User.findByIdAndUpdate({ _id: req.query.userId }, user, { new: true }).populate('perks.id').then(updatedUser => {
-                getQuestionsMethod(req, res, next, match, updatedUser, searchName)
-            }).catch(next)
-        })
+        question_modes_method(req, res, next)
     }
     else if (req.query.search && req.query.userId && req.query.name) {
-        match = { $and: [{ questionMode: { $in: ["trueOrFalse", "multipleChoices"] } }] }
-        return await User.findById({ _id: req.query.userId }).populate('challenges').populate('perks.id').then(async user => {
-            let searchName = ''
-            const payload = {
-                id: req.query.search,
-                lastPlayedDate: moment(new Date).format('YYYY-MM-DD'),
-                index: user.challenges.length
-            }
-            const fetchedChallenge = user.challenges.filter(challenge => challenge.id == req.query.search)
-            if (fetchedChallenge.length == 0) {
-                user.challenges.push(payload)
-                searchName = req.query.name
-                await User.findByIdAndUpdate({ _id: req.query.userId }, user, { new: true }).populate('perks.id').then(updatedUser => {
-                    getQuestionsMethod(req, res, next, match, updatedUser, searchName)
-                })
-                    .catch(next)
-            } else {
-                payload.index = fetchedChallenge[0].index
-                user.challenges[fetchedChallenge[0].index] = payload
-                if (fetchedChallenge[0].lastPlayedDate !== user.challenges[fetchedChallenge[0].index].lastPlayedDate || req.query.page != 1) {
-                    searchName = req.query.name
-                    await User.findByIdAndUpdate({ _id: req.query.userId }, user, { new: true }).populate('perks.id').then(updatedUser => {
-                        getQuestionsMethod(req, res, next, match, updatedUser, searchName)
-                    })
-                        .catch(next)
-                } else if (req.query.page == 1) {
-                    return res.status(422).send({ message: 'already_played_this_challenge' })
-                }
-            }
-        })
+        challenges_method(req, res, next)
     } else {
         getQuestionsMethod(req, res, next, match, false, false)
     }
