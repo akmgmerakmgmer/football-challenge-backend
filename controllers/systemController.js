@@ -13,7 +13,10 @@ const get_advertisments = async () => {
 
 const get_events = async () => {
     const currentDate = moment(new Date()).format('YYYY-MM-DD');
-    const events = await Event.find({ active: true, endDate: { $gt: currentDate } })
+    const events = await Event.aggregate([{
+        $match: { active: true, endDate: { $gt: currentDate } }
+    },
+    { $sample: { size: 10 } },])
     return events
 }
 

@@ -144,6 +144,14 @@ const UserSchema = new Schema({
             price: 0
         }
     },
+    themes: {
+        type: [String],
+        default: ['http://res.cloudinary.com/do0qe5hin/image/upload/v1732278095/smkjxdd13hkajcdjtnpb.jpg']
+    },
+    selectedTheme: {
+        type: String,
+        default: 'http://res.cloudinary.com/do0qe5hin/image/upload/v1732278095/smkjxdd13hkajcdjtnpb.jpg'
+    },
     roles: {
         type: [String],
         default: ['client']

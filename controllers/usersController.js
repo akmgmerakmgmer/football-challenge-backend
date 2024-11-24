@@ -4,6 +4,7 @@ const moment = require('moment');
 const Perk = require('../models/perksModel');
 const Avatar = require('../models/avatarsModel');
 const Event = require('../models/eventsModel');
+const Theme = require('../models/themesModel');
 
 const get_users = (req, res, next) => {
     const page = req.query.page - 1 || 0
@@ -387,6 +388,23 @@ const buy_avatar = (req, res, next) => {
 
 }
 
+const buy_theme = (req, res, next) => {
+    User.findOne({ _id: req.params.id }).then(user => {
+        for (let i in user.themes) {
+            if (user.themes[i] === req.body.theme.image) return res.status(422).send({ message: { en: "You already have this theme", ar: "انت بالفعل لديك هذه الخلفية" } })
+        }
+        if (user.coins < req.body.theme.price) return res.status(422).send({ message: { en: "You don't have enough coins", ar: "انت لا تملك عملات كافية" } })
+        User.findOneAndUpdate({ _id: req.params.id },
+            { $push: { themes: req.body.theme.image }, $inc: { coins: -req.body.theme.price }, selectedTheme: req.body.theme.image }, // Update operation using $push
+            { new: true }).populate('perks.id').then(updatedUser => {
+                res.status(200).send({ user: updatedUser })
+                Theme.findOneAndUpdate({ image: req.body.theme.image }, { $inc: { purchases: 1 } }).then(response => {
+                })
+            }).catch(next)
+    })
+
+}
+
 const buy_perks = (req, res, next) => {
     User.findOne({ _id: req.params.id }).populate('perks.id').then(user => {
         Perk.findOne({ _id: req.body.perkId }).then(perk => {
@@ -439,4 +457,4 @@ const add_event_to_user = async (req, res, next) => {
     })
 }
 
-module.exports = { get_users, get_current_user, get_single_user, delete_user, update_user, user_save_game, get_user_current_ranking, get_rankings, buy_avatar, notify_about, buy_perks, remove_perk, select_perk, add_coins, add_event_to_user }
+module.exports = { get_users, get_current_user, get_single_user, delete_user, update_user, user_save_game, get_user_current_ranking, get_rankings, buy_avatar, buy_theme, notify_about, buy_perks, remove_perk, select_perk, add_coins, add_event_to_user }
