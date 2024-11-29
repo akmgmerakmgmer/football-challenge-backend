@@ -60,9 +60,10 @@ const email_login = async (req, res, next) => {
         username: req.body.email,
         password: 'dummyPassword193548'
     }
-    const user = await User.findOne({ email: req.body.email }).populate('perks.id')
+    const user = await User.findOne({ email: req.body.email })
     if (user) {
-        res.status(200).send(user)
+        const token = createToken(user._id)
+        res.status(200).send({ 'accessToken': token })
     } else {
         User.create(payload).then(newUser => {
             const token = createToken(newUser._id)
