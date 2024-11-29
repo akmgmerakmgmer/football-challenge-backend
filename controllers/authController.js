@@ -60,13 +60,13 @@ const email_login = async (req, res, next) => {
         username: req.body.email,
         password: 'dummyPassword193548'
     }
-    console.log(payload)
     const user = await User.findOne({ email: req.body.email }).populate('perks.id')
     if (user) {
         res.status(200).send(user)
     } else {
         User.create(payload).then(newUser => {
-            User.findOne({ email: req.body.email }).populate('perks.id').then(currentUser => res.status(200).send(currentUser))
+            const token = createToken(newUser._id)
+            res.status(200).send({ 'accessToken': token })
         })
     }
 };
