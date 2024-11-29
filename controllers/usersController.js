@@ -31,7 +31,7 @@ const get_current_user = (req, res, next) => {
                     for (let i in user.events) {
                         let winningSide = ''
                         const currentDate = moment(new Date()).format('YYYY-MM-DD')
-                        if (user.events[i].endDate && currentDate > user.events[i].endDate) {
+                        if (user.events[i] && user.events[i].endDate && currentDate > user.events[i].endDate) {
                             await Event.findById({ _id: user.events[i].id }).then(event => {
                                 if (event && currentDate > event.endDate) {
                                     let maxPoints = 0

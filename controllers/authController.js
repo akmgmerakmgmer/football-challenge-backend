@@ -53,6 +53,22 @@ const signup_post = async (req, res, next) => {
         return res.status(422).send(handleErrors(err, req));
     }
 };
+const email_login = async (req, res, next) => {
+    const payload = {
+        email: req.body.email,
+        number: '01119683676',
+        username: req.body.email
+    }
+    console.log(payload)
+    const user = await User.findOne({ email: req.body.email })
+    if (user) {
+        res.status(200).send(user)
+    } else {
+        User.create(payload).populate('perks.id').then(newUser => {
+            res.status(201).send(newUser)
+        })
+    }
+};
 const login_post = async (req, res) => {
     try {
         const user = await User.login(req.body.username.trim(), req.body.password)
@@ -65,4 +81,4 @@ const login_post = async (req, res) => {
 
 }
 
-module.exports = { signup_post, login_post }
+module.exports = { signup_post, login_post, email_login }

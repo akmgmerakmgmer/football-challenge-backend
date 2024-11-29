@@ -14,6 +14,9 @@ const UserSchema = new Schema({
         minlength: [6, 'password_min_length'],
         required: [true, 'field_required'],
     },
+    email: {
+        type: String,
+    },
     number: {
         type: String,
         minlength: [11, 'number_min_length'],
