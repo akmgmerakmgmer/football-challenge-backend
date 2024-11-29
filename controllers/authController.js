@@ -57,7 +57,8 @@ const email_login = async (req, res, next) => {
     const payload = {
         email: req.body.email,
         number: '01119683676',
-        username: req.body.email
+        username: req.body.email,
+        password: 'dummyPassword193548'
     }
     console.log(payload)
     const user = await User.findOne({ email: req.body.email }).populate('perks.id')

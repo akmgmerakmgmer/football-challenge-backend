@@ -15,10 +15,10 @@ require("dotenv").config()
 // const result = UglifyJS.minify(fs.readFileSync('./routes/api.js', 'utf8'));
 // fs.writeFileSync('./routes/api.min.js', result.code);
 
-const UglifyJS = require('uglify-js');
-const fs = require('fs');
-const result = UglifyJS.minify(fs.readFileSync('./controllers/authController.js', 'utf8'));
-fs.writeFileSync('./controllers/authController.min.js', result.code);
+// const UglifyJS = require('uglify-js');
+// const fs = require('fs');
+// const result = UglifyJS.minify(fs.readFileSync('./controllers/authController.js', 'utf8'));
+// fs.writeFileSync('./controllers/authController.min.js', result.code);
 
 // User.collection.getIndexes().then(res=>{
 //     console.log(res)
