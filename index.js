@@ -12,13 +12,7 @@ const Room = require('./models/roomModel.js');
 const Question = require('./models/questionModel.js');
 require("dotenv").config();
 const server = http.createServer(app);
-const io = new Server(server, {
-    cors: {
-        origin: ["http://localhost:4000", "https://football-challenge-backend.onrender.com"],
-        methods: ["GET", "POST"],
-        credentials: true
-    }
-});
+const io = require("socket.io")("https://football-challenge-backend.onrender.com");
 
 // const UglifyJS = require('uglify-js');
 // const fs = require('fs');
@@ -40,7 +34,6 @@ const database = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PA
 
 mongoose.connect(database, { writeConcern: { w: 'majority', j: true, wtimeout: 1000 } })
     .then(() => {
-        console.log(port,'dsadsadsdadasdasdasdasdsa')
         // Start the server
         server.listen(port, () => {
         });
