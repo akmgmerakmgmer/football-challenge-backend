@@ -1,14 +1,19 @@
-
-const express = require('express')
-const app = express()
+const express = require('express');
+const app = express();
 const cors = require('cors');
-const bodyParser = require('body-parser')
-const mongoose = require('mongoose')
-const helmet = require('helmet')
-const xssClean = require("xss-clean")
-const compression = require("compression")
-require("dotenv").config()
-
+const bodyParser = require('body-parser');
+const mongoose = require('mongoose');
+const helmet = require('helmet');
+const xssClean = require("xss-clean");
+const compression = require("compression");
+const { Server } = require('socket.io'); // Correctly import Server
+const http = require("http");
+const Room = require('./models/roomModel.js');
+const User = require('./models/userModel.js');
+const Question = require('./models/questionModel.js');
+require("dotenv").config();
+const server = http.createServer(app);
+const io = new Server(server);
 
 // const UglifyJS = require('uglify-js');
 // const fs = require('fs');
@@ -27,18 +32,73 @@ require("dotenv").config()
 //Database Connection
 const port = process.env.PORT || 4000
 const database = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}@cluster0.0nhrwlp.mongodb.net/?retryWrites=true&w=${process.env.MONGO_DATABASE}`
-mongoose.connect(database, { writeConcern: { w: 'majority', j: true, wtimeout: 1000 } }).then(res => {
-    const server = app.listen(port, () => {
 
+mongoose.connect(database, { writeConcern: { w: 'majority', j: true, wtimeout: 1000 } })
+    .then(() => {
+        // Start the server
+        server.listen(port, () => {
+        });
+        // Set server timeout to 60 seconds
+        server.timeout = 60000;
+        server.keepAliveTimeout = 60000;
+    })
+    .catch((err) => {
+        console.error('Database connection error:', err);
     });
-    // Set server timeout to 60 seconds
-    server.timeout = 60000;
-    server.keepAliveTimeout = 60000
-})
 
-//Middlewares
+io.on('connection', (socket) => {
+    console.log('A user connected:', socket.id);
 
-app.set('trust proxy', 1)
+    // Listen for messages from the client
+    socket.on('joinRoom', async ({ userId }) => {
+        try {
+            let room = await Room.findOne({ isJoinable: true })
+            const player = {
+                userId: userId,
+            }
+            if (room) {
+                room.players.push(player)
+                if (room.players.length >= 2) room.isJoinable = false
+                room = await Room.findByIdAndUpdate({ _id: room._id }, room, { new: true }).populate({
+                    path: 'players.userId', // Path to populate
+                    select: 'username selectedAvatar'      // Only include the username field
+                })
+            } else {
+                room = new Room()
+                const questions_per_room = 50
+                const questions = await Question.aggregate([
+                    {
+                        $match: {}
+                    },
+                    { $sample: { size: questions_per_room } },
+                    { $limit: questions_per_room },
+                ])
+                room.players.push(player)
+                room.questions = questions
+                room = await (await room.save()).populate({
+                    path: 'players.userId', // Path to populate
+                    select: 'username selectedAvatar'      // Only include the username field
+                })
+            }
+            const roomId = room._id.toString()
+            socket.join(roomId)
+            io.to(roomId).emit('joinRoomSuccess', room)
+        } catch (e) {
+            console.log(`Error ${e}`)
+        }
+    });
+
+    socket.on('sendPoints', (room) => {
+        console.log(room.players)
+        io.to(room._id).emit('sendPointsListener', room)
+    })
+    socket.on('disconnect', () => {
+        console.log('User disconnected:', socket.id);
+    });
+});
+
+// Middlewares
+app.set('trust proxy', 1);
 app.use(cors({
     credentials: true,
     allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Access-Control-Allow-Origin'],
@@ -67,9 +127,9 @@ app.use(xssClean())
 app.use('/images', express.static('images'))
 app.use(bodyParser.json({ limit: '100mb' }))
 app.use(bodyParser.urlencoded({ limit: '100mb', extended: true }));
-app.use('/api', require('./routes/api.min.js'))
+app.use('/api', require('./routes/api.min.js'));
 
-
+// Global error handler
 app.use((err, req, res, next) => {
-    res.status(400).send({ error: err.message || 'server_error' })
-})
+    res.status(400).send({ error: err.message || 'server_error' });
+});

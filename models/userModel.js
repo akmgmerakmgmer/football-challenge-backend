@@ -221,6 +221,13 @@ const UserSchema = new Schema({
                 }
             }
         ]
+    },
+    socketId: {
+        type: String
+    },
+    inRoom: {
+        type: Boolean,
+        default: false
     }
 }, {
     timestamps: true
