@@ -9,13 +9,12 @@ const compression = require("compression");
 const { Server } = require('socket.io'); // Correctly import Server
 const http = require("http");
 const Room = require('./models/roomModel.js');
-const User = require('./models/userModel.js');
 const Question = require('./models/questionModel.js');
 require("dotenv").config();
 const server = http.createServer(app);
 const io = new Server(server, {
     cors: {
-        origin: ["http://localhost:4000", "https://football-challenge-backend.onrender.com/api/"],
+        origin: ["http://localhost:4000", "https://football-challenge-backend.onrender.com"],
         methods: ["GET", "POST"],
         credentials: true
     }
