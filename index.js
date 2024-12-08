@@ -13,7 +13,13 @@ const User = require('./models/userModel.js');
 const Question = require('./models/questionModel.js');
 require("dotenv").config();
 const server = http.createServer(app);
-const io = new Server(server);
+const io = new Server(server, {
+    cors: {
+        origin: ["http://localhost:4000", "https://football-challenge-backend.onrender.com/api/"],
+        methods: ["GET", "POST"],
+        credentials: true
+    }
+});
 
 // const UglifyJS = require('uglify-js');
 // const fs = require('fs');
