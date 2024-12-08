@@ -40,6 +40,7 @@ const database = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PA
 
 mongoose.connect(database, { writeConcern: { w: 'majority', j: true, wtimeout: 1000 } })
     .then(() => {
+        console.log(port,'dsadsadsdadasdasdasdasdsa')
         // Start the server
         server.listen(port, () => {
         });
