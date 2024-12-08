@@ -9,10 +9,11 @@ const compression = require("compression");
 const { Server } = require('socket.io'); // Correctly import Server
 const http = require("http");
 const Room = require('./models/roomModel.js');
+const User = require('./models/userModel.js');
 const Question = require('./models/questionModel.js');
 require("dotenv").config();
 const server = http.createServer(app);
-const io = require("socket.io")("https://football-challenge-backend.onrender.com");
+const io = new Server(server);
 
 // const UglifyJS = require('uglify-js');
 // const fs = require('fs');
