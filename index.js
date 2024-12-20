@@ -65,7 +65,7 @@ io.on('connection', (socket) => {
                 })
             } else {
                 room = new Room()
-                const questions_per_room = 50
+                const questions_per_room = 10
                 const questions = await Question.aggregate([
                     {
                         $match: {}
@@ -83,14 +83,28 @@ io.on('connection', (socket) => {
             const roomId = room._id.toString()
             socket.join(roomId)
             io.to(roomId).emit('joinRoomSuccess', room)
+            if (room.players.length === room.numberOfPlayers) {
+                setTimeout(() => {
+                    io.to(roomId).emit('navigateToGameListener', true)
+                }, 5000)
+            }
         } catch (e) {
             console.log(`Error ${e}`)
         }
     });
-
-    socket.on('sendPoints', (room) => {
-        console.log(room.players)
-        io.to(room._id).emit('sendPointsListener', room)
+    socket.on('sendPoints', (emittedData) => {
+        const emitData = {
+            userId: emittedData.userId,
+            points: emittedData.points
+        }
+        io.to(emittedData.roomId).emit('sendPointsListener', emitData)
+    })
+    socket.on('timeDone', (emittedData) => {
+        io.to(emittedData.roomId).emit('timeDoneListener', { userId: emittedData.userId })
+    })
+    socket.on('leaveRoom', ({ roomPlayers, roomId, fullRoom }) => {
+        socket.leave(roomId)
+        io.to(roomId).emit('leaveRoomListener', { roomPlayers, fullRoom })
     })
     socket.on('disconnect', () => {
         console.log('User disconnected:', socket.id);
@@ -127,7 +141,7 @@ app.use(xssClean())
 app.use('/images', express.static('images'))
 app.use(bodyParser.json({ limit: '100mb' }))
 app.use(bodyParser.urlencoded({ limit: '100mb', extended: true }));
-app.use('/api', require('./routes/api.min.js'));
+app.use('/api', require('./routes/api.js'));
 
 // Global error handler
 app.use((err, req, res, next) => {

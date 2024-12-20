@@ -16,6 +16,14 @@ const RoomModel = new Schema({
                 points: {
                     type: Number,
                     default: 0
+                },
+                timeDone: {
+                    type: Boolean,
+                    default: false
+                },
+                isLeft: {
+                    type: Boolean,
+                    default: false
                 }
             }
         ],

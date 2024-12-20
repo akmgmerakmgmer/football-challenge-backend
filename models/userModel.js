@@ -117,6 +117,7 @@ const UserSchema = new Schema({
         ],
         default: []
     },
+
     questionModes: {
         type: [
             {
@@ -222,13 +223,51 @@ const UserSchema = new Schema({
             }
         ]
     },
-    socketId: {
-        type: String
+    total_results: {
+        wins: {
+            type: Number,
+            default: 0
+        },
+        loses: {
+            type: Number,
+            default: 0
+        },
+        draws: {
+            type: Number,
+            default: 0
+        },
+        winning_percentage: {
+            type: String,
+            default: '0%'
+        },
     },
-    inRoom: {
-        type: Boolean,
-        default: false
-    }
+    season_results: {
+        wins: {
+            type: Number,
+            default: 0
+        },
+        loses: {
+            type: Number,
+            default: 0
+        },
+        draws: {
+            type: Number,
+            default: 0
+        },
+        consecutive_wins: {
+            type: Number,
+            default: 0
+        },
+        consecutive_loses: {
+            type: Number,
+            default: 0
+        },
+        winning_percentage: {
+            type: String,
+            default: '0%'
+        },
+        results: []
+    },
 }, {
     timestamps: true
 })

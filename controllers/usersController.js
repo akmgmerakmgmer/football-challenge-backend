@@ -457,4 +457,69 @@ const add_event_to_user = async (req, res, next) => {
     })
 }
 
-module.exports = { get_users, get_current_user, get_single_user, delete_user, update_user, user_save_game, get_user_current_ranking, get_rankings, buy_avatar, buy_theme, notify_about, buy_perks, remove_perk, select_perk, add_coins, add_event_to_user }
+const calculatePercentage = (total_results) => {
+    const total_games = total_results.wins + total_results.loses + total_results.draws
+    return `${((total_results.wins / total_games) * 100).toFixed(2)}%`
+}
+
+const addToResults = async (players, winnerId) => {
+    const result = []
+    for (let i in players) {
+        const playerData = {
+            playerName: players[i].userId.username,
+            points: players[i].points,
+            image: players[i].userId.selectedAvatar.image
+        }
+        if (players[i].isLeft) playerData.points = 0
+        if (players[i].userId._id == winnerId && players[i].points == 0) playerData.points = 10
+        result.push(playerData)
+    }
+    return result;
+}
+
+const multi_game_winner = async (req, res, next) => {
+    const { userId, players, winnerId } = req.body
+    const user = await User.findById({ _id: userId })
+    user.total_results.wins += 1
+    user.total_results.winning_percentage = calculatePercentage(user.total_results)
+    user.season_results.wins += 1
+    user.season_results.winning_percentage = calculatePercentage(user.season_results)
+    user.season_results.consecutive_wins += 1
+    user.season_results.consecutive_loses = 0
+    const result = await addToResults(players, winnerId)
+    user.season_results.results.push(result)
+    const updatedUser = await User.findByIdAndUpdate({ _id: userId }, user, { new: true }).populate('perks.id').populate('season_results.results')
+    res.status(200).send({ user: updatedUser })
+}
+
+const multi_game_loser = async (req, res, next) => {
+    const { userId, players, winnerId } = req.body
+    const user = await User.findById({ _id: userId })
+    user.total_results.loses += 1
+    user.total_results.winning_percentage = calculatePercentage(user.total_results)
+    user.season_results.loses += 1
+    user.season_results.winning_percentage = calculatePercentage(user.season_results)
+    user.season_results.consecutive_loses += 1
+    user.season_results.consecutive_wins = 0
+    const result = await addToResults(players, winnerId)
+    user.season_results.results.push(result)
+    const updatedUser = await User.findByIdAndUpdate({ _id: userId }, user, { new: true }).populate('perks.id').populate('season_results.results')
+    res.status(200).send({ user: updatedUser })
+}
+
+const multi_game_draw= async (req, res, next) => {
+    const { userId, players, winnerId } = req.body
+    const user = await User.findById({ _id: userId })
+    user.total_results.draws += 1
+    user.total_results.winning_percentage = calculatePercentage(user.total_results)
+    user.season_results.draws += 1
+    user.season_results.winning_percentage = calculatePercentage(user.season_results)
+    user.season_results.consecutive_wins = 0
+    user.season_results.consecutive_loses = 0
+    const result = await addToResults(players, winnerId)
+    user.season_results.results.push(result)
+    const updatedUser = await User.findByIdAndUpdate({ _id: userId }, user, { new: true }).populate('perks.id').populate('season_results.results')
+    res.status(200).send({ user: updatedUser })
+}
+
+module.exports = { get_users, get_current_user, get_single_user, delete_user, update_user, user_save_game, get_user_current_ranking, get_rankings, buy_avatar, buy_theme, notify_about, buy_perks, remove_perk, select_perk, add_coins, add_event_to_user, multi_game_draw, multi_game_winner, multi_game_loser }
