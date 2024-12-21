@@ -53,6 +53,7 @@ const get_current_user = (req, res, next) => {
                     for (let i in prizes) {
                         if (prizes[i].prizeType == 'coins') user.coins += prizes[i].coins
                         if (prizes[i].prizeType == 'avatar') user.avatars.push({ image: prizes[i].avatar, price: 0 })
+                        if (prizes[i].prizeType == 'theme') user.themes.push(prizes[i].theme)
                     }
                 }
                 User.findByIdAndUpdate(decodedToken.id, user, { new: true }).populate('perks.id').then(updatedUser => {
@@ -507,7 +508,7 @@ const multi_game_loser = async (req, res, next) => {
     res.status(200).send({ user: updatedUser })
 }
 
-const multi_game_draw= async (req, res, next) => {
+const multi_game_draw = async (req, res, next) => {
     const { userId, players, winnerId } = req.body
     const user = await User.findById({ _id: userId })
     user.total_results.draws += 1

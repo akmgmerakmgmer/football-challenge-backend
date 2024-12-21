@@ -13,7 +13,7 @@ const shopItemsController = require('../controllers/shopItemsController.min.js')
 const perksController = require('../controllers/perksController.min.js')
 const ranksController = require('../controllers/ranksController.js')
 const eventsController = require('../controllers/eventsController.min.js')
-const systemController = require('../controllers/systemController.min.js')
+const systemController = require('../controllers/systemController.js')
 const { onlyAdminAuth, onlyUserAuth, requireAuth } = require('../middlewares/auth.min.js')
 const cloudinary = require('../utilities/cloudinary')
 require("dotenv").config()
@@ -138,7 +138,7 @@ router.delete('/events/:id', onlyAdminAuth, eventsController.delete_events)
 router.put('/events/:id', onlyAdminAuth, eventsController.update_events)
 
 // System
-router.get('/initial-fetch', cache(5 * 60 * 60), systemController.inital_fetch)
+router.get('/initial-fetch', systemController.inital_fetch)
 
 router.post('/translate', (req, res, next) => {
     translate(req.body.msg, { from: req.body.from, to: req.body.to }).then(response => {
