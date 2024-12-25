@@ -6,7 +6,7 @@ const create_rank = (req, res, next) => {
 }
 
 const get_ranks = (req, res, next) => {
-    Rank.find({}).then(ranks => res.status(200).send({ ranks })).catch(next)
+    Rank.find({}).lean().then(ranks => res.status(200).send({ ranks })).catch(next)
 
 }
 

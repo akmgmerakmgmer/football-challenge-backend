@@ -254,6 +254,14 @@ const UserSchema = new Schema({
             type: Number,
             default: 0
         },
+        consecutive_rank_wins: {
+            type: Number,
+            default: 0
+        },
+        consecutive_rank_loses: {
+            type: Number,
+            default: 0
+        },
         consecutive_wins: {
             type: Number,
             default: 0
@@ -268,6 +276,10 @@ const UserSchema = new Schema({
         },
         results: []
     },
+    rank: {
+        type: Schema.Types.ObjectId,
+        ref: 'rank'
+    }
 }, {
     timestamps: true
 })

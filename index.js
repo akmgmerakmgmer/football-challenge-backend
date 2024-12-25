@@ -22,8 +22,8 @@ const io = new Server(server);
 
 // const UglifyJS = require('uglify-js');
 // const fs = require('fs');
-// const result = UglifyJS.minify(fs.readFileSync('./controllers/authController.js', 'utf8'));
-// fs.writeFileSync('./controllers/authController.min.js', result.code);
+// const result = UglifyJS.minify(fs.readFileSync('./controllers/ranksController.js', 'utf8'));
+// fs.writeFileSync('./controllers/ranksController.min.js', result.code);
 
 // User.collection.getIndexes().then(res=>{
 //     console.log(res)
@@ -31,7 +31,7 @@ const io = new Server(server);
 // User.collection.dropIndex({ "user_points.yearlyPoints.points": -1 })
 //Database Connection
 const port = process.env.PORT || 4000
-const database = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}@cluster0.0nhrwlp.mongodb.net/?retryWrites=true&w=${process.env.MONGO_DATABASE}`
+const database = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}@cluster0.yyqyr.mongodb.net/?retryWrites=true&w=${process.env.MONGO_DATABASE}`
 
 mongoose.connect(database, { writeConcern: { w: 'majority', j: true, wtimeout: 1000 } })
     .then(() => {

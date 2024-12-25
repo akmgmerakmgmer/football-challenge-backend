@@ -21,7 +21,7 @@ const get_current_user = (req, res, next) => {
             if (err) {
                 res.sendStatus(401)
             } else {
-                let user = await User.findById(decodedToken.id).populate('perks.id')
+                let user = await User.findById(decodedToken.id).populate('perks.id').populate('season_results.results').populate('rank')
                 if (user === null) {
                     res.status(400).send({ message: 'user_not_found' })
                     return;
@@ -31,9 +31,9 @@ const get_current_user = (req, res, next) => {
                     for (let i in user.events) {
                         let winningSide = ''
                         const currentDate = moment(new Date()).format('YYYY-MM-DD')
-                        if (user.events[i] && user.events[i].endDate && currentDate > user.events[i].endDate) {
+                        if (user.events[i] && user.events[i].endDate) {
                             await Event.findById({ _id: user.events[i].id }).then(event => {
-                                if (event && currentDate > event.endDate) {
+                                if (event && currentDate >= event.endDate) {
                                     let maxPoints = 0
                                     for (let i in event.sides) {
                                         if (event.sides[i].points > maxPoints) {
@@ -56,7 +56,7 @@ const get_current_user = (req, res, next) => {
                         if (prizes[i].prizeType == 'theme') user.themes.push(prizes[i].theme)
                     }
                 }
-                User.findByIdAndUpdate(decodedToken.id, user, { new: true }).populate('perks.id').then(updatedUser => {
+                User.findByIdAndUpdate(decodedToken.id, user, { new: true }).populate('perks.id').populate('season_results.results').populate('rank').then(updatedUser => {
                     res.status(200).send({ user: updatedUser, prizes })
                 })
             }
@@ -65,7 +65,7 @@ const get_current_user = (req, res, next) => {
 }
 
 const get_single_user = (req, res, next) => {
-    User.findById({ _id: req.params.id }).populate('perks.id').then(user => res.status(200).send(user)).catch(next)
+    User.findById({ _id: req.params.id }).populate('perks.id').populate('season_results.results').populate('rank').then(user => res.status(200).send(user)).catch(next)
 }
 
 const delete_user = (req, res, next) => {
@@ -78,33 +78,33 @@ const update_user = (req, res, next) => {
     if (req.body.username) {
         User.findById({ _id: req.params.id }).then(user => {
             if (user.username === req.body.username) {
-                User.findByIdAndUpdate({ _id: req.params.id }, req.body, { new: true }).populate('perks.id').then(user => res.status(200).send(user)).catch(next)
+                User.findByIdAndUpdate({ _id: req.params.id }, req.body, { new: true }).populate('perks.id').populate('season_results.results').populate('rank').then(user => res.status(200).send(user)).catch(next)
             } else {
                 User.findOne({ username: req.body.username }).then(user => {
                     if (user) {
                         return res.status(422).send({ message: 'username_unique' })
                     } else {
-                        User.findByIdAndUpdate({ _id: req.params.id }, req.body, { new: true }).populate('perks.id').then(user => res.status(200).send(user)).catch(next)
+                        User.findByIdAndUpdate({ _id: req.params.id }, req.body, { new: true }).populate('perks.id').populate('season_results.results').populate('rank').then(user => res.status(200).send(user)).catch(next)
                     }
                 })
             }
         })
     } else {
-        User.findByIdAndUpdate({ _id: req.params.id }, req.body, { new: true }).populate('perks.id').then(user => res.status(200).send(user)).catch(next)
+        User.findByIdAndUpdate({ _id: req.params.id }, req.body, { new: true }).populate('perks.id').populate('season_results.results').populate('rank').then(user => res.status(200).send(user)).catch(next)
     }
 }
 
 const select_perk = (req, res, next) => {
     User.findById({ _id: req.params.id }).then(user => {
         user.perks[req.body.index].selected = true
-        User.findByIdAndUpdate({ _id: req.params.id }, user, { new: true }).populate('perks.id').then(user => res.status(200).send(user)).catch(next)
+        User.findByIdAndUpdate({ _id: req.params.id }, user, { new: true }).populate('perks.id').populate('season_results.results').populate('rank').then(user => res.status(200).send(user)).catch(next)
     }).catch(next)
 }
 
 const remove_perk = (req, res, next) => {
     User.findById({ _id: req.params.id }).then(user => {
         user.perks[req.body.index].selected = false
-        User.findByIdAndUpdate({ _id: req.params.id }, user, { new: true }).populate('perks.id').then(user => res.status(200).send(user)).catch(next)
+        User.findByIdAndUpdate({ _id: req.params.id }, user, { new: true }).populate('perks.id').populate('season_results.results').populate('rank').then(user => res.status(200).send(user)).catch(next)
     }).catch(next)
 }
 
@@ -228,7 +228,7 @@ const user_save_game = (req, res, next) => {
         user.user_points.totalPoints += points
         user.coins += coins
         user.games_played += 1
-        User.findOneAndUpdate({ _id: req.params.id }, user, { new: true }).populate('perks.id').then(updatedUser => {
+        User.findOneAndUpdate({ _id: req.params.id }, user, { new: true }).populate('perks.id').populate('season_results.results').populate('rank').then(updatedUser => {
             res.status(200).send({ user: updatedUser });
         }).catch((err) => {
             next(err);
@@ -380,7 +380,7 @@ const buy_avatar = (req, res, next) => {
         if (user.coins < req.body.avatar.price) return res.status(422).send({ message: { en: "You don't have enough coins", ar: "انت لا تملك عملات كافية" } })
         User.findOneAndUpdate({ _id: req.params.id },
             { $push: { avatars: req.body.avatar }, $inc: { coins: -req.body.avatar.price } }, // Update operation using $push
-            { new: true }).populate('perks.id').then(updatedUser => {
+            { new: true }).populate('perks.id').populate('season_results.results').populate('rank').then(updatedUser => {
                 res.status(200).send({ user: updatedUser })
                 Avatar.findOneAndUpdate({ image: req.body.avatar.image }, { $inc: { purchases: 1 } }, { new: true }).then(response => {
                 })
@@ -397,7 +397,7 @@ const buy_theme = (req, res, next) => {
         if (user.coins < req.body.theme.price) return res.status(422).send({ message: { en: "You don't have enough coins", ar: "انت لا تملك عملات كافية" } })
         User.findOneAndUpdate({ _id: req.params.id },
             { $push: { themes: req.body.theme.image }, $inc: { coins: -req.body.theme.price }, selectedTheme: req.body.theme.image }, // Update operation using $push
-            { new: true }).populate('perks.id').then(updatedUser => {
+            { new: true }).populate('perks.id').populate('season_results.results').populate('rank').then(updatedUser => {
                 res.status(200).send({ user: updatedUser })
                 Theme.findOneAndUpdate({ image: req.body.theme.image }, { $inc: { purchases: 1 } }).then(response => {
                 })
@@ -407,7 +407,7 @@ const buy_theme = (req, res, next) => {
 }
 
 const buy_perks = (req, res, next) => {
-    User.findOne({ _id: req.params.id }).populate('perks.id').then(user => {
+    User.findOne({ _id: req.params.id }).populate('perks.id').populate('season_results.results').populate('rank').then(user => {
         Perk.findOne({ _id: req.body.perkId }).then(perk => {
             const isPerkWithUser = user.perks.filter(item => item.id._id.toString() === perk._id.toString()).length > 0 ? true : false
             if (user.coins < (perk.price * req.body.quantity)) return res.status(422).send({ message: { en: "You don't have enough coins", ar: "انت لا تملك عملات كافية" } })
@@ -425,7 +425,7 @@ const buy_perks = (req, res, next) => {
                 })
             }
             user.coins -= perk.price * req.body.quantity
-            User.findByIdAndUpdate({ _id: req.params.id }, user, { new: true }).populate('perks.id').then(updatedUser => {
+            User.findByIdAndUpdate({ _id: req.params.id }, user, { new: true }).populate('perks.id').populate('season_results.results').populate('rank').then(updatedUser => {
                 res.status(200).send({ user: updatedUser })
             }).catch(next)
         }).catch(next)
@@ -451,7 +451,7 @@ const add_event_to_user = async (req, res, next) => {
             if (event.sides[i]._id.toString() === req.body.sideId) {
                 event.sides[i].numberOfPlayers += 1
                 Event.findByIdAndUpdate({ _id: req.body.eventId }, event).then(event => {
-                    User.findByIdAndUpdate({ _id: req.params.id }, { $inc: { coins: -req.body.price }, $push: { events: eventPayload } }, { new: true }).populate('perks.id').then(user => res.status(200).send(user))
+                    User.findByIdAndUpdate({ _id: req.params.id }, { $inc: { coins: -req.body.price }, $push: { events: eventPayload } }, { new: true }).populate('perks.id').populate('season_results.results').populate('rank').then(user => res.status(200).send(user))
                 })
             }
         }
@@ -480,46 +480,52 @@ const addToResults = async (players, winnerId) => {
 
 const multi_game_winner = async (req, res, next) => {
     const { userId, players, winnerId } = req.body
-    const user = await User.findById({ _id: userId })
+    const user = await User.findById({ _id: userId }).populate('rank')
     user.total_results.wins += 1
     user.total_results.winning_percentage = calculatePercentage(user.total_results)
     user.season_results.wins += 1
     user.season_results.winning_percentage = calculatePercentage(user.season_results)
     user.season_results.consecutive_wins += 1
     user.season_results.consecutive_loses = 0
+    if (user.rank.wins_to_promote > 0 && user.rank.wins_to_promote === user.season_results.consecutive_rank_wins + 1) user.rank = user.rank.next_rank
+    else user.season_results.consecutive_rank_wins += 1
     const result = await addToResults(players, winnerId)
     user.season_results.results.push(result)
-    const updatedUser = await User.findByIdAndUpdate({ _id: userId }, user, { new: true }).populate('perks.id').populate('season_results.results')
+    const updatedUser = await User.findByIdAndUpdate({ _id: userId }, user, { new: true }).populate('perks.id').populate('season_results.results').populate('rank')
     res.status(200).send({ user: updatedUser })
 }
 
 const multi_game_loser = async (req, res, next) => {
     const { userId, players, winnerId } = req.body
-    const user = await User.findById({ _id: userId })
+    const user = await User.findById({ _id: userId }).populate('rank')
     user.total_results.loses += 1
     user.total_results.winning_percentage = calculatePercentage(user.total_results)
     user.season_results.loses += 1
     user.season_results.winning_percentage = calculatePercentage(user.season_results)
     user.season_results.consecutive_loses += 1
     user.season_results.consecutive_wins = 0
+    if (user.rank.loses_to_demote > 0 && user.rank.loses_to_demote === user.season_results.consecutive_rank_loses + 1) user.rank = user.rank.prev_rank
+    else user.season_results.consecutive_rank_loses += 1
     const result = await addToResults(players, winnerId)
     user.season_results.results.push(result)
-    const updatedUser = await User.findByIdAndUpdate({ _id: userId }, user, { new: true }).populate('perks.id').populate('season_results.results')
+    const updatedUser = await User.findByIdAndUpdate({ _id: userId }, user, { new: true }).populate('perks.id').populate('season_results.results').populate('rank')
     res.status(200).send({ user: updatedUser })
 }
 
 const multi_game_draw = async (req, res, next) => {
     const { userId, players, winnerId } = req.body
-    const user = await User.findById({ _id: userId })
+    const user = await User.findById({ _id: userId }).populate('rank')
     user.total_results.draws += 1
     user.total_results.winning_percentage = calculatePercentage(user.total_results)
     user.season_results.draws += 1
     user.season_results.winning_percentage = calculatePercentage(user.season_results)
     user.season_results.consecutive_wins = 0
     user.season_results.consecutive_loses = 0
+    user.season_results.consecutive_rank_loses = 0
+    user.season_results.consecutive_rank_wins = 0
     const result = await addToResults(players, winnerId)
     user.season_results.results.push(result)
-    const updatedUser = await User.findByIdAndUpdate({ _id: userId }, user, { new: true }).populate('perks.id').populate('season_results.results')
+    const updatedUser = await User.findByIdAndUpdate({ _id: userId }, user, { new: true }).populate('perks.id').populate('season_results.results').populate('rank')
     res.status(200).send({ user: updatedUser })
 }
 

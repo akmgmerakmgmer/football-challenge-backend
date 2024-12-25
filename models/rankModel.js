@@ -26,14 +26,20 @@ const RankModel = new Schema({
     },
     wins_to_promote: {
         type: Number,
+        default: ''
     },
     loses_to_demote: {
         type: Number,
+        default: ''
     },
     numberOfPlayers: {
         type: Number,
         default: 0
-    }
+    },
+    prizes: {
+        type: [Object],
+        default: []
+    },
 })
 
 
