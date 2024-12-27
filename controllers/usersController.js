@@ -5,6 +5,7 @@ const Perk = require('../models/perksModel');
 const Avatar = require('../models/avatarsModel');
 const Event = require('../models/eventsModel');
 const Theme = require('../models/themesModel');
+const Room = require('../models/roomModel');
 
 const get_users = (req, res, next) => {
     const page = req.query.page - 1 || 0
@@ -479,20 +480,25 @@ const addToResults = async (players, winnerId) => {
 }
 
 const multi_game_winner = async (req, res, next) => {
-    const { userId, players, winnerId } = req.body
-    const user = await User.findById({ _id: userId }).populate('rank')
+    const { userId, players, winnerId, roomId } = req.body
+    const prizes = []
+    await Room.findByIdAndDelete({ _id: roomId }).then((res) => { }).catch(next)
+    const user = await User.findById({ _id: userId }).populate('rank').populate('rank.next_rank')
     user.total_results.wins += 1
     user.total_results.winning_percentage = calculatePercentage(user.total_results)
     user.season_results.wins += 1
     user.season_results.winning_percentage = calculatePercentage(user.season_results)
     user.season_results.consecutive_wins += 1
     user.season_results.consecutive_loses = 0
-    if (user.rank.wins_to_promote > 0 && user.rank.wins_to_promote === user.season_results.consecutive_rank_wins + 1) user.rank = user.rank.next_rank
+    if (user.rank.wins_to_promote > 0 && user.rank.wins_to_promote === user.season_results.consecutive_rank_wins + 1) {
+        prizes = [...user.rank.next_rank.prizes]
+        user.rank = user.rank.next_rank._id
+    }
     else user.season_results.consecutive_rank_wins += 1
     const result = await addToResults(players, winnerId)
     user.season_results.results.push(result)
     const updatedUser = await User.findByIdAndUpdate({ _id: userId }, user, { new: true }).populate('perks.id').populate('season_results.results').populate('rank')
-    res.status(200).send({ user: updatedUser })
+    res.status(200).send({ user: updatedUser, prizes })
 }
 
 const multi_game_loser = async (req, res, next) => {

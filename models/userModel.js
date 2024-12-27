@@ -278,7 +278,8 @@ const UserSchema = new Schema({
     },
     rank: {
         type: Schema.Types.ObjectId,
-        ref: 'rank'
+        ref: 'rank',
+        default: '676ab18ded556828cf0061f9'
     }
 }, {
     timestamps: true

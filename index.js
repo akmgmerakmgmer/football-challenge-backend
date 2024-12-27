@@ -52,46 +52,84 @@ io.on('connection', (socket) => {
     // Listen for messages from the client
     socket.on('joinRoom', async ({ userId }) => {
         try {
-            let room = await Room.findOne({ isJoinable: true })
             const player = {
                 userId: userId,
             }
-            if (room) {
-                room.players.push(player)
-                if (room.players.length >= 2) room.isJoinable = false
-                room = await Room.findByIdAndUpdate({ _id: room._id }, room, { new: true }).populate({
-                    path: 'players.userId', // Path to populate
-                    select: 'username selectedAvatar'      // Only include the username field
-                })
-            } else {
-                room = new Room()
-                const questions_per_room = 10
-                const questions = await Question.aggregate([
-                    {
-                        $match: {}
-                    },
-                    { $sample: { size: questions_per_room } },
-                    { $limit: questions_per_room },
-                ])
-                room.players.push(player)
-                room.questions = questions
-                room = await (await room.save()).populate({
-                    path: 'players.userId', // Path to populate
-                    select: 'username selectedAvatar'      // Only include the username field
-                })
+
+            // First attempt: try to find and join an existing room
+            let room = await findAndJoinRoom(player);
+
+            // If no existing room found or room was full, create a new one
+            if (!room) {
+                room = await createNewRoom(player);
             }
-            const roomId = room._id.toString()
-            socket.join(roomId)
-            io.to(roomId).emit('joinRoomSuccess', room)
+
+            const roomId = room._id.toString();
+            socket.join(roomId);
+
+            // Emit success since we're guaranteed to have either joined or created a room
+            io.to(roomId).emit('joinRoomSuccess', room);
+
             if (room.players.length === room.numberOfPlayers) {
                 setTimeout(() => {
-                    io.to(roomId).emit('navigateToGameListener', true)
-                }, 5000)
+                    io.to(roomId).emit('navigateToGameListener', room);
+                }, 5000);
             }
         } catch (e) {
-            console.log(`Error ${e}`)
+            console.log(`Error ${e}`);
+            socket.emit('joinRoomError', { message: 'Failed to join room' });
         }
     });
+
+    // Helper function to find and join an available room
+    async function findAndJoinRoom(player) {
+        // First, find a joinable room with less than 2 players
+        let room = await Room.findOneAndUpdate(
+            {
+                isJoinable: true,
+                'players.1': { $exists: false } // Ensures there's less than 2 players
+            },
+            {
+                isJoinable: false,
+                $push: { players: player }
+            },
+            {
+                new: true,
+                runValidators: true
+            }
+        ).populate({
+            path: 'players.userId',
+            select: 'username selectedAvatar rank',
+            populate: {
+                path: 'rank',
+                select: 'image'
+            }
+        });
+        return room;
+    }
+
+    // Helper function to create a new room
+    async function createNewRoom(player) {
+        const room = new Room();
+        const questions_per_room = 10;
+        const questions = await Question.aggregate([
+            { $match: {} },
+            { $sample: { size: questions_per_room } },
+            { $limit: questions_per_room },
+        ]);
+
+        room.players.push(player);
+        room.questions = questions;
+
+        return (await room.save()).populate({
+            path: 'players.userId',
+            select: 'username selectedAvatar rank',
+            populate: {
+                path: 'rank',
+                select: 'image'
+            }
+        });
+    }
     socket.on('sendPoints', (emittedData) => {
         const emitData = {
             userId: emittedData.userId,
@@ -102,11 +140,24 @@ io.on('connection', (socket) => {
     socket.on('timeDone', (emittedData) => {
         io.to(emittedData.roomId).emit('timeDoneListener', { userId: emittedData.userId })
     })
+    socket.on('leaveRoomEarly', async ({ userId, roomId }) => {
+        socket.leave(roomId)
+        let room = await Room.findByIdAndUpdate({ _id: roomId }, { isJoinable: true, $pull: { players: { userId: userId } } }, { new: true }).populate({
+            path: 'players.userId',
+            select: 'username selectedAvatar'
+        });
+        if (room.players.length) io.to(roomId).emit('leaveRoomEarlyListener', { room: room })
+        else room = await Room.findByIdAndDelete({ _id: roomId }, { new: true })
+    })
     socket.on('leaveRoom', ({ roomPlayers, roomId, fullRoom }) => {
         socket.leave(roomId)
         io.to(roomId).emit('leaveRoomListener', { roomPlayers, fullRoom })
     })
+    socket.on('gameDone', ({ roomId }) => {
+        socket.leave(roomId)
+    })
     socket.on('disconnect', () => {
+        socket.disconnect(true);
         console.log('User disconnected:', socket.id);
     });
 });
@@ -141,7 +192,7 @@ app.use(xssClean())
 app.use('/images', express.static('images'))
 app.use(bodyParser.json({ limit: '100mb' }))
 app.use(bodyParser.urlencoded({ limit: '100mb', extended: true }));
-app.use('/api', require('./routes/api.js'));
+app.use('/api', require('./routes/api.min.js'));
 
 // Global error handler
 app.use((err, req, res, next) => {

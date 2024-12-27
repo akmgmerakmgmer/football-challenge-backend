@@ -27,7 +27,13 @@ const RoomModel = new Schema({
                 }
             }
         ],
-        default: []
+        default: [],
+        validate: [
+            function (players) {
+                return players.length <= 2;
+            },
+            'Players array cannot exceed 2 players'
+        ]
     },
     isJoinable: {
         type: Boolean,
