@@ -10,6 +10,16 @@ const RankModel = new Schema({
         type: String,
         required: [true, 'field_required']
     },
+    rank_banner: {
+        en: {
+            type: String,
+            required: [true, 'field_required']
+        },
+        ar: {
+            type: String,
+            required: [true, 'field_required']
+        }
+    },
     title: {
         en: {
             type: String,
