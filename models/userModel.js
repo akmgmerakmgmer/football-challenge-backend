@@ -280,6 +280,10 @@ const UserSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: 'rank',
         default: '676ab18ded556828cf0061f9'
+    },
+    prizes: {
+        type: [],
+        default: []
     }
 }, {
     timestamps: true

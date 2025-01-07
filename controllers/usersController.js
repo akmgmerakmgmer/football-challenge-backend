@@ -27,7 +27,7 @@ const get_current_user = (req, res, next) => {
                     res.status(400).send({ message: 'user_not_found' })
                     return;
                 }
-                let prizes = []
+                let prizes = user.prizes
                 if (user.events.length) {
                     for (let i in user.events) {
                         let winningSide = ''
@@ -57,6 +57,7 @@ const get_current_user = (req, res, next) => {
                         if (prizes[i].prizeType == 'theme') user.themes.push(prizes[i].theme)
                     }
                 }
+                user.prizes = []
                 User.findByIdAndUpdate(decodedToken.id, user, { new: true }).populate('perks.id').populate('season_results.results').populate('rank').then(updatedUser => {
                     res.status(200).send({ user: updatedUser, prizes })
                 })
@@ -464,7 +465,8 @@ const calculatePercentage = (total_results) => {
     return `${((total_results.wins / total_games) * 100).toFixed(2)}%`
 }
 
-const addToResults = async (players, winnerId) => {
+const addToResults = async (players, winnerId, results) => {
+    if (results.length == 20) results.pop()
     const result = []
     for (let i in players) {
         const playerData = {
@@ -476,33 +478,35 @@ const addToResults = async (players, winnerId) => {
         if (players[i].userId._id == winnerId && players[i].points == 0) playerData.points = 10
         result.push(playerData)
     }
-    return result;
+    return [...results, result];
 }
 
 const multi_game_winner = async (req, res, next) => {
     const { userId, players, winnerId, roomId } = req.body
-    const prizes = []
+    let prizes = []
+    let promoted = false
     await Room.findByIdAndDelete({ _id: roomId }).then((res) => { }).catch(next)
-    const user = await User.findById({ _id: userId }).populate('rank').populate('rank.next_rank')
+    const user = await User.findById({ _id: userId }).populate('rank')
     user.total_results.wins += 1
     user.total_results.winning_percentage = calculatePercentage(user.total_results)
     user.season_results.wins += 1
     user.season_results.winning_percentage = calculatePercentage(user.season_results)
     user.season_results.consecutive_wins += 1
     user.season_results.consecutive_loses = 0
-    if (user.rank.wins_to_promote > 0 && user.rank.wins_to_promote === user.season_results.consecutive_rank_wins + 1) {
-        prizes = [...user.rank.next_rank.prizes]
-        user.rank = user.rank.next_rank._id
+    if (user.rank.wins_to_promote > 0 && user.rank.wins_to_promote <= user.season_results.consecutive_rank_wins + 1) {
+        prizes = [...user.rank.prizes]
+        user.rank = user.rank.next_rank
+        promoted = true
     }
     else user.season_results.consecutive_rank_wins += 1
-    const result = await addToResults(players, winnerId)
-    user.season_results.results.push(result)
+    user.season_results.results = await addToResults(players, winnerId, user.season_results.results)
     const updatedUser = await User.findByIdAndUpdate({ _id: userId }, user, { new: true }).populate('perks.id').populate('season_results.results').populate('rank')
-    res.status(200).send({ user: updatedUser, prizes })
+    res.status(200).send({ user: updatedUser, prizes, promoted })
 }
 
 const multi_game_loser = async (req, res, next) => {
     const { userId, players, winnerId } = req.body
+    let demoted = false
     const user = await User.findById({ _id: userId }).populate('rank')
     user.total_results.loses += 1
     user.total_results.winning_percentage = calculatePercentage(user.total_results)
@@ -510,12 +514,14 @@ const multi_game_loser = async (req, res, next) => {
     user.season_results.winning_percentage = calculatePercentage(user.season_results)
     user.season_results.consecutive_loses += 1
     user.season_results.consecutive_wins = 0
-    if (user.rank.loses_to_demote > 0 && user.rank.loses_to_demote === user.season_results.consecutive_rank_loses + 1) user.rank = user.rank.prev_rank
+    if (user.rank.loses_to_demote > 0 && user.rank.loses_to_demote <= user.season_results.consecutive_rank_loses + 1) {
+        user.rank = user.rank.prev_rank
+        demoted = true
+    }
     else user.season_results.consecutive_rank_loses += 1
-    const result = await addToResults(players, winnerId)
-    user.season_results.results.push(result)
+    user.season_results.results = await addToResults(players, winnerId, user.season_results.results)
     const updatedUser = await User.findByIdAndUpdate({ _id: userId }, user, { new: true }).populate('perks.id').populate('season_results.results').populate('rank')
-    res.status(200).send({ user: updatedUser })
+    res.status(200).send({ user: updatedUser, demoted })
 }
 
 const multi_game_draw = async (req, res, next) => {
@@ -529,8 +535,7 @@ const multi_game_draw = async (req, res, next) => {
     user.season_results.consecutive_loses = 0
     user.season_results.consecutive_rank_loses = 0
     user.season_results.consecutive_rank_wins = 0
-    const result = await addToResults(players, winnerId)
-    user.season_results.results.push(result)
+    user.season_results.results = await addToResults(players, winnerId, user.season_results.results)
     const updatedUser = await User.findByIdAndUpdate({ _id: userId }, user, { new: true }).populate('perks.id').populate('season_results.results').populate('rank')
     res.status(200).send({ user: updatedUser })
 }

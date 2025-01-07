@@ -14,6 +14,8 @@ const Question = require('./models/questionModel.js');
 require("dotenv").config();
 const server = http.createServer(app);
 const io = new Server(server);
+const cron = require('node-cron');
+const cronController = require('./controllers/cronController.js')
 
 // const UglifyJS = require('uglify-js');
 // const fs = require('fs');
@@ -22,8 +24,8 @@ const io = new Server(server);
 
 // const UglifyJS = require('uglify-js');
 // const fs = require('fs');
-// const result = UglifyJS.minify(fs.readFileSync('./controllers/ranksController.js', 'utf8'));
-// fs.writeFileSync('./controllers/ranksController.min.js', result.code);
+// const result = UglifyJS.minify(fs.readFileSync('./controllers/cronController.js', 'utf8'));
+// fs.writeFileSync('./controllers/cronController.min.js', result.code);
 
 // User.collection.getIndexes().then(res=>{
 //     console.log(res)
@@ -32,6 +34,27 @@ const io = new Server(server);
 //Database Connection
 const port = process.env.PORT || 4000
 const database = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}@cluster0.yyqyr.mongodb.net/?retryWrites=true&w=${process.env.MONGO_DATABASE}`
+// 1. Daily at 12 AM
+cron.schedule('0 0 * * *', () => {
+    cronController.get_rankings('daily')
+});
+
+// 2. Weekly on Saturday at 12 AM
+cron.schedule('0 0 * * 6', () => {
+    cronController.get_rankings('weekly')
+
+});
+
+// 3. Monthly on the 1st day of the month at 12 AM
+cron.schedule('0 0 1 * *', () => {
+    cronController.get_rankings('monthly')
+
+});
+
+// 4. Yearly on January 1st at 12 AM
+cron.schedule('0 0 1 1 *', () => {
+    cronController.get_rankings('yearly')
+});
 
 mongoose.connect(database, { writeConcern: { w: 'majority', j: true, wtimeout: 1000 } })
     .then(() => {
