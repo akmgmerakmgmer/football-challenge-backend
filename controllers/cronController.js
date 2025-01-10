@@ -88,7 +88,6 @@ const get_rankings = (searchTime) => {
             const currentUserPrize = {
                 "prizeType": "coins",
                 "coins": getPrizes(searchTime)[i],
-                "prizeReason": 'rankings',
                 "searchTime": searchTime
             }
             await User.findByIdAndUpdate({ _id: sortedUsers[i]._id.toString() }, { $push: { prizes: currentUserPrize } }).then(res => { })

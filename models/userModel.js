@@ -284,6 +284,20 @@ const UserSchema = new Schema({
     prizes: {
         type: [],
         default: []
+    },
+    prev_seasons_ranks: {
+        type: [Schema.Types.ObjectId],
+        ref: 'rank',
+        default: '676ab18ded556828cf0061f9'
+    },
+    current_season: {
+        type: String,
+        default: 'Season 1'
+    },
+    system_info: {
+        type: Schema.Types.ObjectId,
+        ref: 'system',
+        default: '678144ec414805bda0471957'
     }
 }, {
     timestamps: true

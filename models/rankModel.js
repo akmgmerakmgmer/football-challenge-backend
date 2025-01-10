@@ -38,6 +38,11 @@ const RankModel = new Schema({
         type: Schema.Types.ObjectId,
         ref: 'rank'
     },
+    season_end_rank: {
+        type: Schema.Types.ObjectId,
+        ref: 'rank',
+        default: '676ab18ded556828cf0061f9'
+    },
     wins_to_promote: {
         type: Number,
         default: ''

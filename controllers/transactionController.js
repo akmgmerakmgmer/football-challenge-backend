@@ -40,7 +40,7 @@ const payment_success = (req, res, next) => {
                     { _id: transaction.userId },
                     { $inc: { coins: transaction.itemQuantity } }, // The $inc operator to increment the coins
                     { new: true }, // Options: return the updated document
-                ).populate('perks.id').populate('season_results.results').populate('rank').then(user => {
+                ).populate('perks.id').populate('season_results.results').populate('rank').populate('system_info').then(user => {
                     Transaction.findByIdAndUpdate({ _id: id }, { isPaid: true }, { new: true }).then(transaction => {
                         res.status(200).send({ user, transaction })
                     })

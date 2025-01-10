@@ -15,7 +15,8 @@ require("dotenv").config();
 const server = http.createServer(app);
 const io = new Server(server);
 const cron = require('node-cron');
-const cronController = require('./controllers/cronController.js')
+const cronController = require('./controllers/cronController.min.js')
+const systemController = require('./controllers/systemController.min.js')
 
 // const UglifyJS = require('uglify-js');
 // const fs = require('fs');
@@ -34,6 +35,11 @@ const cronController = require('./controllers/cronController.js')
 //Database Connection
 const port = process.env.PORT || 4000
 const database = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}@cluster0.yyqyr.mongodb.net/?retryWrites=true&w=${process.env.MONGO_DATABASE}`
+
+// cron.schedule('* * * * *', () => {
+//     systemController.changeSystemInfo()
+// });
+
 // 1. Daily at 12 AM
 cron.schedule('0 0 * * *', () => {
     cronController.get_rankings('daily')
@@ -42,13 +48,12 @@ cron.schedule('0 0 * * *', () => {
 // 2. Weekly on Saturday at 12 AM
 cron.schedule('0 0 * * 6', () => {
     cronController.get_rankings('weekly')
-
 });
 
 // 3. Monthly on the 1st day of the month at 12 AM
 cron.schedule('0 0 1 * *', () => {
     cronController.get_rankings('monthly')
-
+    systemController.changeSystemInfo()
 });
 
 // 4. Yearly on January 1st at 12 AM
@@ -73,7 +78,7 @@ io.on('connection', (socket) => {
     console.log('A user connected:', socket.id);
 
     // Listen for messages from the client
-    socket.on('joinRoom', async ({ userId }) => {
+    socket.on('joinRoom', async ({ userId, questionMode }) => {
         try {
             const player = {
                 userId: userId,
@@ -84,7 +89,7 @@ io.on('connection', (socket) => {
 
             // If no existing room found or room was full, create a new one
             if (!room) {
-                room = await createNewRoom(player);
+                room = await createNewRoom(player, questionMode);
             }
 
             const roomId = room._id.toString();
@@ -136,11 +141,9 @@ io.on('connection', (socket) => {
         const room = new Room();
         const questions_per_room = 10;
         const questions = await Question.aggregate([
-            { $match: {} },
             { $sample: { size: questions_per_room } },
             { $limit: questions_per_room },
         ]);
-
         room.players.push(player);
         room.questions = questions;
 
