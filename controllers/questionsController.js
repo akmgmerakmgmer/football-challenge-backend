@@ -274,7 +274,10 @@ const getQuestionsMethod = (req, res, next, match, user, searchName) => {
 }
 const question_modes_method = async (req, res, next) => {
     const match = { questionMode: req.query.questionMode }
-    const user = await User.findById({ _id: req.query.userId }).populate('perks.id').populate('season_results.results').populate('rank').populate('system_info')
+    const user = await User.findById({ _id: req.query.userId }).populate('perks.id').populate('season_results.results').populate('rank').populate('system_info').populate({
+    path: 'prev_seasons_ranks',
+    select: 'image title', 
+  })
     let searchName = ''
     const payload = {
         modeName: req.query.questionMode,
@@ -289,13 +292,19 @@ const question_modes_method = async (req, res, next) => {
         user.questionModes[fetchedQuestionModes[0].index] = payload
     }
     if (req.query.price) user.coins -= req.query.price
-    const updatedUser = await User.findByIdAndUpdate({ _id: req.query.userId }, user, { new: true }).populate('perks.id').populate('season_results.results').populate('rank').populate('system_info')
+    const updatedUser = await User.findByIdAndUpdate({ _id: req.query.userId }, user, { new: true }).populate('perks.id').populate('season_results.results').populate('rank').populate('system_info').populate({
+    path: 'prev_seasons_ranks',
+    select: 'image title', 
+  })
     getQuestionsMethod(req, res, next, match, updatedUser, searchName)
 }
 
 const challenges_method = async (req, res, next) => {
     const match = { $and: [{ questionMode: { $in: ["trueOrFalse", "multipleChoices"] } }] }
-    const user = await User.findById({ _id: req.query.userId }).populate('challenges').populate('perks.id').populate('season_results.results').populate('rank').populate('system_info')
+    const user = await User.findById({ _id: req.query.userId }).populate('challenges').populate('perks.id').populate('season_results.results').populate('rank').populate('system_info').populate({
+    path: 'prev_seasons_ranks',
+    select: 'image title', 
+  })
     let searchName = ''
     const payload = {
         id: req.query.search,
@@ -315,7 +324,10 @@ const challenges_method = async (req, res, next) => {
             return res.status(422).send({ message: 'already_played_this_challenge' })
         }
     }
-    const updatedUser = await User.findByIdAndUpdate({ _id: req.query.userId }, user, { new: true }).populate('perks.id').populate('season_results.results').populate('rank').populate('system_info')
+    const updatedUser = await User.findByIdAndUpdate({ _id: req.query.userId }, user, { new: true }).populate('perks.id').populate('season_results.results').populate('rank').populate('system_info').populate({
+    path: 'prev_seasons_ranks',
+    select: 'image title', 
+  })
     getQuestionsMethod(req, res, next, match, updatedUser, searchName)
 }
 const get_questions = (req, res, next) => {

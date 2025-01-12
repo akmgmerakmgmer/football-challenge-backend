@@ -25,8 +25,8 @@ const systemController = require('./controllers/systemController.min.js')
 
 // const UglifyJS = require('uglify-js');
 // const fs = require('fs');
-// const result = UglifyJS.minify(fs.readFileSync('./controllers/cronController.js', 'utf8'));
-// fs.writeFileSync('./controllers/cronController.min.js', result.code);
+// const result = UglifyJS.minify(fs.readFileSync('./controllers/transactionController.js', 'utf8'));
+// fs.writeFileSync('./controllers/transactionController.min.js', result.code);
 
 // User.collection.getIndexes().then(res=>{
 //     console.log(res)
@@ -37,6 +37,7 @@ const port = process.env.PORT || 4000
 const database = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}@cluster0.yyqyr.mongodb.net/?retryWrites=true&w=${process.env.MONGO_DATABASE}`
 
 // cron.schedule('* * * * *', () => {
+//     // cronController.get_rankings('daily')
 //     systemController.changeSystemInfo()
 // });
 
