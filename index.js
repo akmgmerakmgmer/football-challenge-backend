@@ -25,8 +25,8 @@ const systemController = require('./controllers/systemController.min.js')
 
 // const UglifyJS = require('uglify-js');
 // const fs = require('fs');
-// const result = UglifyJS.minify(fs.readFileSync('./controllers/transactionController.js', 'utf8'));
-// fs.writeFileSync('./controllers/transactionController.min.js', result.code);
+// const result = UglifyJS.minify(fs.readFileSync('./controllers/usersController.js', 'utf8'));
+// fs.writeFileSync('./controllers/usersController.min.js', result.code);
 
 // User.collection.getIndexes().then(res=>{
 //     console.log(res)
@@ -219,7 +219,7 @@ app.use(xssClean())
 app.use('/images', express.static('images'))
 app.use(bodyParser.json({ limit: '100mb' }))
 app.use(bodyParser.urlencoded({ limit: '100mb', extended: true }));
-app.use('/api', require('./routes/api.min.js'));
+app.use('/api', require('./routes/api.js'));
 
 // Global error handler
 app.use((err, req, res, next) => {

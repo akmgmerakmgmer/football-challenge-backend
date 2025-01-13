@@ -15,7 +15,7 @@ const get_users = (req, res, next) => {
     })
 }
 
-const eventResults = async (user,prizes) => {
+const eventResults = async (user, prizes) => {
     if (user.events.length) {
         for (let i in user.events) {
             let winningSide = ''
@@ -52,7 +52,7 @@ const changeSeason = (user) => {
             "consecutive_loses": 0
         }
         user.prev_seasons_ranks.push(user.rank._id)
-        user.rank= user.rank.season_end_rank
+        user.rank = user.rank.season_end_rank
         user.season_results = season_results_defaults
         user.current_season = user.system_info.current_season.title.en
     }
@@ -66,10 +66,13 @@ const get_current_user = (req, res, next) => {
             if (err) {
                 res.sendStatus(401)
             } else {
-                let user = await User.findById(decodedToken.id).populate('perks.id').populate('season_results.results').populate('rank').populate('system_info').populate({
-    path: 'prev_seasons_ranks',
-    select: 'image title', 
-  })
+                let user = await User.findById(decodedToken.id).populate('perks.id').populate('rank').populate('system_info').populate({
+                    path: 'prev_seasons_ranks',
+                    select: 'image title',
+                }).populate('season_results.results').populate({
+                    path: 'season_results.results.player',
+                    select: 'username selectedAvatar -rank',
+                })
                 if (user === null) {
                     res.status(400).send({ message: 'user_not_found' })
                     return;
@@ -85,10 +88,13 @@ const get_current_user = (req, res, next) => {
                     }
                 }
                 user.prizes = []
-                User.findByIdAndUpdate(decodedToken.id, user, { new: true }).populate('perks.id').populate('season_results.results').populate('rank').populate('system_info').populate({
-    path: 'prev_seasons_ranks',
-    select: 'image title', 
-  }).then(updatedUser => {
+                User.findByIdAndUpdate(decodedToken.id, user, { new: true }).populate('perks.id').populate('rank').populate('system_info').populate({
+                    path: 'prev_seasons_ranks',
+                    select: 'image title',
+                }).populate({
+                    path: 'season_results.results.player',
+                    select: 'username selectedAvatar -rank',
+                }).then(updatedUser => {
                     res.status(200).send({ user: updatedUser, prizes })
                 })
             }
@@ -98,9 +104,9 @@ const get_current_user = (req, res, next) => {
 
 const get_single_user = (req, res, next) => {
     User.findById({ _id: req.params.id }).populate('perks.id').populate('season_results.results').populate('rank').populate('system_info').populate({
-    path: 'prev_seasons_ranks',
-    select: 'image title', 
-  }).then(user => res.status(200).send(user)).catch(next)
+        path: 'prev_seasons_ranks',
+        select: 'image title',
+    }).then(user => res.status(200).send(user)).catch(next)
 }
 
 const delete_user = (req, res, next) => {
@@ -114,27 +120,27 @@ const update_user = (req, res, next) => {
         User.findById({ _id: req.params.id }).then(user => {
             if (user.username === req.body.username) {
                 User.findByIdAndUpdate({ _id: req.params.id }, req.body, { new: true }).populate('perks.id').populate('season_results.results').populate('rank').populate('system_info').populate({
-    path: 'prev_seasons_ranks',
-    select: 'image title', 
-  }).then(user => res.status(200).send(user)).catch(next)
+                    path: 'prev_seasons_ranks',
+                    select: 'image title',
+                }).then(user => res.status(200).send(user)).catch(next)
             } else {
                 User.findOne({ username: req.body.username }).then(user => {
                     if (user) {
                         return res.status(422).send({ message: 'username_unique' })
                     } else {
                         User.findByIdAndUpdate({ _id: req.params.id }, req.body, { new: true }).populate('perks.id').populate('season_results.results').populate('rank').populate('system_info').populate({
-    path: 'prev_seasons_ranks',
-    select: 'image title', 
-  }).then(user => res.status(200).send(user)).catch(next)
+                            path: 'prev_seasons_ranks',
+                            select: 'image title',
+                        }).then(user => res.status(200).send(user)).catch(next)
                     }
                 })
             }
         })
     } else {
         User.findByIdAndUpdate({ _id: req.params.id }, req.body, { new: true }).populate('perks.id').populate('season_results.results').populate('rank').populate('system_info').populate({
-    path: 'prev_seasons_ranks',
-    select: 'image title', 
-  }).then(user => res.status(200).send(user)).catch(next)
+            path: 'prev_seasons_ranks',
+            select: 'image title',
+        }).then(user => res.status(200).send(user)).catch(next)
     }
 }
 
@@ -142,9 +148,9 @@ const select_perk = (req, res, next) => {
     User.findById({ _id: req.params.id }).then(user => {
         user.perks[req.body.index].selected = true
         User.findByIdAndUpdate({ _id: req.params.id }, user, { new: true }).populate('perks.id').populate('season_results.results').populate('rank').populate('system_info').populate({
-    path: 'prev_seasons_ranks',
-    select: 'image title', 
-  }).then(user => res.status(200).send(user)).catch(next)
+            path: 'prev_seasons_ranks',
+            select: 'image title',
+        }).then(user => res.status(200).send(user)).catch(next)
     }).catch(next)
 }
 
@@ -152,9 +158,9 @@ const remove_perk = (req, res, next) => {
     User.findById({ _id: req.params.id }).then(user => {
         user.perks[req.body.index].selected = false
         User.findByIdAndUpdate({ _id: req.params.id }, user, { new: true }).populate('perks.id').populate('season_results.results').populate('rank').populate('system_info').populate({
-    path: 'prev_seasons_ranks',
-    select: 'image title', 
-  }).then(user => res.status(200).send(user)).catch(next)
+            path: 'prev_seasons_ranks',
+            select: 'image title',
+        }).then(user => res.status(200).send(user)).catch(next)
     }).catch(next)
 }
 
@@ -279,9 +285,9 @@ const user_save_game = (req, res, next) => {
         user.coins += coins
         user.games_played += 1
         User.findOneAndUpdate({ _id: req.params.id }, user, { new: true }).populate('perks.id').populate('season_results.results').populate('rank').populate('system_info').populate({
-    path: 'prev_seasons_ranks',
-    select: 'image title', 
-  }).then(updatedUser => {
+            path: 'prev_seasons_ranks',
+            select: 'image title',
+        }).then(updatedUser => {
             res.status(200).send({ user: updatedUser });
         }).catch((err) => {
             next(err);
@@ -434,9 +440,9 @@ const buy_avatar = (req, res, next) => {
         User.findOneAndUpdate({ _id: req.params.id },
             { $push: { avatars: req.body.avatar }, $inc: { coins: -req.body.avatar.price } }, // Update operation using $push
             { new: true }).populate('perks.id').populate('season_results.results').populate('rank').populate('system_info').populate({
-    path: 'prev_seasons_ranks',
-    select: 'image title', 
-  }).then(updatedUser => {
+                path: 'prev_seasons_ranks',
+                select: 'image title',
+            }).then(updatedUser => {
                 res.status(200).send({ user: updatedUser })
                 Avatar.findOneAndUpdate({ image: req.body.avatar.image }, { $inc: { purchases: 1 } }, { new: true }).then(response => {
                 })
@@ -454,9 +460,9 @@ const buy_theme = (req, res, next) => {
         User.findOneAndUpdate({ _id: req.params.id },
             { $push: { themes: req.body.theme.image }, $inc: { coins: -req.body.theme.price }, selectedTheme: req.body.theme.image }, // Update operation using $push
             { new: true }).populate('perks.id').populate('season_results.results').populate('rank').populate('system_info').populate({
-    path: 'prev_seasons_ranks',
-    select: 'image title', 
-  }).then(updatedUser => {
+                path: 'prev_seasons_ranks',
+                select: 'image title',
+            }).then(updatedUser => {
                 res.status(200).send({ user: updatedUser })
                 Theme.findOneAndUpdate({ image: req.body.theme.image }, { $inc: { purchases: 1 } }).then(response => {
                 })
@@ -467,9 +473,9 @@ const buy_theme = (req, res, next) => {
 
 const buy_perks = (req, res, next) => {
     User.findOne({ _id: req.params.id }).populate('perks.id').populate('season_results.results').populate('rank').populate('system_info').populate({
-    path: 'prev_seasons_ranks',
-    select: 'image title', 
-  }).then(user => {
+        path: 'prev_seasons_ranks',
+        select: 'image title',
+    }).then(user => {
         Perk.findOne({ _id: req.body.perkId }).then(perk => {
             const isPerkWithUser = user.perks.filter(item => item.id._id.toString() === perk._id.toString()).length > 0 ? true : false
             if (user.coins < (perk.price * req.body.quantity)) return res.status(422).send({ message: { en: "You don't have enough coins", ar: "انت لا تملك عملات كافية" } })
@@ -488,9 +494,9 @@ const buy_perks = (req, res, next) => {
             }
             user.coins -= perk.price * req.body.quantity
             User.findByIdAndUpdate({ _id: req.params.id }, user, { new: true }).populate('perks.id').populate('season_results.results').populate('rank').populate('system_info').populate({
-    path: 'prev_seasons_ranks',
-    select: 'image title', 
-  }).then(updatedUser => {
+                path: 'prev_seasons_ranks',
+                select: 'image title',
+            }).then(updatedUser => {
                 res.status(200).send({ user: updatedUser })
             }).catch(next)
         }).catch(next)
@@ -517,9 +523,9 @@ const add_event_to_user = async (req, res, next) => {
                 event.sides[i].numberOfPlayers += 1
                 Event.findByIdAndUpdate({ _id: req.body.eventId }, event).then(event => {
                     User.findByIdAndUpdate({ _id: req.params.id }, { $inc: { coins: -req.body.price }, $push: { events: eventPayload } }, { new: true }).populate('perks.id').populate('season_results.results').populate('rank').populate('system_info').populate({
-    path: 'prev_seasons_ranks',
-    select: 'image title', 
-  }).then(user => res.status(200).send(user))
+                        path: 'prev_seasons_ranks',
+                        select: 'image title',
+                    }).then(user => res.status(200).send(user))
                 })
             }
         }
@@ -536,9 +542,9 @@ const addToResults = async (players, winnerId, results) => {
     const result = []
     for (let i in players) {
         const playerData = {
-            playerName: players[i].userId.username,
+            player: players[i].userId,
             points: players[i].points,
-            image: players[i].userId.selectedAvatar.image
+            isWinner: players[i].userId._id.toString() == winnerId.toString()
         }
         if (players[i].isLeft) playerData.points = 0
         if (players[i].userId._id == winnerId && players[i].points == 0) playerData.points = 10
@@ -567,9 +573,9 @@ const multi_game_winner = async (req, res, next) => {
     else user.season_results.consecutive_rank_wins += 1
     user.season_results.results = await addToResults(players, winnerId, user.season_results.results)
     const updatedUser = await User.findByIdAndUpdate({ _id: userId }, user, { new: true }).populate('perks.id').populate('season_results.results').populate('rank').populate('system_info').populate({
-    path: 'prev_seasons_ranks',
-    select: 'image title', 
-  })
+        path: 'prev_seasons_ranks',
+        select: 'image title',
+    })
     res.status(200).send({ user: updatedUser, prizes, promoted })
 }
 
@@ -590,9 +596,9 @@ const multi_game_loser = async (req, res, next) => {
     else user.season_results.consecutive_rank_loses += 1
     user.season_results.results = await addToResults(players, winnerId, user.season_results.results)
     const updatedUser = await User.findByIdAndUpdate({ _id: userId }, user, { new: true }).populate('perks.id').populate('season_results.results').populate('rank').populate('system_info').populate({
-    path: 'prev_seasons_ranks',
-    select: 'image title', 
-  })
+        path: 'prev_seasons_ranks',
+        select: 'image title',
+    })
     res.status(200).send({ user: updatedUser, demoted })
 }
 
@@ -609,9 +615,9 @@ const multi_game_draw = async (req, res, next) => {
     user.season_results.consecutive_rank_wins = 0
     user.season_results.results = await addToResults(players, winnerId, user.season_results.results)
     const updatedUser = await User.findByIdAndUpdate({ _id: userId }, user, { new: true }).populate('perks.id').populate('season_results.results').populate('rank').populate('system_info').populate({
-    path: 'prev_seasons_ranks',
-    select: 'image title', 
-  })
+        path: 'prev_seasons_ranks',
+        select: 'image title',
+    })
     res.status(200).send({ user: updatedUser })
 }
 
