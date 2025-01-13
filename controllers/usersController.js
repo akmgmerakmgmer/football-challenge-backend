@@ -71,7 +71,7 @@ const get_current_user = (req, res, next) => {
                     select: 'image title',
                 }).populate('season_results.results').populate({
                     path: 'season_results.results.player',
-                    select: 'username selectedAvatar -rank',
+                    select: 'username selectedAvatar',
                 })
                 if (user === null) {
                     res.status(400).send({ message: 'user_not_found' })
@@ -93,7 +93,7 @@ const get_current_user = (req, res, next) => {
                     select: 'image title',
                 }).populate({
                     path: 'season_results.results.player',
-                    select: 'username selectedAvatar -rank',
+                    select: 'username selectedAvatar',
                 }).then(updatedUser => {
                     res.status(200).send({ user: updatedUser, prizes })
                 })
@@ -542,7 +542,7 @@ const addToResults = async (players, winnerId, results) => {
     const result = []
     for (let i in players) {
         const playerData = {
-            player: players[i].userId,
+            player: players[i].userId._id,
             points: players[i].points,
             isWinner: players[i].userId._id.toString() == winnerId.toString()
         }

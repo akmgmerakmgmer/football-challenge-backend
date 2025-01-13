@@ -274,7 +274,11 @@ const UserSchema = new Schema({
             type: String,
             default: '0%'
         },
-        results: []
+        results: [[{
+            player: { type: Schema.Types.ObjectId, ref: 'user' },
+            winnerId: { type: Schema.Types.ObjectId, ref: 'user' },
+            points: { type: Number },
+        }]]
     },
     rank: {
         type: Schema.Types.ObjectId,

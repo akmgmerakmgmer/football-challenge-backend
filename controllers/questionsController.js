@@ -279,7 +279,7 @@ const question_modes_method = async (req, res, next) => {
                     select: 'image title',
                 }).populate('season_results.results').populate({
                     path: 'season_results.results.player',
-                    select: 'username selectedAvatar -rank',
+                    select: 'username selectedAvatar',
                 })
     let searchName = ''
     const payload = {
@@ -300,7 +300,7 @@ const question_modes_method = async (req, res, next) => {
                     select: 'image title',
                 }).populate('season_results.results').populate({
                     path: 'season_results.results.player',
-                    select: 'username selectedAvatar -rank',
+                    select: 'username selectedAvatar',
                 })
     getQuestionsMethod(req, res, next, match, updatedUser, searchName)
 }
@@ -312,7 +312,7 @@ const challenges_method = async (req, res, next) => {
                     select: 'image title',
                 }).populate('season_results.results').populate({
                     path: 'season_results.results.player',
-                    select: 'username selectedAvatar -rank',
+                    select: 'username selectedAvatar',
                 })
     let searchName = ''
     const payload = {
@@ -338,7 +338,7 @@ const challenges_method = async (req, res, next) => {
                     select: 'image title',
                 }).populate('season_results.results').populate({
                     path: 'season_results.results.player',
-                    select: 'username selectedAvatar -rank',
+                    select: 'username selectedAvatar',
                 })
     getQuestionsMethod(req, res, next, match, updatedUser, searchName)
 }
