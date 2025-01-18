@@ -283,7 +283,7 @@ const UserSchema = new Schema({
     rank: {
         type: Schema.Types.ObjectId,
         ref: 'rank',
-        default: '676ab18ded556828cf0061f9'
+        default: '678c04a88c4271003486ca44'
     },
     prizes: {
         type: [],
@@ -292,7 +292,6 @@ const UserSchema = new Schema({
     prev_seasons_ranks: {
         type: [Schema.Types.ObjectId],
         ref: 'rank',
-        default: '676ab18ded556828cf0061f9'
     },
     current_season: {
         type: String,
@@ -302,6 +301,15 @@ const UserSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: 'system',
         default: '678144ec414805bda0471957'
+    },
+    free_coins: {
+        date: {
+            type: String
+        },
+        numberOfTimes: {
+            type: Number,
+            default: 0
+        }
     }
 }, {
     timestamps: true

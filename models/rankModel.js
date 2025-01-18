@@ -41,7 +41,7 @@ const RankModel = new Schema({
     season_end_rank: {
         type: Schema.Types.ObjectId,
         ref: 'rank',
-        default: '676ab18ded556828cf0061f9'
+        default: '678c04a88c4271003486ca44'
     },
     wins_to_promote: {
         type: Number,
@@ -59,6 +59,8 @@ const RankModel = new Schema({
         type: [Object],
         default: []
     },
+}, {
+    timestamps: true
 })
 
 
