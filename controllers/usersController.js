@@ -598,9 +598,9 @@ const addToResults = async (players, winnerId, results) => {
         }
         if (players[i].isLeft) playerData.points = 0
         if (players[i].userId._id == winnerId && players[i].points == 0) playerData.points = 10
-        result.unshift(playerData)
+        result.push(playerData)
     }
-    return [...results, result];
+    return [result, ...results];
 }
 
 const multi_game_winner = async (req, res, next) => {
