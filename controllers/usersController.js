@@ -597,7 +597,7 @@ const addToResults = async (players, winnerId, results) => {
             isWinner: players[i].userId._id.toString() == winnerId.toString()
         }
         if (players[i].isLeft) playerData.points = 0
-        if (players[i].userId._id == winnerId && players[i].points == 0) playerData.points = 10
+        if (players[i].userId._id.toString() == winnerId.toString() && players[i].points === 0) playerData.points = 10
         result.push(playerData)
     }
     return [result, ...results];

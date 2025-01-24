@@ -278,6 +278,7 @@ const UserSchema = new Schema({
             player: { type: Schema.Types.ObjectId, ref: 'user' },
             winnerId: { type: Schema.Types.ObjectId, ref: 'user' },
             points: { type: Number },
+            isWinner: { type: Boolean }
         }]]
     },
     rank: {
