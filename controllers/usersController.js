@@ -615,7 +615,9 @@ const multi_game_winner = async (req, res, next) => {
     user.season_results.winning_percentage = calculatePercentage(user.season_results)
     user.season_results.consecutive_wins += 1
     user.season_results.consecutive_loses = 0
+    user.season_results.consecutive_rank_loses = 0
     if (user.rank.wins_to_promote > 0 && user.rank.wins_to_promote <= user.season_results.consecutive_rank_wins + 1) {
+        user.season_results.consecutive_rank_wins = 0
         prizes = [...user.rank.prizes]
         user.rank = user.rank.next_rank
         promoted = true
@@ -647,8 +649,10 @@ const multi_game_loser = async (req, res, next) => {
     user.season_results.winning_percentage = calculatePercentage(user.season_results)
     user.season_results.consecutive_loses += 1
     user.season_results.consecutive_wins = 0
+    user.season_results.consecutive_rank_wins = 0
     if (user.rank.loses_to_demote > 0 && user.rank.loses_to_demote <= user.season_results.consecutive_rank_loses + 1) {
         user.rank = user.rank.prev_rank
+        user.season_results.consecutive_rank_loses = 0
         demoted = true
     }
     else user.season_results.consecutive_rank_loses += 1
