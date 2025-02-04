@@ -467,7 +467,13 @@ const get_rankings = (req, res, next) => {
 }
 
 const buy_avatar = (req, res, next) => {
-    User.findOne({ _id: req.params.id }).then(user => {
+    User.findOne({ _id: req.params.id }).populate('perks.id').populate('perks.id').populate('rank').populate('system_info').populate({
+        path: 'prev_seasons_ranks',
+        select: 'image title',
+    }).populate('season_results.results').populate({
+        path: 'season_results.results.player',
+        select: 'username selectedAvatar',
+    }).then(user => {
         for (let i in user.avatars) {
             if (user.avatars[i].image === req.body.avatar.image) return res.status(422).send({ message: { en: "You already have this avatar", ar: "انت بالفعل لديك هذا الرمز" } })
         }
