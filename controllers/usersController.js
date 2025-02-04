@@ -414,12 +414,24 @@ const updatedSortedUsers = (sortedUsers, searchTime) => {
 }
 
 const get_user_current_ranking = (req, res, next) => {
-    User.findById({ _id: req.params.id }).then(user => {
+    User.findById({ _id: req.params.id }).populate('perks.id').populate('perks.id').populate('rank').populate('system_info').populate({
+        path: 'prev_seasons_ranks',
+        select: 'image title',
+    }).populate('season_results.results').populate({
+        path: 'season_results.results.player',
+        select: 'username selectedAvatar',
+    }).then(user => {
         User.aggregate([
             { $unwind: unwindUsers(req) },
             { $match: userMatchFilters(req, user) },// Find users with more points
             { $count: "rank" } // Count how many users have more points
-        ]).then(response => {
+        ]).populate('perks.id').populate('perks.id').populate('rank').populate('system_info').populate({
+            path: 'prev_seasons_ranks',
+            select: 'image title',
+        }).populate('season_results.results').populate({
+            path: 'season_results.results.player',
+            select: 'username selectedAvatar',
+        }).then(response => {
             const rank = response.length ? response[0].rank + 1 : 1
             user.points = getUserPoints(req, user).points
             user.games_played = getUserPoints(req, user).games_played
