@@ -413,70 +413,144 @@ const updatedSortedUsers = (sortedUsers, searchTime) => {
     return sortedUsers.slice(0, 10)
 }
 
-const get_user_current_ranking = (req, res, next) => {
-    User.findById({ _id: req.params.id }).populate('perks.id').populate('perks.id').populate('rank').populate('system_info').populate({
-        path: 'prev_seasons_ranks',
-        select: 'image title',
-    }).populate('season_results.results').populate({
-        path: 'season_results.results.player',
-        select: 'username selectedAvatar',
-    }).then(user => {
-        User.aggregate([
-            { $unwind: unwindUsers(req) },
-            { $match: userMatchFilters(req, user) },// Find users with more points
-            { $count: "rank" } // Count how many users have more points
-        ]).populate('perks.id').populate('perks.id').populate('rank').populate('system_info').populate({
-            path: 'prev_seasons_ranks',
-            select: 'image title',
-        }).populate('season_results.results').populate({
-            path: 'season_results.results.player',
-            select: 'username selectedAvatar',
-        }).then(response => {
-            const rank = response.length ? response[0].rank + 1 : 1
-            user.points = getUserPoints(req, user).points
-            user.games_played = getUserPoints(req, user).games_played
-            User.aggregate([
-                {
-                    $match: matchFilters(req)
-                },
-                // Unwind the weeklyPoints array to get individual documents for each element
-                { $unwind: unwindUsers(req) },
-                {
-                    $match: matchFilters(req)
-                },
-                // Sort by the last index of weeklyPoints
-                { $sort: sortUsers(req) },
-                { $limit: 10 }
-            ]).then((sortedUsers) => {
-                // Find the index of the user in the sorted list
-                res.status(200).send({ rank: rank, user: user, rankedUsers: updatedSortedUsers(sortedUsers, req.query.searchByTime) });
-            }).catch((err) => {
-                next(err);
+const get_user_current_ranking = async (req, res, next) => {
+    try {
+        const user = await User.findById(req.params.id)
+            .populate('perks.id')
+            .populate('rank')
+            .populate('system_info')
+            .populate({
+                path: 'prev_seasons_ranks',
+                select: 'image title',
+            })
+            .populate({
+                path: 'season_results.results.player',
+                select: 'username selectedAvatar',
             });
-        })
-    })
 
-}
+        if (!user) {
+            return res.status(404).send({ message: "User not found" });
+        }
+
+        const usersWithHigherPoints = await User.aggregate([
+            { $unwind: unwindUsers(req) },
+            { $match: userMatchFilters(req, user) },
+            { $count: "rank" }
+        ]);
+
+        const rank = usersWithHigherPoints.length ? usersWithHigherPoints[0].rank + 1 : 1;
+
+        user.points = getUserPoints(req, user).points;
+        user.games_played = getUserPoints(req, user).games_played;
+
+        const sortedUsers = await User.aggregate([
+            { $match: matchFilters(req) },
+            { $unwind: unwindUsers(req) },
+            { $match: matchFilters(req) },
+            { $sort: sortUsers(req) },
+            { $limit: 10 },
+            // Perform lookups equivalent to .populate()
+            {
+                $lookup: {
+                    from: "ranks",
+                    localField: "rank",
+                    foreignField: "_id",
+                    as: "rank"
+                }
+            },
+            { $unwind: { path: "$rank", preserveNullAndEmptyArrays: true } },
+            {
+                $lookup: {
+                    from: "system_infos",
+                    localField: "system_info",
+                    foreignField: "_id",
+                    as: "system_info"
+                }
+            },
+            { $unwind: { path: "$system_info", preserveNullAndEmptyArrays: true } },
+            {
+                $lookup: {
+                    from: "season_results",
+                    localField: "season_results.results.player",
+                    foreignField: "_id",
+                    as: "season_results.results.player"
+                }
+            },
+            {
+                $lookup: {
+                    from: "prev_seasons_ranks",
+                    localField: "prev_seasons_ranks",
+                    foreignField: "_id",
+                    as: "prev_seasons_ranks"
+                }
+            }
+        ]);
+
+        res.status(200).send({ 
+            rank: rank, 
+            user: user, 
+            rankedUsers: updatedSortedUsers(sortedUsers, req.query.searchByTime) 
+        });
+
+    } catch (err) {
+        next(err);
+    }
+};
+
 const get_rankings = (req, res, next) => {
     User.aggregate([
-        {
-            $match: matchFilters(req)
-        },
-        // Unwind the weeklyPoints array to get individual documents for each element
+        { $match: matchFilters(req) },
         { $unwind: unwindUsers(req) },
-        {
-            $match: matchFilters(req)
-        },
-        // Sort by the last index of weeklyPoints
+        { $match: matchFilters(req) },
         { $sort: sortUsers(req) },
-        { $limit: 10 }
-    ]).then((sortedUsers) => {
-        // Find the index of the user in the sorted list
+        { $limit: 10 },
+        // Populate 'rank'
+        {
+            $lookup: {
+                from: "ranks",
+                localField: "rank",
+                foreignField: "_id",
+                as: "rank"
+            }
+        },
+        { $unwind: { path: "$rank", preserveNullAndEmptyArrays: true } },
+        // Populate 'system_info'
+        {
+            $lookup: {
+                from: "system_infos",
+                localField: "system_info",
+                foreignField: "_id",
+                as: "system_info"
+            }
+        },
+        { $unwind: { path: "$system_info", preserveNullAndEmptyArrays: true } },
+        // Populate 'prev_seasons_ranks'
+        {
+            $lookup: {
+                from: "prev_seasons_ranks",
+                localField: "prev_seasons_ranks",
+                foreignField: "_id",
+                as: "prev_seasons_ranks"
+            }
+        },
+        // Populate 'season_results.results.player'
+        {
+            $lookup: {
+                from: "users", // Assuming 'player' is a reference to the 'users' collection
+                localField: "season_results.results.player",
+                foreignField: "_id",
+                as: "season_results.results.player"
+            }
+        }
+    ])
+    .then((sortedUsers) => {
         res.status(200).send({ rankedUsers: updatedSortedUsers(sortedUsers, req.query.searchByTime) });
-    }).catch((err) => {
+    })
+    .catch((err) => {
         next(err);
     });
-}
+};
+
 
 const buy_avatar = (req, res, next) => {
     User.findOne({ _id: req.params.id }).populate('perks.id').populate('perks.id').populate('rank').populate('system_info').populate({
