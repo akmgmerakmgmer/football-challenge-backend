@@ -190,7 +190,7 @@ const add_coins = async (req, res, next) => {
             user.free_coins.date = currentDate
             user.free_coins.numberOfTimes = 1
         } else {
-            if (user.free_coins.numberOfTimes == 3) return res.status(400).send({ message: 'maximum_times_reached' })
+            if (user.free_coins.numberOfTimes >= 3) return res.status(400).send({ message: 'maximum_times_reached' })
             user.free_coins.numberOfTimes += 1
         }
         user.coins += req.body.coins
