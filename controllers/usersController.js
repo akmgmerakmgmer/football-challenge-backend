@@ -194,7 +194,13 @@ const add_coins = async (req, res, next) => {
             user.free_coins.numberOfTimes += 1
         }
         user.coins += req.body.coins
-        User.findByIdAndUpdate({ _id: req.params.id }, user, { new: true }).then(user => res.status(200).send(user)).catch(next)
+        User.findByIdAndUpdate({ _id: req.params.id }, user, { new: true }).populate('perks.id').populate('rank').populate('system_info').populate({
+            path: 'prev_seasons_ranks',
+            select: 'image title',
+        }).populate('season_results.results').populate({
+            path: 'season_results.results.player',
+            select: 'username selectedAvatar',
+        }).then(user => res.status(200).send(user)).catch(next)
     } else {
         res.status(400).send({ message: 'user_not_found' })
     }
