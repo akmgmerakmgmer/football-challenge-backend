@@ -140,7 +140,7 @@ io.on('connection', (socket) => {
     // Helper function to create a new room
     async function createNewRoom(player) {
         const room = new Room();
-        const questions_per_room = 10;
+        const questions_per_room = 50;
         const questions = await Question.aggregate([
             { $sample: { size: questions_per_room } },
             { $limit: questions_per_room },
