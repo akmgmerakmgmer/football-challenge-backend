@@ -1,4 +1,5 @@
 const User = require("../models/userModel");
+const moment = require('moment');
 
 const getCurrentDay = () => {
     let today = new Date();
@@ -85,9 +86,10 @@ const get_rankings = (searchTime) => {
         { $limit: 5 }
     ]).then(async (sortedUsers) => {
         for (let i in sortedUsers) {
+            const prizes = getPrizes(searchTime)
             const currentUserPrize = {
                 "prizeType": "coins",
-                "coins": getPrizes(searchTime)[i],
+                "coins": prizes[i],
                 "searchTime": searchTime
             }
             await User.findByIdAndUpdate({ _id: sortedUsers[i]._id.toString() }, { $push: { prizes: currentUserPrize } }).then(res => { })
