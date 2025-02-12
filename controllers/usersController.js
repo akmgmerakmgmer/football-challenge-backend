@@ -15,6 +15,15 @@ const get_users = (req, res, next) => {
     })
 }
 
+const checkIfFreeCoinsAvailable = (user) => {
+    const currentDate = moment(new Date()).format('YYYY-MM-DD')
+    if (!user.free_coins.date || user.free_coins.date !== currentDate) {
+        user.free_coins.date = currentDate
+        user.free_coins.numberOfTimes = 0
+    }
+    return user
+}
+
 const eventResults = async (user, prizes) => {
     if (user.events.length) {
         for (let i in user.events) {
@@ -77,6 +86,7 @@ const get_current_user = (req, res, next) => {
                     res.status(400).send({ message: 'user_not_found' })
                     return;
                 }
+                user = checkIfFreeCoinsAvailable(user)
                 user = await eventResults(user)
                 user = changeSeason(user)
                 let prizes = user.prizes
@@ -492,10 +502,10 @@ const get_user_current_ranking = async (req, res, next) => {
             }
         ]);
 
-        res.status(200).send({ 
-            rank: rank, 
-            user: user, 
-            rankedUsers: updatedSortedUsers(sortedUsers, req.query.searchByTime) 
+        res.status(200).send({
+            rank: rank,
+            user: user,
+            rankedUsers: updatedSortedUsers(sortedUsers, req.query.searchByTime)
         });
 
     } catch (err) {
@@ -549,12 +559,12 @@ const get_rankings = (req, res, next) => {
             }
         }
     ])
-    .then((sortedUsers) => {
-        res.status(200).send({ rankedUsers: updatedSortedUsers(sortedUsers, req.query.searchByTime) });
-    })
-    .catch((err) => {
-        next(err);
-    });
+        .then((sortedUsers) => {
+            res.status(200).send({ rankedUsers: updatedSortedUsers(sortedUsers, req.query.searchByTime) });
+        })
+        .catch((err) => {
+            next(err);
+        });
 };
 
 
