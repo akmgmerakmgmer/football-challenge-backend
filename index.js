@@ -44,35 +44,22 @@ const database = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PA
 // 1. Daily at 12 AM
 cron.schedule('0 0 * * *', () => {
     cronController.get_rankings('daily')
-}, {
-    timezone: "UTC"
 });
 
 // 2. Weekly on Saturday at 12 AM
-cron.schedule('* * * * *', async () => {
-    try {
-        console.log('Weekly cron triggered:', new Date());
-        cronController.get_rankings('weekly');
-    } catch (err) {
-        console.error('Weekly cron failed:', err);
-    }
-}, {
-    timezone: "UTC"
+cron.schedule('0 0 * * 6', () => {
+    cronController.get_rankings('weekly')
 });
 
 // 3. Monthly on the 1st day of the month at 12 AM
 cron.schedule('0 0 1 * *', () => {
     cronController.get_rankings('monthly')
     systemController.changeSystemInfo()
-}, {
-    timezone: "UTC"
 });
 
 // 4. Yearly on January 1st at 12 AM
 cron.schedule('0 0 1 1 *', () => {
     cronController.get_rankings('yearly')
-}, {
-    timezone: "UTC"
 });
 
 mongoose.connect(database, { writeConcern: { w: 'majority', j: true, wtimeout: 1000 } })
