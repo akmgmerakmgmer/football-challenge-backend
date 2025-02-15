@@ -47,18 +47,18 @@ cron.schedule('0 0 * * *', () => {
 });
 
 // 2. Weekly on Saturday at 12 AM
-cron.schedule('0 0 * * 6', () => {
+cron.schedule('10 0 * * 6', () => {
     cronController.get_rankings('weekly')
 });
 
 // 3. Monthly on the 1st day of the month at 12 AM
-cron.schedule('0 0 1 * *', () => {
+cron.schedule('20 0 1 * *', () => {
     cronController.get_rankings('monthly')
     systemController.changeSystemInfo()
 });
 
 // 4. Yearly on January 1st at 12 AM
-cron.schedule('0 0 1 1 *', () => {
+cron.schedule('30 0 1 1 *', () => {
     cronController.get_rankings('yearly')
 });
 
