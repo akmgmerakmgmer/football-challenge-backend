@@ -70,6 +70,9 @@ const getPrizes = (searchTime) => {
     return searchTime === 'daily' ? dailyPrizes : searchTime === 'weekly' ? weeklyPrizes : searchTime === 'monthly' ? monthlyPrizes : yearlyPrizes
 }
 
+const getArabicPrizeTitle = (searchTime) => {
+    return searchTime === 'daily' ? 'اليومي' : searchTime === 'weekly' ? 'الاسبوعي' : searchTime === 'monthly' ? 'الشهري' : 'السنوي'
+}
 const get_rankings = (searchTime) => {
 
     User.aggregate([
@@ -87,11 +90,15 @@ const get_rankings = (searchTime) => {
     ]).then(async (sortedUsers) => {
         for (let i in sortedUsers) {
             const prizes = getPrizes(searchTime)
-            console.log(sortedUsers[i].username, prizes[i],'dasdasddasdasdasdsadsa')
+            console.log(sortedUsers[i].username, prizes[i], 'dasdasddasdasdasdsadsa')
             const currentUserPrize = {
                 "prizeType": "coins",
                 "coins": prizes[i],
-                "searchTime": searchTime
+                "searchTime": searchTime,
+                "message": {
+                    en: `${searchTime.toUpperCase()} Challenge`,
+                    ar: `التحدي ${getArabicPrizeTitle(searchTime)}`
+                }
             }
             await User.findByIdAndUpdate({ _id: sortedUsers[i]._id.toString() }, { $push: { prizes: currentUserPrize } }).then(res => { })
         }
