@@ -87,6 +87,7 @@ const get_rankings = (searchTime) => {
     ]).then(async (sortedUsers) => {
         for (let i in sortedUsers) {
             const prizes = getPrizes(searchTime)
+            console.log(sortedUsers[i].username, prizes[i],'dasdasddasdasdasdsadsa')
             const currentUserPrize = {
                 "prizeType": "coins",
                 "coins": prizes[i],
