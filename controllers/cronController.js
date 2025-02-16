@@ -15,14 +15,12 @@ const getCurrentDay = () => {
 const getCurrentYear = () => {
     let today = new Date();
     let year = today.getFullYear();
-    console.log(year)
     return parseInt(year);
 }
 
 const getCurrentMonth = () => {
     let today = new Date();
     let month = addLeadingZero(today.getMonth() + 1)
-    console.log(month)
     return parseInt(month);
 }
 
@@ -88,6 +86,7 @@ const get_rankings = (searchTime) => {
         { $sort: sortUsers(searchTime) },
         { $limit: 5 }
     ]).then(async (sortedUsers) => {
+        console.log(sortedUsers,'dsadasdasdasdasdasdasd')
         for (let i in sortedUsers) {
             const prizes = getPrizes(searchTime)
             console.log(sortedUsers[i].username, prizes[i], 'dasdasddasdasdasdsadsa')

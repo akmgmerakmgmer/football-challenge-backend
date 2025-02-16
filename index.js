@@ -23,10 +23,10 @@ const systemController = require('./controllers/systemController.min.js')
 // const result = UglifyJS.minify(fs.readFileSync('./routes/api.js', 'utf8'));
 // fs.writeFileSync('./routes/api.min.js', result.code);
 
-// const UglifyJS = require('uglify-js');
-// const fs = require('fs');
-// const result = UglifyJS.minify(fs.readFileSync('./controllers/usersController.js', 'utf8'));
-// fs.writeFileSync('./controllers/usersController.min.js', result.code);
+const UglifyJS = require('uglify-js');
+const fs = require('fs');
+const result = UglifyJS.minify(fs.readFileSync('./controllers/cronController.js', 'utf8'));
+fs.writeFileSync('./controllers/cronController.min.js', result.code);
 
 // User.collection.getIndexes().then(res=>{
 //     console.log(res)
@@ -41,25 +41,25 @@ const database = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PA
 //     systemController.changeSystemInfo()
 // });
 
-// 1. Daily at 12 AM
-cron.schedule('0 0 * * *', () => {
-    cronController.get_rankings('daily')
+// 1. Daily at 11:59:00 PM
+cron.schedule('00 59 23 * * *', () => {
+    cronController.get_rankings('daily');
 });
 
-// 2. Weekly on Saturday at 12 AM
-cron.schedule('10 0 * * 6', () => {
-    cronController.get_rankings('weekly')
+// 2. Weekly on Saturday at 11:59:10 PM
+cron.schedule('10 59 23 * * 5', () => {
+    cronController.get_rankings('weekly');
 });
 
-// 3. Monthly on the 1st day of the month at 12 AM
-cron.schedule('20 0 1 * *', () => {
-    cronController.get_rankings('monthly')
-    systemController.changeSystemInfo()
+// 3. Monthly on the 1st day of the month at 11:59:20 PM
+cron.schedule('20 59 23 1 * *', () => {
+    cronController.get_rankings('monthly');
+    systemController.changeSystemInfo();
 });
 
-// 4. Yearly on January 1st at 12 AM
-cron.schedule('30 0 1 1 *', () => {
-    cronController.get_rankings('yearly')
+// 4. Yearly on January 1st at 11:59:30 PM
+cron.schedule('30 59 23 1 1 *', () => {
+    cronController.get_rankings('yearly');
 });
 
 mongoose.connect(database, { writeConcern: { w: 'majority', j: true, wtimeout: 1000 } })
