@@ -311,6 +311,10 @@ const UserSchema = new Schema({
             type: Number,
             default: 0
         }
+    },
+    app_rated: {
+        type: Boolean,
+        default: false
     }
 }, {
     timestamps: true
