@@ -30,6 +30,10 @@ const PerkSchema = new Schema({
     },
     price: {
         type: Number
+    },
+    applicableOnline: {
+        type: Boolean,
+        default: true
     }
 })
 
