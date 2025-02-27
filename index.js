@@ -79,7 +79,7 @@ io.on('connection', (socket) => {
     console.log('A user connected:', socket.id);
 
     // Listen for messages from the client
-    socket.on('joinRoom', async ({ userId, questionMode }) => {
+    socket.on('joinRoom', async ({ userId, questionMode, coinsPayed }) => {
         try {
             const player = {
                 userId: userId,
@@ -97,7 +97,7 @@ io.on('connection', (socket) => {
             socket.join(roomId);
 
             // Emit success since we're guaranteed to have either joined or created a room
-            io.to(roomId).emit('joinRoomSuccess', room);
+            io.to(roomId).emit('joinRoomSuccess', { room: room, coinsPayed: coinsPayed });
 
             if (room.players.length === room.numberOfPlayers) {
                 setTimeout(() => {
