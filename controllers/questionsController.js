@@ -5,6 +5,7 @@ const User = require('../models/userModel')
 const { handleErrors } = require('../utilities/handle_errors')
 const crypto = require('crypto');
 const moment = require('moment');
+const { findUser, updateAndGetUser } = require('../utilities/user_general_methods');
 
 const questionCreation = async (payload, req, res) => {
     await Question.create(payload).then(question => {
@@ -274,13 +275,7 @@ const getQuestionsMethod = (req, res, next, match, user, searchName) => {
 }
 const question_modes_method = async (req, res, next) => {
     const match = { questionMode: req.query.questionMode }
-    const user = await User.findById({ _id: req.query.userId }).populate('perks.id').populate('rank').populate('system_info').populate({
-                    path: 'prev_seasons_ranks',
-                    select: 'image title',
-                }).populate('season_results.results').populate({
-                    path: 'season_results.results.player',
-                    select: 'username selectedAvatar',
-                })
+    const user = await findUser(req.query.userId)
     let searchName = ''
     const payload = {
         modeName: req.query.questionMode,
@@ -295,25 +290,19 @@ const question_modes_method = async (req, res, next) => {
         user.questionModes[fetchedQuestionModes[0].index] = payload
     }
     if (req.query.price) user.coins -= req.query.price
-    const updatedUser = await User.findByIdAndUpdate({ _id: req.query.userId }, user, { new: true }).populate('perks.id').populate('rank').populate('system_info').populate({
-                    path: 'prev_seasons_ranks',
-                    select: 'image title',
-                }).populate('season_results.results').populate({
-                    path: 'season_results.results.player',
-                    select: 'username selectedAvatar',
-                })
+    const updatedUser = await updateAndGetUser(req.query.userId, user)
     getQuestionsMethod(req, res, next, match, updatedUser, searchName)
 }
 
 const challenges_method = async (req, res, next) => {
     const match = { $and: [{ questionMode: { $in: ["trueOrFalse", "multipleChoices"] } }] }
     const user = await User.findById({ _id: req.query.userId }).populate('challenges').populate('perks.id').populate('rank').populate('system_info').populate({
-                    path: 'prev_seasons_ranks',
-                    select: 'image title',
-                }).populate('season_results.results').populate({
-                    path: 'season_results.results.player',
-                    select: 'username selectedAvatar',
-                })
+        path: 'prev_seasons_ranks',
+        select: 'image title',
+    }).populate('season_results.results').populate({
+        path: 'season_results.results.player',
+        select: 'username selectedAvatar',
+    })
     let searchName = ''
     const payload = {
         id: req.query.search,
@@ -333,13 +322,7 @@ const challenges_method = async (req, res, next) => {
             return res.status(422).send({ message: 'already_played_this_challenge' })
         }
     }
-    const updatedUser = await User.findByIdAndUpdate({ _id: req.query.userId }, user, { new: true }).populate('perks.id').populate('rank').populate('system_info').populate({
-                    path: 'prev_seasons_ranks',
-                    select: 'image title',
-                }).populate('season_results.results').populate({
-                    path: 'season_results.results.player',
-                    select: 'username selectedAvatar',
-                })
+    const updatedUser = await updateAndGetUser(req.query.userId, user)
     getQuestionsMethod(req, res, next, match, updatedUser, searchName)
 }
 const get_questions = (req, res, next) => {

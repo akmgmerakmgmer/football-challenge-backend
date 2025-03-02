@@ -2,6 +2,7 @@ require("dotenv").config()
 const Transaction = require("../models/transactionModel");
 const User = require("../models/userModel");
 const crypto = require('crypto');
+const { updateAndGetUser } = require("../utilities/user_general_methods");
 
 function generateKashierOrderHash(body, transactionId) {
     const mid = 'MID-28902-440'; //your merchant id
@@ -34,24 +35,12 @@ const kashierPaymentMethod = (req, res, next) => {
 const payment_success = (req, res, next) => {
     const { id, success } = req.body
     if (success) {
-        Transaction.findById({ _id: id }).then(transaction => {
+        Transaction.findById({ _id: id }).then(async transaction => {
             if (transaction && transaction.itemBought === 'coins' && !transaction.isPaid) {
-                User.findByIdAndUpdate(
-                    { _id: transaction.userId },
-                    { $inc: { coins: transaction.itemQuantity } }, // The $inc operator to increment the coins
-                    { new: true }, // Options: return the updated document
-                ).populate('perks.id').populate('season_results.results').populate({
-                    path: 'season_results.results.player',
-                    select: 'username selectedAvatar',
-                }).populate('rank').populate('system_info').populate({
-                    path: 'prev_seasons_ranks',
-                    select: 'image title',
-                }).then(user => {
-                    Transaction.findByIdAndUpdate({ _id: id }, { isPaid: true }, { new: true }).then(transaction => {
-                        res.status(200).send({ user, transaction })
-                    })
-                }).catch(next);
-
+                const user = await updateAndGetUser(transaction.userId, { $inc: { coins: transaction.itemQuantity } })
+                Transaction.findByIdAndUpdate({ _id: id }, { isPaid: true }, { new: true }).then(transaction => {
+                    res.status(200).send({ user, transaction })
+                })
             } else {
                 res.status(200).send({ transaction })
             }
