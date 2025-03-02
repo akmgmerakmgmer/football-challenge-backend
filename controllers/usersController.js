@@ -79,17 +79,7 @@ const get_current_user = (req, res, next) => {
             if (err) {
                 res.sendStatus(401)
             } else {
-                let user = await User.findById(decodedToken.id).populate('perks.id').populate('rank').populate('system_info').populate({
-                    path: 'prev_seasons_ranks',
-                    select: 'image title',
-                }).populate('season_results.results').populate({
-                    path: 'season_results.results.player',
-                    select: 'username selectedAvatar',
-                })
-                if (user === null) {
-                    res.status(400).send({ message: 'user_not_found' })
-                    return;
-                }
+                let user = await findUser(decodedToken.id)
                 user = checkIfFreeCoinsAvailable(user)
                 user = await eventResults(user)
                 user = changeSeason(user)
@@ -102,28 +92,15 @@ const get_current_user = (req, res, next) => {
                     }
                 }
                 user.prizes = []
-                User.findByIdAndUpdate(decodedToken.id, user, { new: true }).populate('perks.id').populate('rank').populate('system_info').populate({
-                    path: 'prev_seasons_ranks',
-                    select: 'image title',
-                }).populate({
-                    path: 'season_results.results.player',
-                    select: 'username selectedAvatar',
-                }).then(updatedUser => {
-                    res.status(200).send({ user: updatedUser, prizes })
-                })
+                user = await updateAndGetUser(decodedToken.id, user)
+                res.status(200).send({ user, prizes })
             }
         })
     }
 }
 
-const get_single_user = (req, res, next) => {
-    User.findById({ _id: req.params.id }).populate('perks.id').populate('rank').populate('system_info').populate({
-        path: 'prev_seasons_ranks',
-        select: 'image title',
-    }).populate('season_results.results').populate({
-        path: 'season_results.results.player',
-        select: 'username selectedAvatar',
-    }).then(user => res.status(200).send(user)).catch(next)
+const get_single_user = async (req, res, next) => {
+    await findUser(req.params.id)
 }
 
 const delete_user = (req, res, next) => {
