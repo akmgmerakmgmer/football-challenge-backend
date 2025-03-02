@@ -59,9 +59,9 @@ const initiateSystem = async (req, res, next) => {
 
 
 
-function getLastDayOfCurrentMonth() {
+function getLastDayOfNextMonth() {
     const now = new Date();
-    const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    const lastDay = new Date(now.getFullYear(), now.getMonth() + 2, 0);
     const year = lastDay.getFullYear();
     const month = String(lastDay.getMonth() + 1).padStart(2, '0');
     const day = String(lastDay.getDate()).padStart(2, '0');
@@ -76,7 +76,7 @@ const changeSystemInfo = async () => {
     const newNumber = parseInt(englishNameSplit[1]) + 1
     system.current_season.title.en = `${englishNameSplit[0]} ${newNumber}`
     system.current_season.title.ar = `${arabicNameSplit[0]} ${newNumber}`
-    system.current_season.endDate = getLastDayOfCurrentMonth()
+    system.current_season.endDate = getLastDayOfNextMonth()
     system = await System.findByIdAndUpdate({ _id: system._id }, system, { new: true })
     return system
 }

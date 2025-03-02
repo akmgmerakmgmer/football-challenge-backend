@@ -25,8 +25,8 @@ const systemController = require('./controllers/systemController.min.js')
 
 // const UglifyJS = require('uglify-js');
 // const fs = require('fs');
-// const result = UglifyJS.minify(fs.readFileSync('./controllers/usersController.js', 'utf8'));
-// fs.writeFileSync('./controllers/usersController.min.js', result.code);
+// const result = UglifyJS.minify(fs.readFileSync('./controllers/systemController.js', 'utf8'));
+// fs.writeFileSync('./controllers/systemController.min.js', result.code);
 
 // User.collection.getIndexes().then(res=>{
 //     console.log(res)
@@ -51,10 +51,15 @@ cron.schedule('10 59 23 * * 5', () => {
     cronController.get_rankings('weekly');
 });
 
-// 3. Monthly on the 1st day of the month at 11:59:20 PM
-cron.schedule('20 59 23 1 * *', () => {
-    cronController.get_rankings('monthly');
-    systemController.changeSystemInfo();
+// 3. Monthly on the last day of the month at 11:59:20 PM
+cron.schedule('40 59 23 * * *', () => { // Runs every day at 23:59:40
+    const now = new Date();
+    const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate(); // Get last day of the current month
+
+    if (now.getDate() === lastDay) {
+        cronController.get_rankings('monthly');
+        systemController.changeSystemInfo();
+    }
 });
 
 // 4. Yearly on January 1st at 11:59:30 PM
