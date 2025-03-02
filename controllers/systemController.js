@@ -77,6 +77,7 @@ const changeSystemInfo = async () => {
     system.current_season.title.en = `${englishNameSplit[0]} ${newNumber}`
     system.current_season.title.ar = `${arabicNameSplit[0]} ${newNumber}`
     system.current_season.endDate = getLastDayOfNextMonth()
+    console.log(system,'dsadsadasdasdasdasdasdasdas')
     system = await System.findByIdAndUpdate({ _id: system._id }, system, { new: true })
     return system
 }
