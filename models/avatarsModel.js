@@ -6,6 +6,10 @@ const AvatarModel = new Schema({
         type: String,
         required: [true, 'field_required']
     },
+    video: {
+        type: String,
+        required: [true, 'field_required']
+    },
     price: {
         type: Number,
         required: [true, 'field_required']
