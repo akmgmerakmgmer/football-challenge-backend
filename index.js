@@ -25,8 +25,8 @@ const systemController = require('./controllers/systemController.min.js')
 
 // const UglifyJS = require('uglify-js');
 // const fs = require('fs');
-// const result = UglifyJS.minify(fs.readFileSync('./controllers/systemController.js', 'utf8'));
-// fs.writeFileSync('./controllers/systemController.min.js', result.code);
+// const result = UglifyJS.minify(fs.readFileSync('./controllers/cronController.js', 'utf8'));
+// fs.writeFileSync('./controllers/cronController.min.js', result.code);
 
 // User.collection.getIndexes().then(res=>{
 //     console.log(res)
@@ -57,8 +57,8 @@ cron.schedule('40 59 23 * * *', () => { // Runs every day at 23:59:40
     const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate(); // Get last day of the current month
 
     if (now.getDate() === lastDay) {
-        cronController.get_rankings('monthly');
-        systemController.changeSystemInfo();
+    cronController.get_rankings('monthly');
+    systemController.changeSystemInfo();
     }
 });
 
@@ -84,7 +84,7 @@ io.on('connection', (socket) => {
     console.log('A user connected:', socket.id);
 
     // Listen for messages from the client
-    socket.on('joinRoom', async ({ userId, questionMode }) => {
+    socket.on('joinRoom', async ({ userId, questionMode, coinsPayed }) => {
         try {
             const player = {
                 userId: userId,
@@ -102,7 +102,7 @@ io.on('connection', (socket) => {
             socket.join(roomId);
 
             // Emit success since we're guaranteed to have either joined or created a room
-            io.to(roomId).emit('joinRoomSuccess', room);
+            io.to(roomId).emit('joinRoomSuccess', { room: room, coinsPayed: coinsPayed });
 
             if (room.players.length === room.numberOfPlayers) {
                 setTimeout(() => {
