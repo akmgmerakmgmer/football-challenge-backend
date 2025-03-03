@@ -138,6 +138,7 @@ const UserSchema = new Schema({
         type: [Object],
         default: [{
             image: 'http://res.cloudinary.com/do0qe5hin/image/upload/v1711999092/y1ubiaq6qm7xsya07qg8.jpg',
+            video: '',
             price: 0
         }]
     },
@@ -145,6 +146,7 @@ const UserSchema = new Schema({
         type: Object,
         default: {
             image: 'http://res.cloudinary.com/do0qe5hin/image/upload/v1711999092/y1ubiaq6qm7xsya07qg8.jpg',
+            video: '',
             price: 0
         }
     },
