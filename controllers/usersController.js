@@ -27,26 +27,28 @@ const checkIfFreeCoinsAvailable = (user) => {
 
 const eventResults = async (user, prizes) => {
     if (user.events.length) {
-        console.log(user.events,'dsadasdasdasdasdasdasd')
+        console.log(user.events, 'dsadasdasdasdasdasdasd')
         for (let i in user.events) {
-            let winningSide = ''
-            const currentDate = moment(new Date()).format('YYYY-MM-DD')
-            await Event.findById({ _id: user.events[i].id }).then(event => {
-                if (event && currentDate > event.endDate) {
-                    let maxPoints = 0
-                    for (let x in event.sides) {
-                        if (event.sides[x].points > maxPoints) {
-                            maxPoints = event.sides[x].points
-                            winningSide = event.sides[x]._id
+            if (user.events[i] && user.events[i].id) {
+                let winningSide = ''
+                const currentDate = moment(new Date()).format('YYYY-MM-DD')
+                await Event.findById({ _id: user.events[i].id }).then(event => {
+                    if (event && currentDate > event.endDate) {
+                        let maxPoints = 0
+                        for (let x in event.sides) {
+                            if (event.sides[x].points > maxPoints) {
+                                maxPoints = event.sides[x].points
+                                winningSide = event.sides[x]._id
+                            }
                         }
+                        for (let j in event.prizes) {
+                            event.prizes[j].message = { en: `${event.eventName.en} Event`, ar: `تحدي ${event.eventName.ar}` }
+                        }
+                        if (winningSide.toString() === user.events[i].yourSide.toString()) user.prizes = [...user.prizes, ...event.prizes]
+                        user.events = user.events.filter(userEvent => userEvent && userEvent.id && userEvent.id.toString() !== event._id.toString())
                     }
-                    for (let j in event.prizes) {
-                        event.prizes[j].message = { en: `${event.eventName.en} Event`, ar: `تحدي ${event.eventName.ar}` }
-                    }
-                    if (winningSide.toString() === user.events[i].yourSide.toString()) user.prizes = [...user.prizes, ...event.prizes]
-                    user.events = user.events.filter(userEvent => userEvent && userEvent.id && userEvent.id.toString() !== event._id.toString())
-                }
-            })
+                })
+            }
         }
     }
     return user
