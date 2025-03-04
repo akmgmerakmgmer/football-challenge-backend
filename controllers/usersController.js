@@ -27,7 +27,6 @@ const checkIfFreeCoinsAvailable = (user) => {
 
 const eventResults = async (user, prizes) => {
     if (user.events.length) {
-        console.log(user.events, 'dsadasdasdasdasdasdasd')
         for (let i in user.events) {
             if (user.events[i] && user.events[i].id) {
                 let winningSide = ''
