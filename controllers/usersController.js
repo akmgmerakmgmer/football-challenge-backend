@@ -27,6 +27,7 @@ const checkIfFreeCoinsAvailable = (user) => {
 
 const eventResults = async (user, prizes) => {
     if (user.events.length) {
+        console.log(user.events,'dsadasdasdasdasdasdasd')
         for (let i in user.events) {
             let winningSide = ''
             const currentDate = moment(new Date()).format('YYYY-MM-DD')
