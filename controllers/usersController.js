@@ -18,7 +18,7 @@ const get_users = (req, res, next) => {
 
 const checkIfFreeCoinsAvailable = (user) => {
     const currentDate = moment(new Date()).format('YYYY-MM-DD')
-    if (!user.free_coins.date || user.free_coins.date !== currentDate) {
+    if (user && user.free_coins && (!user.free_coins.date || user.free_coins.date !== currentDate)) {
         user.free_coins.date = currentDate
         user.free_coins.numberOfTimes = 0
     }
