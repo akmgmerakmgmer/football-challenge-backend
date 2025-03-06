@@ -563,10 +563,11 @@ const add_event_to_user = async (req, res, next) => {
     })
 }
 
-const calculatePercentage = (total_results) => {
-    const total_games = total_results.wins + total_results.loses + total_results.draws
-    return `${((total_results.wins / total_games) * 100).toFixed(2)}%`
-}
+const calculatePercentage = (total_results) => {     
+    const total_games = total_results.wins + total_results.loses + total_results.draws;
+    return `${Math.round((total_results.wins / total_games) * 100)}%`;
+};
+
 
 const addToResults = async (players, winnerId, results) => {
     if (results.length == 20) results.pop()
