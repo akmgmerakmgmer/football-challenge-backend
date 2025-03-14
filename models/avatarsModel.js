@@ -17,6 +17,10 @@ const AvatarModel = new Schema({
     purchases: {
         type: Number,
         default: 0
+    },
+    endsAt: {
+        type: String,
+        default: ''
     }
 }, {
     timestamps: true

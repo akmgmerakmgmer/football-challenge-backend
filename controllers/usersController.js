@@ -26,7 +26,7 @@ const checkIfFreeCoinsAvailable = (user) => {
 }
 
 const eventResults = async (user, prizes) => {
-    if (user.events.length) {
+    if (user && user.events && user.events.length) {
         for (let i in user.events) {
             if (user.events[i] && user.events[i].id) {
                 let winningSide = ''
@@ -563,7 +563,7 @@ const add_event_to_user = async (req, res, next) => {
     })
 }
 
-const calculatePercentage = (total_results) => {     
+const calculatePercentage = (total_results) => {
     const total_games = total_results.wins + total_results.loses + total_results.draws;
     return `${Math.round((total_results.wins / total_games) * 100)}%`;
 };
