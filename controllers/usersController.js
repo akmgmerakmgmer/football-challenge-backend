@@ -54,7 +54,7 @@ const eventResults = async (user, prizes) => {
 }
 
 const changeSeason = (user) => {
-    if (user.current_season === user.system_info.current_season.title.en) {
+    if (user && user.current_season && user.current_season === user.system_info.current_season.title.en) {
         const season_results_defaults = {
             "results": [],
             "consecutive_rank_wins": 0,
@@ -85,7 +85,7 @@ const get_current_user = (req, res, next) => {
                 user = checkIfFreeCoinsAvailable(user)
                 user = await eventResults(user)
                 user = changeSeason(user)
-                let prizes = user.prizes
+                let prizes = user && user.prizes
                 if (prizes.length) {
                     for (let i in prizes) {
                         if (prizes[i].prizeType == 'coins') user.coins += prizes[i].coins

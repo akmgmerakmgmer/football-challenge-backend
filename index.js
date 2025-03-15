@@ -57,8 +57,8 @@ cron.schedule('40 59 23 * * *', () => { // Runs every day at 23:59:40
     const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate(); // Get last day of the current month
 
     if (now.getDate() === lastDay) {
-    cronController.get_rankings('monthly');
-    systemController.changeSystemInfo();
+        cronController.get_rankings('monthly');
+        systemController.changeSystemInfo();
     }
 });
 
@@ -81,21 +81,20 @@ mongoose.connect(database, { writeConcern: { w: 'majority', j: true, wtimeout: 1
     });
 
 io.on('connection', (socket) => {
-    console.log('A user connected:', socket.id);
-
     // Listen for messages from the client
-    socket.on('joinRoom', async ({ userId, questionMode, coinsPayed }) => {
+    socket.on('joinRoom', async ({ userId, questionMode = "", coinsPayed, code = "", hostRoom = false }) => {
         try {
             const player = {
                 userId: userId,
             }
 
             // First attempt: try to find and join an existing room
-            let room = await findAndJoinRoom(player);
+            let room = await findAndJoinRoom(player, code);
 
             // If no existing room found or room was full, create a new one
             if (!room) {
-                room = await createNewRoom(player, questionMode);
+                if (code) return socket.emit('joinRoomError', { message: "room doesn't exist" });
+                room = await createNewRoom(player, questionMode, hostRoom);
             }
 
             const roomId = room._id.toString();
@@ -116,12 +115,13 @@ io.on('connection', (socket) => {
     });
 
     // Helper function to find and join an available room
-    async function findAndJoinRoom(player) {
+    async function findAndJoinRoom(player, code) {
         // First, find a joinable room with less than 2 players
         let room = await Room.findOneAndUpdate(
             {
                 isJoinable: true,
-                'players.1': { $exists: false } // Ensures there's less than 2 players
+                'players.1': { $exists: false }, // Ensures there's less than 2 players
+                code: code
             },
             {
                 isJoinable: false,
@@ -141,18 +141,36 @@ io.on('connection', (socket) => {
         });
         return room;
     }
+    function generateRandomNumbers() {
+        return Array.from({ length: 5 }, () => Math.floor(Math.random() * 10)).join('')
+    }
+
 
     // Helper function to create a new room
-    async function createNewRoom(player) {
-        const room = new Room();
+    async function createNewRoom(player, questionMode, hostRoom) {
+        let code = hostRoom ? generateRandomNumbers() : ''
+        if (hostRoom) {
+            let roomExistantBefore = false
+            while (!roomExistantBefore) {
+                const hostRoomAvail = await Room.findOne({ code: code })
+                if (!hostRoomAvail) roomExistantBefore = true
+            }
+        }
+        const room = new Room({ code: code });
         const questions_per_room = 50;
-        const questions = await Question.aggregate([
+        const pipeline = [];
+        if (questionMode) {
+            pipeline.push({ $match: { questionMode } });
+        }
+
+        pipeline.push(
             { $sample: { size: questions_per_room } },
-            { $limit: questions_per_room },
-        ]);
+            { $limit: questions_per_room }
+        );
+        const questions = await Question.aggregate(pipeline);
         room.players.push(player);
         room.questions = questions;
-
+        console.log(code)
         return (await room.save()).populate({
             path: 'players.userId',
             select: 'username selectedAvatar rank',
@@ -190,7 +208,6 @@ io.on('connection', (socket) => {
     })
     socket.on('disconnect', () => {
         socket.disconnect(true);
-        console.log('User disconnected:', socket.id);
     });
 });
 

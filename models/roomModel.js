@@ -39,6 +39,10 @@ const RoomModel = new Schema({
         type: Boolean,
         default: true
     },
+    code: {
+        type: String,
+        default: ''
+    },
     questions: {
         type: [],
         default: []
