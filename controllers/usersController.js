@@ -86,7 +86,7 @@ const get_current_user = (req, res, next) => {
                 user = await eventResults(user)
                 user = changeSeason(user)
                 let prizes = user && user.prizes
-                if (prizes.length) {
+                if (prizes && prizes.length) {
                     for (let i in prizes) {
                         if (prizes[i].prizeType == 'coins') user.coins += prizes[i].coins
                         if (prizes[i].prizeType == 'avatar') user.avatars.push({ image: prizes[i].avatar, price: 0 })
