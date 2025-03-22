@@ -82,19 +82,19 @@ mongoose.connect(database, { writeConcern: { w: 'majority', j: true, wtimeout: 1
 
 io.on('connection', (socket) => {
     // Listen for messages from the client
-    socket.on('joinRoom', async ({ userId, questionMode = "", coinsPayed, code = "", hostRoom = false }) => {
+    socket.on('joinRoom', async ({ userId, questionMode = "", coinsPayed = false, code = "", hostRoom = false, isCasual = false }) => {
         try {
             const player = {
                 userId: userId,
             }
 
             // First attempt: try to find and join an existing room
-            let room = await findAndJoinRoom(player, code);
+            let room = await findAndJoinRoom(player, code, isCasual, questionMode);
 
             // If no existing room found or room was full, create a new one
             if (!room) {
-                if (code) return socket.emit('joinRoomError', { message: "room doesn't exist" });
-                room = await createNewRoom(player, questionMode, hostRoom);
+                if (code) return socket.emit('joinRoomError', { message: { en: "Match code doesn't exist", ar: "لا توجد مباراة بهذا الرقم السري" } });
+                room = await createNewRoom(player, questionMode, hostRoom, isCasual);
             }
 
             const roomId = room._id.toString();
@@ -114,15 +114,21 @@ io.on('connection', (socket) => {
         }
     });
 
-    // Helper function to find and join an available room
-    async function findAndJoinRoom(player, code) {
-        // First, find a joinable room with less than 2 players
+    async function findAndJoinRoom(player, code, isCasual, questionMode) {
+        let filter = {
+            isJoinable: true,
+            isCasual: isCasual,
+            'players.1': { $exists: false }, 
+        };
+
+        if (code) {
+            filter.code = code; 
+        } else {
+            filter.questionMode = questionMode;
+        }
+
         let room = await Room.findOneAndUpdate(
-            {
-                isJoinable: true,
-                'players.1': { $exists: false }, // Ensures there's less than 2 players
-                code: code
-            },
+            filter,
             {
                 isJoinable: false,
                 $push: { players: player }
@@ -139,24 +145,27 @@ io.on('connection', (socket) => {
                 select: 'image'
             }
         });
+
         return room;
     }
+
+
     function generateRandomNumbers() {
         return Array.from({ length: 5 }, () => Math.floor(Math.random() * 10)).join('')
     }
 
 
     // Helper function to create a new room
-    async function createNewRoom(player, questionMode, hostRoom) {
+    async function createNewRoom(player, questionMode, hostRoom, isCasual) {
         let code = hostRoom ? generateRandomNumbers() : ''
         if (hostRoom) {
             let roomExistantBefore = false
             while (!roomExistantBefore) {
-                const hostRoomAvail = await Room.findOne({ code: code })
+                const hostRoomAvail = await Room.findOne({ code: code, questionMode: questionMode })
                 if (!hostRoomAvail) roomExistantBefore = true
             }
         }
-        const room = new Room({ code: code });
+        const room = new Room({ code: code, isCasual: isCasual, questionMode: questionMode });
         const questions_per_room = 50;
         const pipeline = [];
         if (questionMode) {
@@ -170,7 +179,6 @@ io.on('connection', (socket) => {
         const questions = await Question.aggregate(pipeline);
         room.players.push(player);
         room.questions = questions;
-        console.log(code)
         return (await room.save()).populate({
             path: 'players.userId',
             select: 'username selectedAvatar rank',
