@@ -18,7 +18,7 @@ const AvatarModel = new Schema({
         type: Number,
         default: 0
     },
-    endsAt: {
+    endDate: {
         type: String,
         default: ''
     }
