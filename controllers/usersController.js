@@ -93,7 +93,7 @@ const get_current_user = (req, res, next) => {
                         if (prizes[i].prizeType == 'theme') user.themes.push(prizes[i].theme)
                     }
                 }
-                user.prizes = []
+                if (user && user.prizes) user.prizes = []
                 user = await updateAndGetUser(decodedToken.id, user)
                 res.status(200).send({ user, prizes })
             }
