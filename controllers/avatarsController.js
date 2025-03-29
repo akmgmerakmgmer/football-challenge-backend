@@ -1,3 +1,4 @@
+const moment = require('moment');
 const Avatar = require("../models/avatarsModel")
 const { handleErrors } = require('../utilities/handle_errors')
 
@@ -12,10 +13,27 @@ const create_avatar = (req, res, next) => {
 const get_avatars = (req, res, next) => {
     const page = req.query.page - 1 || 0
     const per_page = 8
-    Avatar.find({}).count().then(total_avatars => {
-        const currentDate = moment(new Date()).format('YYYY-MM-DD');
-        Avatar.find({}).sort({ createdAt: -1, endDate: { $gte: currentDate } }).skip(page * per_page).limit(per_page).lean().then(avatars => res.status(200).send({ avatars, total_avatars, per_page })).catch(next)
-    })
+    const currentDate = moment(new Date()).format('YYYY-MM-DD');
+    Avatar.find({
+        $or: [
+            { endDate: { $gte: currentDate } }, // Avatars with endDate greater than or equal to current date
+            { endDate: { $in: ["", null] } } // Avatars without an endDate (default empty string)
+        ]
+    }).count().then(total_avatars => {
+        Avatar.find({
+            $or: [
+                { endDate: { $gte: currentDate } }, // Avatars with endDate greater than or equal to current date
+                { endDate: { $in: ["", null] } }// Avatars without an endDate (default empty string)
+            ]
+        })
+            .sort({ createdAt: -1 })
+            .skip(page * per_page)
+            .limit(per_page)
+            .lean()
+            .then(avatars => res.status(200).send({ avatars, total_avatars, per_page }))
+            .catch(next);
+    });
+
 }
 
 const get_admin_avatars = (req, res, next) => {
