@@ -20,7 +20,7 @@ const getCurrentYear = () => {
 
 const getCurrentMonth = () => {
     let today = new Date();
-    let month = addLeadingZero(today.getMonth() + 1)
+    let month = today.getMonth() + 1
     return parseInt(month);
 }
 

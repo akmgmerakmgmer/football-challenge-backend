@@ -54,7 +54,7 @@ const eventResults = async (user, prizes) => {
 }
 
 const changeSeason = (user) => {
-    if (user && user.current_season && user.current_season === user.system_info.current_season.title.en) {
+    if (user && user.current_season !== user.system_info.current_season.title.en) {
         const season_results_defaults = {
             "results": [],
             "consecutive_rank_wins": 0,
