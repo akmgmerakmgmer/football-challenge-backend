@@ -103,6 +103,34 @@ const createHintsQuestions = async (req, res, next, i) => {
     })
 
 }
+
+const modifyHints = async (req, res, next) => {
+    for (let i in req.body) {
+        const newHints = req.body[i].hints
+        const newHintsNumber = req.body[i].hints.length * -1
+        await Question.findById({ _id: req.body[i]._id }).then(async res => {
+            const updatedHints = [...res.hints.slice(0, newHintsNumber), ...newHints];
+            console.log(updatedHints)
+            await Question.findByIdAndUpdate({ _id: req.body[i]._id }, { hints: updatedHints }).then(res => { })
+        })
+    }
+    res.sendStatus(200)
+}
+const deleteFromObject = async (req, res, next) => {
+    const questions = []
+    for (let i in questions) {
+        delete questions[i].createdAt
+        delete questions[i].updatedAt
+        delete questions[i].__v
+        delete questions[i].mode
+        delete questions[i].questionMode
+        delete questions[i].teamPlayers
+        delete questions[i].question
+        delete questions[i].choices
+        delete questions[i].difficulty
+    }
+    res.status(200).send(questions)
+}
 function shuffleString(str) {
     const arr = str.split('');  // Convert the string to an array of characters
     for (let i = arr.length - 1; i > 0; i--) {
@@ -353,4 +381,4 @@ const update_question = (req, res, next) => {
     }).catch(next)
 }
 
-module.exports = { create_questions, get_questions, get_single_question, delete_question, update_question, get_admin_questions }
+module.exports = { create_questions, get_questions, get_single_question, delete_question, update_question, get_admin_questions, deleteFromObject, modifyHints }

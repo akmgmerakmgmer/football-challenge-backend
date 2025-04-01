@@ -56,6 +56,7 @@ router.get('/admin-questions', onlyAdminAuth, questionsController.get_admin_ques
 router.get('/questions/:id', onlyAdminAuth, questionsController.get_single_question)
 router.delete('/questions/:id', onlyAdminAuth, questionsController.delete_question)
 router.put('/questions/:id', onlyAdminAuth, questionsController.update_question)
+router.get('/dynamic-question-method', questionsController.deleteFromObject)
 
 //Player Routes
 router.post('/players', onlyAdminAuth, playersController.create_player)

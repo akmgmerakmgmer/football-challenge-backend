@@ -9,7 +9,6 @@ const compression = require("compression");
 const { Server } = require('socket.io'); // Correctly import Server
 const http = require("http");
 const Room = require('./models/roomModel.js');
-const User = require('./models/userModel.js');
 const Question = require('./models/questionModel.js');
 require("dotenv").config();
 const server = http.createServer(app);
@@ -89,7 +88,10 @@ io.on('connection', (socket) => {
             }
 
             // First attempt: try to find and join an existing room
-            let room = await findAndJoinRoom(player, code, isCasual, questionMode);
+            let room;
+            if (!hostRoom) {
+                room = await findAndJoinRoom(player, code, isCasual, questionMode);
+            }
 
             // If no existing room found or room was full, create a new one
             if (!room) {
@@ -118,11 +120,11 @@ io.on('connection', (socket) => {
         let filter = {
             isJoinable: true,
             isCasual: isCasual,
-            'players.1': { $exists: false }, 
+            'players.1': { $exists: false },
         };
 
         if (code) {
-            filter.code = code; 
+            filter.code = code;
         } else {
             filter.questionMode = questionMode;
         }
