@@ -293,9 +293,15 @@ const getQuestionsMethod = (req, res, next, match, user, searchName) => {
         { $limit: per_page },              // Limit based on pagination
     ]).then(async (questions) => {
         const total_questions = await Question.countDocuments()
-        // for (let i in questions) {
-        //     questions[i].answer = crypto.createHash('sha256').update(questions[i].answer).digest('hex');
-        // }
+        for (let i in questions) {
+            if (questions[i].questionMode === 'reversedWords') {
+                questions[i].answer.en = crypto.createHash('sha256').update(questions[i].answer.en.toLowerCase()).digest('hex');
+                questions[i].answer.ar = crypto.createHash('sha256').update(questions[i].answer.ar).digest('hex');
+            } else {
+                questions[i].answer = crypto.createHash('sha256').update(questions[i].answer).digest('hex');
+
+            }
+        }
         return res.status(200).send({ questions, total_questions, per_page, ...(user ? { user } : {}) })
     }).catch((err) => {
         next(err);
