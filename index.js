@@ -16,6 +16,7 @@ const io = new Server(server);
 const cron = require('node-cron');
 const cronController = require('./controllers/cronController.min.js')
 const systemController = require('./controllers/systemController.min.js')
+const crypto = require('crypto');
 
 // const UglifyJS = require('uglify-js');
 // const fs = require('fs');
@@ -179,6 +180,15 @@ io.on('connection', (socket) => {
             { $limit: questions_per_room }
         );
         const questions = await Question.aggregate(pipeline);
+        for (let i in questions) {
+            if (questions[i].questionMode === 'reversedWords') {
+                questions[i].answer.en = crypto.createHash('sha256').update(questions[i].answer.en.toLowerCase()).digest('hex');
+                questions[i].answer.ar = crypto.createHash('sha256').update(questions[i].answer.ar).digest('hex');
+            } else {
+                questions[i].answer = crypto.createHash('sha256').update(questions[i].answer).digest('hex');
+
+            }
+        }
         room.players.push(player);
         room.questions = questions;
         return (await room.save()).populate({
