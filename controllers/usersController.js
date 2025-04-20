@@ -74,6 +74,19 @@ const changeSeason = (user) => {
     return user
 }
 
+const changeLoginDayData = (user) => {
+    if (user && user.login_data && user.login_data.last_login_day) {
+        user.login_data.total_logins += 1
+        const currentDate = moment(new Date()).format('YYYY-MM-DD')
+        if (currentDate === user.login_data.last_login_day_data.day) user.login_data.last_login_day_data.total_day_logins += 1
+        else {
+            user.login_data.last_login_day_data.total_day_logins = 1
+            user.login_data.last_login_day_data.day += currentDate
+        }
+    }
+    return user
+}
+
 const get_current_user = (req, res, next) => {
     const token = req.body.data.token
     if (token) {
@@ -82,6 +95,7 @@ const get_current_user = (req, res, next) => {
                 res.sendStatus(401)
             } else {
                 let user = await findUser(decodedToken.id)
+                user = changeLoginDayData(user)
                 user = checkIfFreeCoinsAvailable(user)
                 user = await eventResults(user)
                 user = changeSeason(user)

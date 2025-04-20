@@ -317,6 +317,22 @@ const UserSchema = new Schema({
     app_rated: {
         type: Boolean,
         default: false
+    },
+    login_data: {
+        total_logins: {
+            type: Number,
+            default: 0
+        },
+        last_login_day_data: {
+            day: {
+                type: String,
+                default: new Date()
+            },
+            total_day_logins: {
+                type: Number,
+                default: 0
+            }
+        }
     }
 }, {
     timestamps: true
