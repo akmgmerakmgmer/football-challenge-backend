@@ -75,7 +75,7 @@ const changeSeason = (user) => {
 }
 
 const changeLoginDayData = (user) => {
-    if (user && user.login_data && user.login_data.last_login_day) {
+    if (user && user.login_data && user.login_data.last_login_day_data) {
         user.login_data.total_logins += 1
         const currentDate = moment(new Date()).format('YYYY-MM-DD')
         if (currentDate === user.login_data.last_login_day_data.day) user.login_data.last_login_day_data.total_day_logins += 1
