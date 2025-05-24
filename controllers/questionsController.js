@@ -33,23 +33,28 @@ function modifyAnswer(answer) {
     if (answer.includes('ã')) answer = answer.replace('ã', 'a')
     if (answer.includes('à')) answer = answer.replace('à', 'a')
     if (answer.includes('á')) answer = answer.replace('á', 'a')
+    if (answer.includes('â')) answer = answer.replace('â', 'a')
     if (answer.includes('ä')) answer = answer.replace('ä', 'a')
     if (answer.includes('é')) answer = answer.replace('é', 'e')
+    if (answer.includes('ë')) answer = answer.replace('ë', 'e')
     if (answer.includes('ú')) answer = answer.replace('ú', 'u')
     if (answer.includes('í')) answer = answer.replace('í', 'i')
     if (answer.includes('ó')) answer = answer.replace('ó', 'o')
     if (answer.includes('ö')) answer = answer.replace('ö', 'o')
+    if (answer.includes('ô')) answer = answer.replace('ö', 'o')
     if (answer.includes('ü')) answer = answer.replace('ü', 'u')
     if (answer.includes('ñ')) answer = answer.replace('ñ', 'n')
     if (answer.includes('č')) answer = answer.replace('č', 'c')
     if (answer.includes('ę')) answer = answer.replace('ę', 'e')
     if (answer.includes('ž')) answer = answer.replace('ž', 'z')
     if (answer.includes('ć')) answer = answer.replace('ć', 'c')
-    if (answer.includes('ć')) answer = answer.replace('â', 'a')
     if (answer.includes('š')) answer = answer.replace('š', 's')
     if (answer.includes('ł')) answer = answer.replace('ł', 'l')
+    if (answer.includes('ğ')) answer = answer.replace('ğ', 'g')
+    if (answer.includes('ñ')) answer = answer.replace('ñ', 'n')
     return answer
 }
+
 const createHintsQuestions = async (req, res, next, i) => {
     let answer = modifyAnswer(req.body[i].answer)
     Player.findOne({ $or: [{ firstName: { $regex: answer, $options: "i" } }, { nameEn: { $regex: answer, $options: "i" } }, { nameAr: { $regex: answer, $options: "i" }, }, { fullName: { $regex: answer, $options: "i" } }] }).then(async res => {
@@ -79,7 +84,7 @@ const createHintsQuestions = async (req, res, next, i) => {
                 if (req.body[i].hints[j].en.includes('Versatile')) req.body[i].hints[j].ar = 'متنوع'
                 if (req.body[i].hints[j].ar.includes('ركلة حرة')) req.body[i].hints[j].ar = 'فاولات'
             }
-            console.log(res.nameEn)
+            console.log(res.nameEn, res.nameAr)
             req.body[i].answer = res.nameEn
 
             req.body[i].choices = []
