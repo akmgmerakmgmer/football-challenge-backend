@@ -1,7 +1,9 @@
 const User = require('../../models/userModel');
 const Room = require('../../models/roomModel');
+const Event = require('../../models/eventsModel');
 const { calculatePercentage } = require('./userUtils');
-const { updateAndGetUser } = require('../../utilities/user_general_methods');
+const { updateAndGetUser, getUser } = require('../../utilities/user_general_methods');
+const { getCurrentDate, numberOfDaysToPlayerLastSaturday, getLastSaturday, getCurrentDay } = require('./userUtils.min');
 
 const addToResults = async (players, winnerId, results) => {
     if (results.length === 20) results.pop();
@@ -19,7 +21,20 @@ const addToResults = async (players, winnerId, results) => {
     return [result, ...results];
 };
 
-const user_save_game = (req, res, next) => {
+const addPointsToEvents = async (userEvents, eventId, points) => {
+    const userSide = userEvents.find(userEvent => userEvent.id.toString() == eventId)?.yourSide;
+    const event = await Event.findById({ _id: eventId });
+
+    const currentDate = getCurrentDate();
+    if (event && currentDate <= event.endDate) {
+        event.total_points += points;
+        for (const side of event.sides) {
+            if (userSide === side._id.toString()) side.points += points;
+        }
+        await Event.findByIdAndUpdate({ _id: eventId }, event);
+    }
+};
+const user_save_game = async (req, res, next) => {
     const { coins, points, usedPerks, eventId } = req.body;
     User.findById({ _id: req.params.id }).then(async user => {
         if (eventId) await addPointsToEvents(user.events, eventId, points);
@@ -76,6 +91,7 @@ const user_save_game = (req, res, next) => {
                 }
             }
         }
+
         user.user_points.totalPoints += points;
         user.coins += coins;
         user.games_played += 1;
