@@ -6,7 +6,7 @@ module.exports = duration => (req, res, next) => {
     }
 
     if (!isConnected()) {
-        console.log('Redis not connected, skipping cache')
+        // console.log('Redis not connected, skipping cache')
         return next()
     }
 
@@ -14,7 +14,7 @@ module.exports = duration => (req, res, next) => {
 
     redis.get(key).then(cachedResponse => {
         if (cachedResponse) {
-            console.log(`Cache hit for ${key}`)
+            // console.log(`Cache hit for ${key}`)
             return res.send(JSON.parse(cachedResponse))
         } else {
             res.originalSend = res.send
@@ -25,17 +25,17 @@ module.exports = duration => (req, res, next) => {
                     redis.set(key, JSON.stringify(body))
                         .then(() => redis.expire(key, duration))
                         .then(() => {
-                            console.log(`Cached ${key} for ${duration} seconds`)
+                            // console.log(`Cached ${key} for ${duration} seconds`)
                         })
                         .catch(error => {
-                            console.error('Redis caching error:', error)
+                            // console.error('Redis caching error:', error)
                         })
                 }
             }
             next()
         }
     }).catch(error => {
-        console.error('Redis cache error:', error)
+        // console.error('Redis cache error:', error)
         next()
     })
 }

@@ -8,7 +8,7 @@ const options = {
     password: 'ZzESjRi4uWKqCRv5Yclv2JwcXKyG83Kh',
     retryStrategy: function(times) {
         const delay = Math.min(times * 100, 3000);
-        console.log(`Retrying connection... Attempt ${times}`);
+        // console.log(`Retrying connection... Attempt ${times}`);
         return delay;
     },
     maxRetriesPerRequest: 5,
@@ -24,7 +24,7 @@ let redisClient = null;
 let isConnected = false;
 
 function createClient() {
-    console.log('Creating new Redis client...');
+    // console.log('Creating new Redis client...');
 
     // Try direct URL connection first
     try {
@@ -32,7 +32,7 @@ function createClient() {
         setupEventHandlers(client);
         return client;
     } catch (error) {
-        console.log('URL connection failed, trying with options...');
+        // console.log('URL connection failed, trying with options...');
         // Fallback to options-based connection
         const client = new Redis(options);
         setupEventHandlers(client);
@@ -51,33 +51,33 @@ function setupEventHandlers(client) {
     });
 
     client.on('connect', () => {
-        console.log('Redis client establishing connection...');
+        // console.log('Redis client establishing connection...');
     });
 
     client.on('ready', () => {
-        console.log('Redis client ready and connected');
+        // console.log('Redis client ready and connected');
         isConnected = true;
         
-        // Test the connection
-        client.ping().then(() => {
-            console.log('Redis PING successful');
-        }).catch(err => {
-            console.error('Redis PING failed:', err);
-        });
+        // // Test the connection
+        // client.ping().then(() => {
+        //     console.log('Redis PING successful');
+        // }).catch(err => {
+        //     console.error('Redis PING failed:', err);
+        // });
     });
 
     client.on('reconnecting', (delay) => {
-        console.log(`Redis client reconnecting in ${delay}ms...`);
+        // console.log(`Redis client reconnecting in ${delay}ms...`);
         isConnected = false;
     });
 
     client.on('end', () => {
-        console.log('Redis connection ended');
+        // console.log('Redis connection ended');
         isConnected = false;
     });
 
     client.on('close', () => {
-        console.log('Redis connection closed');
+        // console.log('Redis connection closed');
         isConnected = false;
     });
 }
@@ -85,14 +85,14 @@ function setupEventHandlers(client) {
 // Create initial client
 redisClient = createClient();
 
-// Attempt initial connection
-redisClient.ping().then(() => {
-    console.log('Initial Redis connection test successful');
-    isConnected = true;
-}).catch(err => {
-    console.error('Initial Redis connection test failed:', err);
-    isConnected = false;
-});
+// // Attempt initial connection
+// redisClient.ping().then(() => {
+//     console.log('Initial Redis connection test successful');
+//     isConnected = true;
+// }).catch(err => {
+//     console.error('Initial Redis connection test failed:', err);
+//     isConnected = false;
+// });
 
 module.exports = {
     redis: redisClient,
