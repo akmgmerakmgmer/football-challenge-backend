@@ -10,8 +10,6 @@ const { Server } = require('socket.io');
 const http = require("http");
 const { initializeScheduledTasks } = require('./controllers/cron/scheduledTasks.min.js');
 const socketMethods = require('./controllers/multiplayer/socketMethods.min.js');
-const Room = require('./models/roomModel.js');
-const Question = require('./models/questionModel.js');
 require("dotenv").config();
 
 const server = http.createServer(app);
