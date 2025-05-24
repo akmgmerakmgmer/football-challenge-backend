@@ -1,9 +1,15 @@
-const redis = require('./config/redis')
+const { redis, isConnected } = require('./config/redis')
 
 module.exports = duration => (req, res, next) => {
     if (req.method !== 'GET') {
         return next()
     }
+
+    if (!isConnected()) {
+        console.log('Redis not connected, skipping cache')
+        return next()
+    }
+
     const key = req.originalUrl
 
     redis.get(key).then(cachedResponse => {
@@ -14,16 +20,17 @@ module.exports = duration => (req, res, next) => {
             res.originalSend = res.send
             res.send = body => {
                 res.originalSend(body)
-                redis.set(key, JSON.stringify(body))
-                    .then(() => {
-                        return redis.expire(key, duration)
-                    })
-                    .then(() => {
-                        console.log(`Cached ${key} for ${duration} seconds`)
-                    })
-                    .catch(error => {
-                        console.error('Redis caching error:', error)
-                    })
+                
+                if (isConnected()) {
+                    redis.set(key, JSON.stringify(body))
+                        .then(() => redis.expire(key, duration))
+                        .then(() => {
+                            console.log(`Cached ${key} for ${duration} seconds`)
+                        })
+                        .catch(error => {
+                            console.error('Redis caching error:', error)
+                        })
+                }
             }
             next()
         }
