@@ -22,6 +22,7 @@ const tinify = require('tinify');
 tinify.key = process.env.TINIFY_KEY;
 const translate = require('translate-google')
 const cache = require('../route_cache.js')
+const { redis, isConnected, reconnect } = require('../config/redis')
 
 //Auth Routes
 router.post('/signup', authController.signup_post)
@@ -173,4 +174,34 @@ router.post('/upload-video', upload.single('file'), async (req, res) => {
         res.status(500).send({ code: 500, msg: 'upload_error', error: err.message });
     }
 });
+
+router.get('/health/redis', async (req, res) => {
+    try {
+        if (!isConnected()) {
+            // Try to reconnect if not connected
+            console.log('Redis not connected, attempting reconnection...');
+            reconnect();
+            return res.status(503).json({ 
+                status: 'error', 
+                message: 'Redis not connected, attempting reconnection' 
+            });
+        }
+
+        // Test Redis connection
+        await redis.ping();
+        res.json({ 
+            status: 'ok', 
+            message: 'Redis connected and responding',
+            isConnected: isConnected()
+        });
+    } catch (error) {
+        console.error('Redis health check failed:', error);
+        res.status(503).json({ 
+            status: 'error', 
+            message: 'Redis health check failed',
+            error: error.message
+        });
+    }
+});
+
 module.exports = router
