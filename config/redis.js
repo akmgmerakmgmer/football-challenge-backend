@@ -4,9 +4,16 @@ require('dotenv').config();
 let redisClient;
 
 if (process.env.REDIS_URL) {
-    // Production configuration using Redis URL
+    // Extract password from Redis URL if present
+    const url = new URL(process.env.REDIS_URL);
+    const password = url.password;
+    
+    // Production configuration
     const redisOptions = {
-        tls: process.env.REDIS_URL.includes('rediss://') ? {
+        host: url.hostname,
+        port: url.port,
+        password: password, // Use password directly
+        tls: url.protocol === 'rediss:' ? {
             rejectUnauthorized: false,
             requestCert: true,
             agent: false
@@ -27,17 +34,10 @@ if (process.env.REDIS_URL) {
     };
 
     try {
-        redisClient = new Redis(process.env.REDIS_URL, redisOptions);
+        redisClient = new Redis(redisOptions);
     } catch (error) {
         console.error('Redis connection error:', error);
-        // Fallback to non-TLS connection if TLS fails
-        try {
-            const nonTlsUrl = process.env.REDIS_URL.replace('rediss://', 'redis://');
-            redisClient = new Redis(nonTlsUrl, { ...redisOptions, tls: undefined });
-        } catch (fallbackError) {
-            console.error('Redis fallback connection error:', fallbackError);
-            throw fallbackError;
-        }
+        throw error;
     }
 } else {
     // Local configuration
