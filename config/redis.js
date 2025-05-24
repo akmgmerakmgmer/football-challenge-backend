@@ -5,7 +5,7 @@ let redisClient;
 
 try {
     // Simple direct connection string format
-    redisClient = new Redis('redis://:8ENPiyBajG8iatxh8b0KWdmBzjWsIHxp@memcached-11491.crce177.me-south-1-1.ec2.redns.redis-cloud.com:11491', {
+    redisClient = new Redis('redis://default8ENPiyBajG8iatxh8b0KWdmBzjWsIHxp@memcached-11491.crce177.me-south-1-1.ec2.redns.redis-cloud.com:11491', {
         retryStrategy: (times) => {
             const delay = Math.min(times * 50, 2000);
             return delay;
