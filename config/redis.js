@@ -4,37 +4,25 @@ require('dotenv').config();
 let redisClient;
 
 if (process.env.REDIS_URL) {
-    // Extract password from Redis URL if present
-    const url = new URL(process.env.REDIS_URL);
-    const password = url.password;
-    
     // Production configuration
-    const redisOptions = {
-        host: url.hostname,
-        port: url.port,
-        password: password, // Use password directly
-        tls: url.protocol === 'rediss:' ? {
-            rejectUnauthorized: false,
-            requestCert: true,
-            agent: false
-        } : undefined,
-        retryStrategy: (times) => {
-            const delay = Math.min(times * 50, 2000);
-            return delay;
-        },
-        maxRetriesPerRequest: 3,
-        enableReadyCheck: true,
-        reconnectOnError: function(err) {
-            const targetError = 'READONLY';
-            if (err.message.includes(targetError)) {
-                return true;
-            }
-            return false;
-        }
-    };
-
     try {
-        redisClient = new Redis(redisOptions);
+        // Simple connection without auth command
+        redisClient = new Redis({
+            host: 'memcached-11491.crce177.me-south-1-1.ec2.redns.redis-cloud.com',
+            port: 11491,
+            password: '8ENPiyBajG8iatxh8b0KWdmBzjWsIHxp',
+            retryStrategy: (times) => {
+                const delay = Math.min(times * 50, 2000);
+                return delay;
+            },
+            maxRetriesPerRequest: 3,
+            enableReadyCheck: true,
+            showFriendlyErrorStack: true,
+            lazyConnect: true,
+            connectTimeout: 10000,
+            username: undefined, // Explicitly set to undefined to prevent auth with username
+            db: 0 // Use default database
+        });
     } catch (error) {
         console.error('Redis connection error:', error);
         throw error;
@@ -73,6 +61,13 @@ redisClient.on('ready', () => {
 
 redisClient.on('reconnecting', () => {
     console.log('Redis client reconnecting...');
+});
+
+// Test the connection
+redisClient.ping().then(() => {
+    console.log('Redis connection test successful');
+}).catch(err => {
+    console.error('Redis connection test failed:', err);
 });
 
 module.exports = redisClient; 
