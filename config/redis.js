@@ -4,8 +4,15 @@ require('dotenv').config();
 let redisClient;
 
 try {
-    redisClient = new Redis('rediss://default:ZzESjRi4uWKqCRv5Yclv2JwcXKyG83Kh@redis-14768.crce177.me-south-1-1.ec2.redns.redis-cloud.com:14768', {
-        tls: {} // 👈 enables TLS
+    redisClient = new Redis('redis://default:ZzESjRi4uWKqCRv5Yclv2JwcXKyG83Kh@redis-14768.crce177.me-south-1-1.ec2.redns.redis-cloud.com:14768', {
+        retryStrategy: (times) => Math.min(times * 50, 2000),
+        maxRetriesPerRequest: 3,
+        enableReadyCheck: true,
+        showFriendlyErrorStack: true,
+        lazyConnect: true,
+        connectTimeout: 10000,
+        family: 4, // IPv4
+        db: 0
     });
 } catch (error) {
     console.error('Redis connection error:', error);
