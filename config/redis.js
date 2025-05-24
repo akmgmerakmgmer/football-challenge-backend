@@ -5,6 +5,7 @@ let redisClient;
 
 try {
     redisClient = new Redis('rediss://default:ZzESjRi4uWKqCRv5Yclv2JwcXKyG83Kh@redis-14768.crce177.me-south-1-1.ec2.redns.redis-cloud.com:14768', {
+        tls: {},
         retryStrategy: (times) => Math.min(times * 50, 2000),
         maxRetriesPerRequest: 3,
         enableReadyCheck: true,
