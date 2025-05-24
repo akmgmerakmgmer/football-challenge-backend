@@ -1,0 +1,26 @@
+const express = require('express');
+const router = express.Router();
+const usersController = require('../controllers/usersController.min.js');
+const { onlyAdminAuth, onlyUserAuth, requireAuth } = require('../middlewares/auth.min.js');
+
+router.get('/users', onlyAdminAuth, usersController.get_users);
+router.post('/current-user', usersController.get_current_user);
+router.get('/users/:id', requireAuth, usersController.get_single_user);
+router.delete('/users/:id', onlyAdminAuth, usersController.delete_user);
+router.put('/users/:id', requireAuth, usersController.update_user);
+router.put('/remove-perk/:id', onlyUserAuth, usersController.remove_perk);
+router.put('/select-perk/:id', onlyUserAuth, usersController.select_perk);
+router.put('/add-coins/:id', requireAuth, usersController.add_coins);
+router.post('/user-save-game/:id', onlyUserAuth, usersController.user_save_game);
+router.get('/get-user-rank/:id', onlyUserAuth, usersController.get_user_current_ranking);
+router.get('/get-rankings', usersController.get_rankings);
+router.put('/buy-avatar/:id', onlyUserAuth, usersController.buy_avatar);
+router.put('/buy-theme/:id', onlyUserAuth, usersController.buy_theme);
+router.put('/buy-perks/:id', onlyUserAuth, usersController.buy_perks);
+router.put('/notify-about/:id', onlyUserAuth, usersController.notify_about);
+router.put('/add-event/:id', onlyUserAuth, usersController.add_event_to_user);
+router.put('/multi-game-winner/:id', onlyUserAuth, usersController.multi_game_winner);
+router.put('/multi-game-loser/:id', onlyUserAuth, usersController.multi_game_loser);
+router.put('/multi-game-draw/:id', onlyUserAuth, usersController.multi_game_draw);
+
+module.exports = router; 

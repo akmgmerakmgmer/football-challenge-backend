@@ -1,213 +1,43 @@
 const express = require('express')
 const router = express.Router()
-const authController = require('../controllers/authController.min.js')
-const usersController = require('../controllers/usersController.min.js')
-const questionsController = require('../controllers/questionsController.min.js')
-const playersController = require('../controllers/playersController.min.js')
-const advertismentController = require('../controllers/advertismentController.min.js')
-const challengeController = require('../controllers/challengesController.min.js')
-const avatarController = require('../controllers/avatarsController.min.js')
-const themeController = require('../controllers/themesController.min.js')
-const transactionController = require('../controllers/transactionController.min.js')
-const shopItemsController = require('../controllers/shopItemsController.min.js')
-const perksController = require('../controllers/perksController.min.js')
-const ranksController = require('../controllers/ranksController.min.js')
-const eventsController = require('../controllers/eventsController.min.js')
-const systemController = require('../controllers/systemController.min.js')
-const { onlyAdminAuth, onlyUserAuth, requireAuth } = require('../middlewares/auth.min.js')
-const cloudinary = require('../utilities/cloudinary')
 require("dotenv").config()
-const upload = require('../utilities/multer')
-const tinify = require('tinify');
-tinify.key = process.env.TINIFY_KEY;
-const translate = require('translate-google')
-const cache = require('../route_cache.js')
-const { redis, isConnected, reconnect } = require('../config/redis')
 
-// Cache durations in seconds
-const ONE_MINUTE = 60;
-const ONE_HOUR = 60 * 60;
-const FIVE_HOURS = 60 * 60 * 5;    // 18000 seconds
-const TWELVE_HOURS = 60 * 60 * 12;  // 43200 seconds
 
-//Auth Routes
-router.post('/signup', authController.signup_post)
-router.post('/email-login', authController.email_login)
-router.post('/login', authController.login_post)
+// Import routers
+const authRoutes = require('./authRoutes');
+const userRoutes = require('./userRoutes');
+const questionRoutes = require('./questionRoutes');
+const playerRoutes = require('./playerRoutes');
+const advertisementRoutes = require('./advertisementRoutes');
+const challengeRoutes = require('./challengeRoutes');
+const avatarRoutes = require('./avatarRoutes');
+const themeRoutes = require('./themeRoutes');
+const transactionRoutes = require('./transactionRoutes');
+const shopItemRoutes = require('./shopItemRoutes');
+const perkRoutes = require('./perkRoutes');
+const rankRoutes = require('./rankRoutes');
+const eventRoutes = require('./eventRoutes');
+const systemRoutes = require('./systemRoutes');
+const utilityRoutes = require('./utilityRoutes');
+const uploadRoutes = require('./uploadRoutes');
 
-//User Routes
-router.get('/users', onlyAdminAuth, usersController.get_users)
-router.post('/current-user', usersController.get_current_user)
-router.get('/users/:id', requireAuth, usersController.get_single_user)
-router.delete('/users/:id', onlyAdminAuth, usersController.delete_user)
-router.put('/users/:id', requireAuth, usersController.update_user)
-router.put('/remove-perk/:id', onlyUserAuth, usersController.remove_perk)
-router.put('/select-perk/:id', onlyUserAuth, usersController.select_perk)
-router.put('/add-coins/:id', requireAuth, usersController.add_coins)
-router.post('/user-save-game/:id', onlyUserAuth, usersController.user_save_game)
-router.get('/get-user-rank/:id', onlyUserAuth, usersController.get_user_current_ranking)
-router.get('/get-rankings', usersController.get_rankings)
-router.put('/buy-avatar/:id', onlyUserAuth, usersController.buy_avatar)
-router.put('/buy-theme/:id', onlyUserAuth, usersController.buy_theme)
-router.put('/buy-perks/:id', onlyUserAuth, usersController.buy_perks)
-router.put('/notify-about/:id', onlyUserAuth, usersController.notify_about)
-router.put('/add-event/:id', onlyUserAuth, usersController.add_event_to_user)
-router.put('/multi-game-winner/:id', onlyUserAuth, usersController.multi_game_winner)
-router.put('/multi-game-loser/:id', onlyUserAuth, usersController.multi_game_loser)
-router.put('/multi-game-draw/:id', onlyUserAuth, usersController.multi_game_draw)
+// Use routers
+router.use('/', authRoutes);
+router.use('/', userRoutes);
+router.use('/', questionRoutes);
+router.use('/', playerRoutes);
+router.use('/', advertisementRoutes);
+router.use('/', challengeRoutes);
+router.use('/', avatarRoutes);
+router.use('/', themeRoutes);
+router.use('/', transactionRoutes);
+router.use('/', shopItemRoutes);
+router.use('/', perkRoutes);
+router.use('/', rankRoutes);
+router.use('/', eventRoutes);
+router.use('/', systemRoutes);
+router.use('/', uploadRoutes);
+router.use('/', utilityRoutes);
 
-//Question Routes
-router.post('/questions', questionsController.create_questions)
-router.get('/questions', requireAuth, cache(ONE_MINUTE), questionsController.get_questions)
-router.get('/admin-questions', onlyAdminAuth, questionsController.get_admin_questions)
-router.get('/questions/:id', onlyAdminAuth, questionsController.get_single_question)
-router.delete('/questions/:id', onlyAdminAuth, questionsController.delete_question)
-router.put('/questions/:id', onlyAdminAuth, questionsController.update_question)
-router.get('/dynamic-question-method', questionsController.deleteFromObject)
-
-//Player Routes
-router.post('/players', onlyAdminAuth, playersController.create_player)
-router.get('/players', requireAuth, cache(ONE_HOUR), playersController.get_players)
-router.get('/players/:id', onlyAdminAuth, playersController.get_single_player)
-router.delete('/players/:id', onlyAdminAuth, playersController.delete_player)
-router.put('/players/:id', onlyAdminAuth, playersController.update_player)
-
-//Advertisment Routes
-router.post('/advertisments', onlyAdminAuth, advertismentController.create_advertisment)
-router.get('/advertisments', cache(TWELVE_HOURS), advertismentController.get_advertisment)
-router.get('/admin-advertisments', onlyAdminAuth, advertismentController.get_admin_advertisments)
-router.get('/advertisments/:id', onlyAdminAuth, advertismentController.get_single_advertisment)
-router.delete('/advertisments/:id', onlyAdminAuth, advertismentController.delete_advertisment)
-router.put('/advertisments/:id', onlyAdminAuth, advertismentController.update_advertisment)
-router.put('/ad-clicked/:id', advertismentController.ad_clicked)
-
-// Challenges
-router.post('/challenges', onlyAdminAuth, challengeController.create_challenge)
-router.get('/challenges', cache(TWELVE_HOURS), challengeController.get_challenges)
-router.get('/admin-challenges', onlyAdminAuth, challengeController.get_admin_challenges)
-router.get('/challenges/:id', onlyAdminAuth, challengeController.get_single_challenge)
-router.delete('/challenges/:id', onlyAdminAuth, challengeController.delete_challenge)
-router.put('/challenges/:id', onlyAdminAuth, challengeController.update_challenge)
-
-// Avatars
-router.post('/avatars', onlyAdminAuth, avatarController.create_avatar)
-router.get('/avatars', cache(FIVE_HOURS), avatarController.get_avatars)
-router.get('/admin-avatars', onlyAdminAuth, avatarController.get_admin_avatars)
-router.get('/avatars/:id', onlyAdminAuth, avatarController.get_single_avatar)
-router.delete('/avatars/:id', onlyAdminAuth, avatarController.delete_avatar)
-router.put('/avatars/:id', onlyAdminAuth, avatarController.update_avatar)
-
-// Themes
-router.post('/themes', onlyAdminAuth, themeController.create_theme)
-router.get('/themes', cache(FIVE_HOURS), themeController.get_themes)
-router.get('/admin-themes', onlyAdminAuth, themeController.get_admin_themes)
-router.get('/themes/:id', onlyAdminAuth, themeController.get_single_theme)
-router.delete('/themes/:id', onlyAdminAuth, themeController.delete_theme)
-router.put('/themes/:id', onlyAdminAuth, themeController.update_theme)
-
-// Transactions
-router.post('/card-payment', transactionController.kashierPaymentMethod)
-router.post('/payment-success', transactionController.payment_success)
-router.get('/transactions', onlyAdminAuth, transactionController.get_transactions)
-router.get('/transactions/:id', onlyAdminAuth, transactionController.get_single_transaction)
-router.delete('/transactions/:id', onlyAdminAuth, transactionController.delete_transaction)
-router.put('/transactions/:id', onlyAdminAuth, transactionController.update_transaction)
-
-// Perks
-router.post('/perks', onlyAdminAuth, perksController.create_perk)
-router.get('/perks', cache(FIVE_HOURS), perksController.get_perks)
-router.get('/admin-perks', onlyAdminAuth, perksController.get_admin_perks)
-router.get('/perks/:id', onlyAdminAuth, perksController.get_single_perk)
-router.delete('/perks/:id', onlyAdminAuth, perksController.delete_perk)
-router.put('/perks/:id', onlyAdminAuth, perksController.update_perk)
-
-// Ranks
-router.post('/ranks', onlyAdminAuth, ranksController.create_rank)
-router.get('/ranks', cache(TWELVE_HOURS), ranksController.get_ranks)
-router.get('/admin-ranks', onlyAdminAuth, ranksController.get_admin_ranks)
-router.get('/ranks/:id', onlyAdminAuth, ranksController.get_single_rank)
-router.delete('/ranks/:id', onlyAdminAuth, ranksController.delete_rank)
-router.put('/ranks/:id', onlyAdminAuth, ranksController.update_rank)
-
-// ShopItems
-router.post('/shopItems', onlyAdminAuth, shopItemsController.create_shopItem)
-router.get('/shopItems', cache(FIVE_HOURS), shopItemsController.get_shopItems)
-router.get('/admin-shopItems', onlyAdminAuth, shopItemsController.get_admin_shopItems)
-router.get('/shopItems/:id', onlyAdminAuth, shopItemsController.get_single_shopItem)
-router.delete('/shopItems/:id', onlyAdminAuth, shopItemsController.delete_shopItem)
-router.put('/shopItems/:id', onlyAdminAuth, shopItemsController.update_shopItem)
-
-// Events
-router.post('/events', onlyAdminAuth, eventsController.create_events)
-router.get('/events', cache(TWELVE_HOURS), eventsController.get_events)
-router.get('/admin-events', onlyAdminAuth, eventsController.get_admin_events)
-router.get('/events/:id', requireAuth, eventsController.get_single_events)
-router.delete('/events/:id', onlyAdminAuth, eventsController.delete_events)
-router.put('/events/:id', onlyAdminAuth, eventsController.update_events)
-
-// System
-router.get('/initial-fetch', cache(TWELVE_HOURS), systemController.inital_fetch)
-
-// Health check
-router.get('/health/redis', async (req, res) => {
-    try {
-        if (!isConnected()) {
-            console.log('Redis not connected, attempting reconnection...');
-            reconnect();
-            return res.status(503).json({ 
-                status: 'error', 
-                message: 'Redis not connected, attempting reconnection' 
-            });
-        }
-
-        await redis.ping();
-        res.json({ 
-            status: 'ok', 
-            message: 'Redis connected and responding',
-            isConnected: isConnected()
-        });
-    } catch (error) {
-        console.error('Redis health check failed:', error);
-        res.status(503).json({ 
-            status: 'error', 
-            message: 'Redis health check failed',
-            error: error.message
-        });
-    }
-});
-
-router.post('/translate', (req, res, next) => {
-    translate(req.body.msg, { from: req.body.from, to: req.body.to }).then(response => {
-        res.status(200).send(response);
-    }).catch(next)
-})
-
-const compressImage = function (req, res, next) {
-    const source = tinify.fromFile(req.file.path);
-    source.toFile(req.file.path, function () {
-        next();
-    });
-};
-
-router.post('/upload-single', upload.single('image'), compressImage, async (req, res) => {
-    if (!req.file) {
-        res.send({ code: 422, msg: 'field_required' })
-    } else {
-        const result = await cloudinary.uploader.upload(req.file.path)
-        res.status(200).send(result)
-    }
-})
-
-router.post('/upload-video', upload.single('file'), async (req, res) => {
-    if (!req.file) {
-        return res.status(422).send({ code: 422, msg: 'field_required' });
-    }
-    try {
-        const result = await cloudinary.uploader.upload(req.file.path, { resource_type: 'video' });
-        res.status(200).send(result);
-    } catch (err) {
-        res.status(500).send({ code: 500, msg: 'upload_error', error: err.message });
-    }
-});
 
 module.exports = router
