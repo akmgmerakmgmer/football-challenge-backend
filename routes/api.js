@@ -51,7 +51,7 @@ router.put('/multi-game-draw/:id', onlyUserAuth, usersController.multi_game_draw
 
 //Question Routes
 router.post('/questions', questionsController.create_questions)
-router.get('/questions', requireAuth, questionsController.get_questions)
+router.get('/questions', requireAuth, cache(5 * 60), questionsController.get_questions)
 router.get('/admin-questions', onlyAdminAuth, questionsController.get_admin_questions)
 router.get('/questions/:id', onlyAdminAuth, questionsController.get_single_question)
 router.delete('/questions/:id', onlyAdminAuth, questionsController.delete_question)
@@ -139,7 +139,7 @@ router.delete('/events/:id', onlyAdminAuth, eventsController.delete_events)
 router.put('/events/:id', onlyAdminAuth, eventsController.update_events)
 
 // System
-router.get('/initial-fetch', systemController.inital_fetch)
+router.get('/initial-fetch', cache(5 * 60), systemController.inital_fetch)
 
 router.post('/translate', (req, res, next) => {
     translate(req.body.msg, { from: req.body.from, to: req.body.to }).then(response => {
