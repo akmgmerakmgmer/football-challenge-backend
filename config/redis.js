@@ -3,51 +3,30 @@ require('dotenv').config();
 
 let redisClient;
 
-if (process.env.REDIS_URL) {
-    // Production configuration
-    try {
-        // Simple connection without auth command
-        redisClient = new Redis({
-            host: 'memcached-11491.crce177.me-south-1-1.ec2.redns.redis-cloud.com',
-            port: 11491,
-            password: '8ENPiyBajG8iatxh8b0KWdmBzjWsIHxp',
-            retryStrategy: (times) => {
-                const delay = Math.min(times * 50, 2000);
-                return delay;
-            },
-            maxRetriesPerRequest: 3,
-            enableReadyCheck: true,
-            showFriendlyErrorStack: true,
-            lazyConnect: true,
-            connectTimeout: 10000,
-            username: undefined, // Explicitly set to undefined to prevent auth with username
-            db: 0 // Use default database
-        });
-    } catch (error) {
-        console.error('Redis connection error:', error);
-        throw error;
-    }
-} else {
-    // Local configuration
-    redisClient = new Redis({
-        host: process.env.REDIS_HOST || 'localhost',
-        port: process.env.REDIS_PORT || 6379,
-        password: process.env.REDIS_PASSWORD,
+try {
+    // Simple direct connection string format
+    redisClient = new Redis('redis://:8ENPiyBajG8iatxh8b0KWdmBzjWsIHxp@memcached-11491.crce177.me-south-1-1.ec2.redns.redis-cloud.com:11491', {
         retryStrategy: (times) => {
             const delay = Math.min(times * 50, 2000);
             return delay;
         },
-        maxRetriesPerRequest: 3
+        maxRetriesPerRequest: 3,
+        enableReadyCheck: true,
+        showFriendlyErrorStack: true,
+        lazyConnect: true,
+        connectTimeout: 10000,
+        family: 4, // Force IPv4
+        db: 0
     });
+} catch (error) {
+    console.error('Redis connection error:', error);
+    throw error;
 }
 
 redisClient.on('error', (err) => {
     console.error('Redis Client Error:', err);
     if (err.code === 'ECONNREFUSED') {
         console.error('Redis connection refused. Please check if Redis server is running.');
-    }
-    if (err.message.includes('SSL')) {
-        console.error('Redis SSL/TLS connection error. Check your REDIS_URL and SSL configuration.');
     }
 });
 
