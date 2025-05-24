@@ -5,7 +5,13 @@ let redisClient;
 
 try {
     redisClient = new Redis('rediss://default:ZzESjRi4uWKqCRv5Yclv2JwcXKyG83Kh@redis-14768.crce177.me-south-1-1.ec2.redns.redis-cloud.com:14768', {
-        tls: {},
+        tls: {
+            rejectUnauthorized: false,
+            requestCert: true,
+            secureProtocol: 'TLSv1_2_method',
+            minVersion: 'TLSv1.2',
+            maxVersion: 'TLSv1.3'
+        },
         retryStrategy: (times) => Math.min(times * 50, 2000),
         maxRetriesPerRequest: 3,
         enableReadyCheck: true,
