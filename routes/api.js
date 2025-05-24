@@ -24,6 +24,12 @@ const translate = require('translate-google')
 const cache = require('../route_cache.js')
 const { redis, isConnected, reconnect } = require('../config/redis')
 
+// Cache durations in seconds
+const ONE_MINUTE = 60;
+const ONE_HOUR = 60 * 60;
+const FIVE_HOURS = 60 * 60 * 5;    // 18000 seconds
+const TWELVE_HOURS = 60 * 60 * 12;  // 43200 seconds
+
 //Auth Routes
 router.post('/signup', authController.signup_post)
 router.post('/email-login', authController.email_login)
@@ -52,7 +58,7 @@ router.put('/multi-game-draw/:id', onlyUserAuth, usersController.multi_game_draw
 
 //Question Routes
 router.post('/questions', questionsController.create_questions)
-router.get('/questions', requireAuth, cache(5 * 60), questionsController.get_questions)
+router.get('/questions', requireAuth, cache(ONE_MINUTE), questionsController.get_questions)
 router.get('/admin-questions', onlyAdminAuth, questionsController.get_admin_questions)
 router.get('/questions/:id', onlyAdminAuth, questionsController.get_single_question)
 router.delete('/questions/:id', onlyAdminAuth, questionsController.delete_question)
@@ -61,14 +67,14 @@ router.get('/dynamic-question-method', questionsController.deleteFromObject)
 
 //Player Routes
 router.post('/players', onlyAdminAuth, playersController.create_player)
-router.get('/players', requireAuth, playersController.get_players)
+router.get('/players', requireAuth, cache(ONE_HOUR), playersController.get_players)
 router.get('/players/:id', onlyAdminAuth, playersController.get_single_player)
 router.delete('/players/:id', onlyAdminAuth, playersController.delete_player)
 router.put('/players/:id', onlyAdminAuth, playersController.update_player)
 
 //Advertisment Routes
 router.post('/advertisments', onlyAdminAuth, advertismentController.create_advertisment)
-router.get('/advertisments', cache(5 * 60), advertismentController.get_advertisment)
+router.get('/advertisments', cache(TWELVE_HOURS), advertismentController.get_advertisment)
 router.get('/admin-advertisments', onlyAdminAuth, advertismentController.get_admin_advertisments)
 router.get('/advertisments/:id', onlyAdminAuth, advertismentController.get_single_advertisment)
 router.delete('/advertisments/:id', onlyAdminAuth, advertismentController.delete_advertisment)
@@ -77,7 +83,7 @@ router.put('/ad-clicked/:id', advertismentController.ad_clicked)
 
 // Challenges
 router.post('/challenges', onlyAdminAuth, challengeController.create_challenge)
-router.get('/challenges', cache(5 * 60 * 60), challengeController.get_challenges)
+router.get('/challenges', cache(TWELVE_HOURS), challengeController.get_challenges)
 router.get('/admin-challenges', onlyAdminAuth, challengeController.get_admin_challenges)
 router.get('/challenges/:id', onlyAdminAuth, challengeController.get_single_challenge)
 router.delete('/challenges/:id', onlyAdminAuth, challengeController.delete_challenge)
@@ -85,15 +91,15 @@ router.put('/challenges/:id', onlyAdminAuth, challengeController.update_challeng
 
 // Avatars
 router.post('/avatars', onlyAdminAuth, avatarController.create_avatar)
-router.get('/avatars', cache(5 * 60), avatarController.get_avatars)
+router.get('/avatars', cache(FIVE_HOURS), avatarController.get_avatars)
 router.get('/admin-avatars', onlyAdminAuth, avatarController.get_admin_avatars)
 router.get('/avatars/:id', onlyAdminAuth, avatarController.get_single_avatar)
 router.delete('/avatars/:id', onlyAdminAuth, avatarController.delete_avatar)
 router.put('/avatars/:id', onlyAdminAuth, avatarController.update_avatar)
 
-// Avatars
+// Themes
 router.post('/themes', onlyAdminAuth, themeController.create_theme)
-router.get('/themes', cache(5 * 60), themeController.get_themes)
+router.get('/themes', cache(FIVE_HOURS), themeController.get_themes)
 router.get('/admin-themes', onlyAdminAuth, themeController.get_admin_themes)
 router.get('/themes/:id', onlyAdminAuth, themeController.get_single_theme)
 router.delete('/themes/:id', onlyAdminAuth, themeController.delete_theme)
@@ -109,15 +115,15 @@ router.put('/transactions/:id', onlyAdminAuth, transactionController.update_tran
 
 // Perks
 router.post('/perks', onlyAdminAuth, perksController.create_perk)
-router.get('/perks', cache(5 * 60), perksController.get_perks)
+router.get('/perks', cache(FIVE_HOURS), perksController.get_perks)
 router.get('/admin-perks', onlyAdminAuth, perksController.get_admin_perks)
 router.get('/perks/:id', onlyAdminAuth, perksController.get_single_perk)
 router.delete('/perks/:id', onlyAdminAuth, perksController.delete_perk)
 router.put('/perks/:id', onlyAdminAuth, perksController.update_perk)
 
-// Perks
+// Ranks
 router.post('/ranks', onlyAdminAuth, ranksController.create_rank)
-router.get('/ranks', cache(5 * 60), ranksController.get_ranks)
+router.get('/ranks', cache(TWELVE_HOURS), ranksController.get_ranks)
 router.get('/admin-ranks', onlyAdminAuth, ranksController.get_admin_ranks)
 router.get('/ranks/:id', onlyAdminAuth, ranksController.get_single_rank)
 router.delete('/ranks/:id', onlyAdminAuth, ranksController.delete_rank)
@@ -125,7 +131,7 @@ router.put('/ranks/:id', onlyAdminAuth, ranksController.update_rank)
 
 // ShopItems
 router.post('/shopItems', onlyAdminAuth, shopItemsController.create_shopItem)
-router.get('/shopItems', shopItemsController.get_shopItems)
+router.get('/shopItems', cache(FIVE_HOURS), shopItemsController.get_shopItems)
 router.get('/admin-shopItems', onlyAdminAuth, shopItemsController.get_admin_shopItems)
 router.get('/shopItems/:id', onlyAdminAuth, shopItemsController.get_single_shopItem)
 router.delete('/shopItems/:id', onlyAdminAuth, shopItemsController.delete_shopItem)
@@ -133,14 +139,42 @@ router.put('/shopItems/:id', onlyAdminAuth, shopItemsController.update_shopItem)
 
 // Events
 router.post('/events', onlyAdminAuth, eventsController.create_events)
-router.get('/events', eventsController.get_events)
+router.get('/events', cache(TWELVE_HOURS), eventsController.get_events)
 router.get('/admin-events', onlyAdminAuth, eventsController.get_admin_events)
 router.get('/events/:id', requireAuth, eventsController.get_single_events)
 router.delete('/events/:id', onlyAdminAuth, eventsController.delete_events)
 router.put('/events/:id', onlyAdminAuth, eventsController.update_events)
 
 // System
-router.get('/initial-fetch', cache(5 * 60), systemController.inital_fetch)
+router.get('/initial-fetch', cache(TWELVE_HOURS), systemController.inital_fetch)
+
+// Health check
+router.get('/health/redis', async (req, res) => {
+    try {
+        if (!isConnected()) {
+            console.log('Redis not connected, attempting reconnection...');
+            reconnect();
+            return res.status(503).json({ 
+                status: 'error', 
+                message: 'Redis not connected, attempting reconnection' 
+            });
+        }
+
+        await redis.ping();
+        res.json({ 
+            status: 'ok', 
+            message: 'Redis connected and responding',
+            isConnected: isConnected()
+        });
+    } catch (error) {
+        console.error('Redis health check failed:', error);
+        res.status(503).json({ 
+            status: 'error', 
+            message: 'Redis health check failed',
+            error: error.message
+        });
+    }
+});
 
 router.post('/translate', (req, res, next) => {
     translate(req.body.msg, { from: req.body.from, to: req.body.to }).then(response => {
@@ -154,6 +188,7 @@ const compressImage = function (req, res, next) {
         next();
     });
 };
+
 router.post('/upload-single', upload.single('image'), compressImage, async (req, res) => {
     if (!req.file) {
         res.send({ code: 422, msg: 'field_required' })
@@ -172,35 +207,6 @@ router.post('/upload-video', upload.single('file'), async (req, res) => {
         res.status(200).send(result);
     } catch (err) {
         res.status(500).send({ code: 500, msg: 'upload_error', error: err.message });
-    }
-});
-
-router.get('/health/redis', async (req, res) => {
-    try {
-        if (!isConnected()) {
-            // Try to reconnect if not connected
-            console.log('Redis not connected, attempting reconnection...');
-            reconnect();
-            return res.status(503).json({ 
-                status: 'error', 
-                message: 'Redis not connected, attempting reconnection' 
-            });
-        }
-
-        // Test Redis connection
-        await redis.ping();
-        res.json({ 
-            status: 'ok', 
-            message: 'Redis connected and responding',
-            isConnected: isConnected()
-        });
-    } catch (error) {
-        console.error('Redis health check failed:', error);
-        res.status(503).json({ 
-            status: 'error', 
-            message: 'Redis health check failed',
-            error: error.message
-        });
     }
 });
 
