@@ -323,9 +323,11 @@ const question_modes_method = async (req, res, next) => {
     }
     const fetchedQuestionModes = user.questionModes.filter(mode => mode.modeName == req.query.questionMode)
     if (fetchedQuestionModes.length == 0) {
+        payload.games_played = 1
         user.questionModes.push(payload)
     } else {
         payload.index = fetchedQuestionModes[0].index
+        payload.games_played += 1
         user.questionModes[fetchedQuestionModes[0].index] = payload
     }
     if (req.query.price) user.coins -= req.query.price

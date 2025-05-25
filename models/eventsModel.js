@@ -20,6 +20,10 @@ const EventSchema = new Schema({
         type: Number,
         default: 0
     },
+    games_played: {
+        type: Number,
+        default: 0
+    },
     sides: {
         type: [
             {

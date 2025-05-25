@@ -17,8 +17,8 @@ const io = new Server(server);
 
 // const UglifyJS = require('uglify-js');
 // const fs = require('fs');
-// const result = UglifyJS.minify(fs.readFileSync('./routes/api.js', 'utf8'));
-// fs.writeFileSync('./routes/api.min.js', result.code);
+// const result = UglifyJS.minify(fs.readFileSync('./controllers/users/userGame.js', 'utf8'));
+// fs.writeFileSync('./controllers/users/userGame.min.js', result.code);
 
 // User.collection.getIndexes().then(res=>{
 //     console.log(res)

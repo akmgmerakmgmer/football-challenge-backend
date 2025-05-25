@@ -17,6 +17,9 @@ const UserSchema = new Schema({
     email: {
         type: String,
     },
+    birthdate: {
+        type: String,
+    },
     number: {
         type: String,
         minlength: [11, 'number_min_length'],
@@ -97,6 +100,10 @@ const UserSchema = new Schema({
         default: 1000
     },
     games_played: {
+        type: Number,
+        default: 0
+    },
+    online_games_played: {
         type: Number,
         default: 0
     },

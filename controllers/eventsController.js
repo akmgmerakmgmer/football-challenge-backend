@@ -11,7 +11,6 @@ const create_events = (req, res, next) => {
 }
 
 const get_events = async (req, res, next) => {
-    const currentDate = moment(new Date()).format('YYYY-MM-DD');
     Event.find({ active: true }).then(events => {
         res.status(200).send(events)
     }).catch(next)

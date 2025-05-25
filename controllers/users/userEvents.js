@@ -53,7 +53,8 @@ const add_event_to_user = async (req, res, next) => {
     const eventPayload = {
         id: req.body.eventId,
         yourSide: req.body.sideId,
-        endDate: req.body.endDate
+        endDate: req.body.endDate,
+        gamesPlayed: 0,
     };
     Event.findById({ _id: req.body.eventId }).then(event => {
         for (const side of event.sides) {

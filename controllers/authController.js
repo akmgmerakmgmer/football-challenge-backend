@@ -26,12 +26,12 @@ const createToken = (id) => {
 }
 
 function generateRandomUsername() {
-    const adjectives = ["dsadasasaaasaaa", "sdssasa", "aaas", "sasa", "waas", "asads", "asads", "dsadassaaasaaaa", "sdsasa", "aaa", "assa", "wsaa", "aass", "adds",];
-    const nouns = ["dsaddsaa", "Tiagaderdsa", "Eaglssdedsada", "Sharsaasadk", "dsadsaaas", "adasdaaas", "sdaasdaaadwa", "dsadaaa", "Tigaaader", "Eaglsedsdaa", "Shaasrsadk", "dsaadaas", "adaasaadas", "sdasaadaadwa"];
+    const adjectives = ["tiger", "cat", "dog", "zebra", "lion", "tiger", "spider", "crocodile", "fish", "shark", "whale", "bird", "eagle", "bear", "wolf", "fox", "rabbit", "deer", "elephant", "giraffe", "hippo", "panda", "koala", "kangaroo", "monkey", "gorilla", "chimpanzee", "orangutan", "sloth"];
+    const nouns = ["adventure", "explorer", "traveler", "wanderer", "seeker", "dreamer", "visionary", "pioneer", "innovator", "creator", "artist", "scientist", "engineer", "architect", "writer", "poet", "musician", "singer", "dancer", "athlete", "champion", "hero", "legend", "myth", "fantasy"];
 
     const randomAdjective = adjectives[Math.floor(Math.random() * adjectives.length)];
     const randomNoun = nouns[Math.floor(Math.random() * nouns.length)];
-    const randomNumber = Math.floor(Math.random() * 10000000000000000); // Random number between 0-999
+    const randomNumber = Math.floor(Math.random() * 1000000000); // Random number between 0-999
 
     return `${randomAdjective}${randomNoun}${randomNumber}`;
 }
@@ -56,9 +56,10 @@ const signup_post = async (req, res, next) => {
 const email_login = async (req, res, next) => {
     const payload = {
         email: req.body.email,
-        number: '01119683676',
-        username: req.body.email,
-        password: 'dummyPassword193548'
+        number: req.body.phoneNumber || '01119683676',
+        username: req.body.email.split('@')[0] || generateRandomUsername(),
+        password: 'dummyPassword193548',
+        birthdate: req.body.birthdate
     }
     const user = await User.findOne({ email: req.body.email })
     if (user) {

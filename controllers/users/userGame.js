@@ -28,22 +28,34 @@ const addPointsToEvents = async (userEvents, eventId, points) => {
     const currentDate = getCurrentDate();
     if (event && currentDate <= event.endDate) {
         event.total_points += points;
+        event.games_played += 1
         for (const side of event.sides) {
             if (userSide === side._id.toString()) side.points += points;
         }
         await Event.findByIdAndUpdate({ _id: eventId }, event);
     }
 };
+const updateUserGamesPlayed = (userEvents, eventId) => {
+    const updatedEvents = userEvents.map(event => {
+        if (event.id.toString() === eventId) {
+            return { ...event, gamesPlayed: (event.gamesPlayed || 0) + 1 };
+        }
+        return event;
+    });
+    return updatedEvents;
+};
 const user_save_game = async (req, res, next) => {
     const { coins, points, usedPerks, eventId } = req.body;
     User.findById({ _id: req.params.id }).then(async user => {
-        if (eventId) await addPointsToEvents(user.events, eventId, points);
-        const currentDate = new Date();
-        const { yearlyPoints, monthlyPoints, weeklyPoints, dailyPoints } = user.user_points;
-        const currentYear = currentDate.getFullYear();
-        const currentMonth = currentDate.getMonth() + 1;
-
+        if (eventId) {
+            await addPointsToEvents(user.events, eventId, points);
+            user.events = updateUserGamesPlayed(user.events, eventId);
+        }
         if (!eventId) {
+            const currentDate = new Date();
+            const { yearlyPoints, monthlyPoints, weeklyPoints, dailyPoints } = user.user_points;
+            const currentYear = currentDate.getFullYear();
+            const currentMonth = currentDate.getMonth() + 1;
             // Yearly
             if (yearlyPoints.length && yearlyPoints[yearlyPoints.length - 1].year === currentYear) {
                 yearlyPoints[yearlyPoints.length - 1].points += points;
@@ -82,6 +94,9 @@ const user_save_game = async (req, res, next) => {
                 dailyPoints.games_played = 1;
                 dailyPoints.day = getCurrentDay();
             }
+            user.user_points.totalPoints += points;
+            user.coins += coins;
+            user.games_played += 1;
         }
 
         if (usedPerks.length) {
@@ -92,9 +107,7 @@ const user_save_game = async (req, res, next) => {
             }
         }
 
-        user.user_points.totalPoints += points;
-        user.coins += coins;
-        user.games_played += 1;
+
         getUser(req.params.id, user, res, next, true);
     }).catch(next);
 };
@@ -105,6 +118,7 @@ const multi_game_winner = async (req, res, next) => {
     let promoted = false;
     await Room.findByIdAndDelete({ _id: roomId }).catch(next);
     const user = await User.findById({ _id: userId }).populate('rank');
+    user.online_games_played += 1
     user.total_results.wins += 1;
     user.total_results.winning_percentage = calculatePercentage(user.total_results);
     user.season_results.wins += 1;
@@ -137,6 +151,7 @@ const multi_game_loser = async (req, res, next) => {
     const { userId, players, winnerId } = req.body;
     let demoted = false;
     const user = await User.findById({ _id: userId }).populate('rank');
+    user.online_games_played += 1
     user.total_results.loses += 1;
     user.total_results.winning_percentage = calculatePercentage(user.total_results);
     user.season_results.loses += 1;
@@ -162,6 +177,7 @@ const multi_game_loser = async (req, res, next) => {
 const multi_game_draw = async (req, res, next) => {
     const { userId, players, winnerId } = req.body;
     const user = await User.findById({ _id: userId }).populate('rank');
+    user.online_games_played += 1
     user.total_results.draws += 1;
     user.total_results.winning_percentage = calculatePercentage(user.total_results);
     user.season_results.draws += 1;
