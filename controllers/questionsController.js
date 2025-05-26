@@ -327,7 +327,7 @@ const question_modes_method = async (req, res, next) => {
         user.questionModes.push(payload)
     } else {
         payload.index = fetchedQuestionModes[0].index
-        payload.games_played += 1
+        payload.games_played = fetchedQuestionModes[0].games_played + 1
         user.questionModes[fetchedQuestionModes[0].index] = payload
     }
     if (req.query.price) user.coins -= req.query.price
@@ -357,7 +357,7 @@ const challenges_method = async (req, res, next) => {
         searchName = req.query.name
     } else {
         payload.index = fetchedChallenge[0].index
-        payload.games_played += 1
+        payload.games_played = fetchedChallenge[0].games_played + 1
         user.challenges[fetchedChallenge[0].index] = payload
         if (fetchedChallenge[0].lastPlayedDate !== user.challenges[fetchedChallenge[0].index].lastPlayedDate || req.query.page != 1) {
             searchName = req.query.name
