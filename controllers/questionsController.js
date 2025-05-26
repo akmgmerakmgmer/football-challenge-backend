@@ -354,8 +354,10 @@ const challenges_method = async (req, res, next) => {
     if (fetchedChallenge.length == 0) {
         user.challenges.push(payload)
         searchName = req.query.name
+        payload.games_played = 1
     } else {
         payload.index = fetchedChallenge[0].index
+        payload.games_played += 1
         user.challenges[fetchedChallenge[0].index] = payload
         if (fetchedChallenge[0].lastPlayedDate !== user.challenges[fetchedChallenge[0].index].lastPlayedDate || req.query.page != 1) {
             searchName = req.query.name
