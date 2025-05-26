@@ -352,9 +352,9 @@ const challenges_method = async (req, res, next) => {
     }
     const fetchedChallenge = user.challenges.filter(challenge => challenge.id == req.query.search)
     if (fetchedChallenge.length == 0) {
+        payload.games_played = 1
         user.challenges.push(payload)
         searchName = req.query.name
-        payload.games_played = 1
     } else {
         payload.index = fetchedChallenge[0].index
         payload.games_played += 1

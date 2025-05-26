@@ -119,6 +119,10 @@ const UserSchema = new Schema({
                 },
                 index: {
                     type: Number
+                },
+                games_played: {
+                    type: Number,
+                    default: 0
                 }
             },
         ],
