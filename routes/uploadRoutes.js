@@ -14,7 +14,7 @@ const compressImage = function (req, res, next) {
     });
 };
 
-router.post('/single', upload.single('image'), compressImage, async (req, res) => {
+router.post('/upload-single', upload.single('image'), compressImage, async (req, res) => {
     if (!req.file) {
         res.send({ code: 422, msg: 'field_required' });
     } else {
@@ -23,7 +23,7 @@ router.post('/single', upload.single('image'), compressImage, async (req, res) =
     }
 });
 
-router.post('/video', upload.single('file'), async (req, res) => {
+router.post('/upload-video', upload.single('file'), async (req, res) => {
     if (!req.file) {
         return res.status(422).send({ code: 422, msg: 'field_required' });
     }
