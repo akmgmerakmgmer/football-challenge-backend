@@ -29,11 +29,23 @@ const EventSchema = new Schema({
             {
                 nameEn: {
                     type: String,
-                    required: [true, 'field_required']
+                    required: [
+                        function () {
+                            const parent = this.parent();
+                            return !(parent.isMultiplayer || parent.isSinglePlayer);
+                        },
+                        'field_required'
+                    ]
                 },
                 nameAr: {
                     type: String,
-                    required: [true, 'field_required']
+                    required: [
+                        function () {
+                            const parent = this.parent();
+                            return !(parent.isMultiplayer || parent.isSinglePlayer);
+                        },
+                        'field_required'
+                    ]
                 },
                 points: {
                     type: Number,
