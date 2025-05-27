@@ -57,6 +57,14 @@ const EventSchema = new Schema({
     endDate: {
         type: String
     },
+    isSinglePlayer: {
+        type: Boolean,
+        default: false
+    },
+    isMultiplayer: {
+        type: Boolean,
+        default: false
+    },
     active: {
         type: Boolean,
         default: true
