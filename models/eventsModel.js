@@ -12,6 +12,16 @@ const EventSchema = new Schema({
             required: [true, 'field_required']
         },
     },
+    description: {
+        en: {
+            type: String,
+            default: ''
+        },
+        ar: {
+            type: String,
+            default: ''
+        },
+    },
     image: {
         type: String,
         required: [true, 'field_required']
@@ -21,6 +31,10 @@ const EventSchema = new Schema({
         default: 0
     },
     games_played: {
+        type: Number,
+        default: 0
+    },
+    number_of_players: {
         type: Number,
         default: 0
     },
@@ -76,6 +90,19 @@ const EventSchema = new Schema({
     isMultiplayer: {
         type: Boolean,
         default: false
+    },
+    rankings: {
+        type: [{
+            userId: {
+                type: Schema.Types.ObjectId,
+                ref: 'user',
+            },
+            points: {
+                type: Number,
+                default: 0
+            }
+        }],
+        default: []
     },
     active: {
         type: Boolean,
