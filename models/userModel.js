@@ -236,6 +236,14 @@ const UserSchema = new Schema({
                 endDate: {
                     type: String,
                     default: ''
+                },
+                points: {
+                    type: Number,
+                    default: 0
+                },
+                gamesPlayed: {
+                    type: Number,
+                    default: 0
                 }
             }
         ]

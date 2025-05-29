@@ -26,7 +26,10 @@ const get_admin_events = (req, res, next) => {
 
 const get_single_events = (req, res, next) => {
     Event.findById({ _id: req.params.id })
-        .populate('rankings.userId') // Populate userId inside rankings array
+        .populate({
+            path: 'rankings.userId',
+            select: 'selectedAvatar username'
+        })
         .then(event => res.status(200).send(event))
         .catch(next);
 };

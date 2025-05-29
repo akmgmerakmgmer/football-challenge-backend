@@ -22,10 +22,10 @@ const addToResults = async (players, winnerId, results) => {
 };
 
 
-const updateUserGamesPlayed = (userEvents, eventId) => {
+const updateUserEvent = (userEvents, eventId, points) => {
     const updatedEvents = userEvents.map(event => {
         if (event.id.toString() === eventId) {
-            return { ...event, gamesPlayed: (event.gamesPlayed || 0) + 1 };
+            return { ...event, gamesPlayed: (event.gamesPlayed || 0) + 1, points: points > event.points ? points : event.points };
         }
         return event;
     });
@@ -36,7 +36,7 @@ const user_save_game = async (req, res, next) => {
     User.findById({ _id: req.params.id }).then(async user => {
         if (eventId) {
             await addPointsToEvents(user.events, eventId, points, user._id);
-            user.events = updateUserGamesPlayed(user.events, eventId);
+            user.events = updateUserEvent(user.events, eventId, points);
         }
         if (!eventId) {
             const currentDate = new Date();
