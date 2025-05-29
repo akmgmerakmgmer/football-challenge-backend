@@ -112,6 +112,8 @@ const EventSchema = new Schema({
         type: Boolean,
         default: true
     }
+}, {
+    timestamps: true
 })
 
 const Event = mongoose.model('event', EventSchema)
