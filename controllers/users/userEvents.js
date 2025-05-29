@@ -77,8 +77,8 @@ const teamEventPoints = (userEvents, eventId, points, event) => {
 }
 
 const singlePlayerEventPoints = (userId, points, event) => {
-    const existingRankingIndex = event.rankings.findIndex(rank => rank.userId.toString() === userId);
-    if (existingRankingIndex !== -1) {
+    const existingRankingIndex = event.rankings.findIndex(rank => rank.userId.toString() === userId.toString());
+    if (existingRankingIndex !== -1 && event.rankings[existingRankingIndex].points < points) {
         event.rankings[existingRankingIndex].points = points;
     } else if (event.rankings.length < 5) {
         event.rankings.push({ userId, points });
