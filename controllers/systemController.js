@@ -14,9 +14,11 @@ const get_advertisments = async () => {
 
 const get_events = async () => {
     const currentDate = moment(new Date()).format('YYYY-MM-DD');
-    const events = await Event.find({ active: true, endDate: { $gte: currentDate } }).lean()
-    return events
-}
+    const events = await Event.find({ active: true, endDate: { $gte: currentDate } })
+        .sort({ endDate: -1 }) // Sort from most recent to last
+        .lean();
+    return events;
+};
 
 const get_challenges = async () => {
     const challengesFetch = await Challenge.aggregate([{ $sample: { size: 30 } }])
