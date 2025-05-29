@@ -26,6 +26,10 @@ const EventSchema = new Schema({
         type: String,
         required: [true, 'field_required']
     },
+    gameBackground: {
+        type: String,
+        default: ''
+    },
     total_points: {
         type: Number,
         default: 0
