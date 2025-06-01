@@ -1,8 +1,7 @@
 const User = require('../../models/userModel');
 const Room = require('../../models/roomModel');
-const { calculatePercentage } = require('./userUtils');
-const { updateAndGetUser, getUser } = require('../../utilities/user_general_methods');
-const { numberOfDaysToPlayerLastSaturday, getLastSaturday, getCurrentDay } = require('./userUtils.min');
+const { updateAndGetUser, getUser } = require('../../utilities/user_general_methods.min');
+const { numberOfDaysToPlayerLastSaturday, getLastSaturday, getCurrentDay, calculatePercentage } = require('./userUtils.min');
 const { addPointsToEvents } = require('./userEvents.min');
 
 const addToResults = async (players, winnerId, results) => {

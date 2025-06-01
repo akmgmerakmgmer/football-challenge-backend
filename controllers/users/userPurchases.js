@@ -2,7 +2,7 @@ const User = require('../../models/userModel');
 const Avatar = require('../../models/avatarsModel');
 const Theme = require('../../models/themesModel');
 const Perk = require('../../models/perksModel');
-const { findUser, getUser } = require('../../utilities/user_general_methods');
+const { findUser, getUser } = require('../../utilities/user_general_methods.min');
 
 const buy_avatar = async (req, res, next) => {
     const user = await findUser(req.params.id);

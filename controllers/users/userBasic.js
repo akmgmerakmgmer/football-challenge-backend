@@ -1,8 +1,8 @@
 const jwt = require('jsonwebtoken');
 const User = require('../../models/userModel');
-const { getUser, findUser, updateAndGetUser } = require('../../utilities/user_general_methods');
-const { getCurrentDate } = require('./userUtils');
-const { eventResults } = require('./userEvents');
+const { getUser, findUser, updateAndGetUser } = require('../../utilities/user_general_methods.min');
+const { getCurrentDate } = require('./userUtils.min');
+const { eventResults } = require('./userEvents.min');
 
 const get_users = (req, res, next) => {
     const page = (req.query.page ? req.query.page - 1 : 0) || 0;

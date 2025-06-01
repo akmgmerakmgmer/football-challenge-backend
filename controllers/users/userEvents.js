@@ -1,6 +1,6 @@
 const Event = require('../../models/eventsModel');
-const { getUser } = require('../../utilities/user_general_methods');
-const { getCurrentDate } = require('./userUtils');
+const { getUser } = require('../../utilities/user_general_methods.min');
+const { getCurrentDate } = require('./userUtils.min');
 
 
 const teamEventResultPoints = (user, event, userEvent) => {
@@ -27,8 +27,8 @@ const teamEventResultPoints = (user, event, userEvent) => {
 }
 const singlePlayerEventResultPoints = (user, event) => {
     if (event && user && user.events && user.events.length) {
-        const userRankIndex = event.rankings.findIndex(rank => rank.userId.toString() === user && user._id.toString());
-
+        
+        const userRankIndex = event.rankings.findIndex(rank => rank.userId.toString() === user._id.toString());
         if (userRankIndex !== -1 && event.prizes && event.prizes[userRankIndex]) {
             // Add message to the prize before adding it to user's prizes
             const prize = {
@@ -50,23 +50,22 @@ const singlePlayerEventResultPoints = (user, event) => {
     return user;
 };
 const eventResults = async (user) => {
-    let updatedUser = user;
-    if (updatedUser?.events?.length) {
-        for (const userEvent of updatedUser.events) {
+    if (user?.events?.length) {
+        for (const userEvent of user.events) {
             if (userEvent?.id) {
                 const currentDate = getCurrentDate();
                 const event = await Event.findById({ _id: userEvent.id });
-                if (event && currentDate > event.endDate) {
+                if (event && currentDate == event.endDate) {
                     if (event.isSinglePlayer) {
-                        updatedUser = singlePlayerEventResultPoints(updatedUser, event);
+                        user = singlePlayerEventResultPoints(user, event);
                     } else if (!event.isMultiplayer) {
-                        updatedUser = teamEventResultPoints(updatedUser, event, userEvent);
+                        user = teamEventResultPoints(user, event, userEvent);
                     }
                 }
             }
         }
     }
-    return updatedUser;
+    return user;
 };
 
 const teamEventPoints = (userEvents, eventId, points, event) => {

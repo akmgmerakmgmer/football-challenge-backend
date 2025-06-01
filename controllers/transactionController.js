@@ -2,7 +2,7 @@ require("dotenv").config()
 const Transaction = require("../models/transactionModel");
 const User = require("../models/userModel");
 const crypto = require('crypto');
-const { updateAndGetUser } = require("../utilities/user_general_methods");
+const { updateAndGetUser } = require("../utilities/user_general_methods.min");
 
 function generateKashierOrderHash(body, transactionId) {
     const mid = 'MID-28902-440'; //your merchant id

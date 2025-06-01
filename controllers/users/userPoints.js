@@ -1,6 +1,6 @@
 const User = require('../../models/userModel');
-const { getCurrentDay, getLastSaturday, getSaturdayBeforeLast } = require('./userUtils');
-const { findUser } = require('../../utilities/user_general_methods');
+const { getCurrentDay, getLastSaturday, getSaturdayBeforeLast } = require('./userUtils.min');
+const { findUser } = require('../../utilities/user_general_method.min');
 
 const getUserPoints = (req, user) => {
     if (req.query.searchByTime === 'daily' && user.user_points.dailyPoints?.points)

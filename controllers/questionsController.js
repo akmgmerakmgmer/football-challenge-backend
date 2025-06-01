@@ -5,7 +5,7 @@ const User = require('../models/userModel')
 const { handleErrors } = require('../utilities/handle_errors')
 const crypto = require('crypto');
 const moment = require('moment');
-const { findUser, updateAndGetUser } = require('../utilities/user_general_methods');
+const { findUser, updateAndGetUser } = require('../utilities/user_general_methods.min');
 
 const questionCreation = async (payload, req, res) => {
     await Question.create(payload).then(question => {
