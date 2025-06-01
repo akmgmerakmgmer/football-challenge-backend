@@ -1,6 +1,5 @@
 const Event = require("../models/eventsModel")
 const { handleErrors } = require('../utilities/handle_errors')
-const moment = require('moment');
 
 const create_events = (req, res, next) => {
     Event.create(req.body).then(events => {
@@ -33,8 +32,17 @@ const get_single_events = (req, res, next) => {
         .then(event => res.status(200).send(event))
         .catch(next);
 };
-const update_events = (req, res, next) => {
-    Event.findByIdAndUpdate({ _id: req.params.id }, req.body, { new: true }).then(event => res.status(200).send(event)).catch(next)
+const update_events = async (req, res, next) => {
+    const eventUpdates = req.body;
+    const currentEvent = await Event.findById({ _id: req.params.id });
+    if ((currentEvent.active !== eventUpdates.active) || (currentEvent.endDate !== eventUpdates.endDate)) {
+        eventUpdates.rankings = [];
+        eventUpdates.total_points = 0;
+        eventUpdates.games_played = 0;
+        eventUpdates.sides = [];
+        eventUpdates.number_of_players = 0;
+    }
+    Event.findByIdAndUpdate({ _id: req.params.id }, eventUpdates, { new: true }).then(event => res.status(200).send(event)).catch(next)
 }
 
 const delete_events = (req, res, next) => {

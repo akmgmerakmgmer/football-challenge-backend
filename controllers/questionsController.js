@@ -375,6 +375,9 @@ const get_questions = (req, res, next) => {
     }
     else if (req.query.search && req.query.userId && req.query.name) {
         challenges_method(req, res, next)
+    } else if (req.query.isSinglePlayerEvent) {
+        match = { $and: [{ questionMode: { $in: ["trueOrFalse", "multipleChoices"] } }] }
+        getQuestionsMethod(req, res, next, match, false, false)
     } else {
         getQuestionsMethod(req, res, next, match, false, false)
     }

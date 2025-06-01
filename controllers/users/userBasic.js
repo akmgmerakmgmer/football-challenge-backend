@@ -88,7 +88,7 @@ const get_current_user = (req, res, next) => {
             if (prize.prizeType === 'avatar') user.avatars.push({ image: prize.avatar, price: 0 });
             if (prize.prizeType === 'theme') user.themes.push(prize.theme);
         }
-        if (user.prizes) user.prizes = [];
+        if (user && user.prizes) user.prizes = [];
         user = await updateAndGetUser(decodedToken.id, user);
 
         res.status(200).send({ user, prizes });

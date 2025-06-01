@@ -5,7 +5,7 @@ const cache = require('../route_cache.js');
 const TWELVE_HOURS = 60 * 60 * 12;
 const { redis, isConnected, reconnect } = require('../config/redis');
 
-router.get('/initial-fetch', cache(TWELVE_HOURS), systemController.inital_fetch);
+router.get('/initial-fetch', systemController.inital_fetch);
 
 // Health check
 router.get('/health/redis', async (req, res) => {

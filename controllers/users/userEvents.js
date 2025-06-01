@@ -26,24 +26,26 @@ const teamEventResultPoints = (user, event, userEvent) => {
     );
 }
 const singlePlayerEventResultPoints = (user, event) => {
-    const userRankIndex = event.rankings.findIndex(rank => rank.userId.toString() === user._id.toString());
+    if (event && user && user.events && user.events.length) {
+        const userRankIndex = event.rankings.findIndex(rank => rank.userId.toString() === user && user._id.toString());
 
-    if (userRankIndex !== -1 && event.prizes && event.prizes[userRankIndex]) {
-        // Add message to the prize before adding it to user's prizes
-        const prize = {
-            ...event.prizes[userRankIndex],
-            message: {
-                en: `${event.eventName.en} Event - Rank ${userRankIndex + 1}`,
-                ar: `تحدي ${event.eventName.ar} - المرتبة ${userRankIndex + 1}`
-            }
-        };
-        user.prizes.push(prize);
+        if (userRankIndex !== -1 && event.prizes && event.prizes[userRankIndex]) {
+            // Add message to the prize before adding it to user's prizes
+            const prize = {
+                ...event.prizes[userRankIndex],
+                message: {
+                    en: `${event.eventName.en} Event - Rank ${userRankIndex + 1}`,
+                    ar: `تحدي ${event.eventName.ar} - المرتبة ${userRankIndex + 1}`
+                }
+            };
+            user.prizes.push(prize);
+        }
+
+        // Remove the event from user's events list
+        user.events = user.events.filter(
+            e => e?.id && e.id.toString() !== event._id.toString()
+        );
     }
-
-    // Remove the event from user's events list
-    user.events = user.events.filter(
-        e => e?.id && e.id.toString() !== event._id.toString()
-    );
 
     return user;
 };
@@ -77,18 +79,22 @@ const teamEventPoints = (userEvents, eventId, points, event) => {
 }
 
 const singlePlayerEventPoints = (userId, points, event) => {
+    event.games_played += 1;
     const existingRankingIndex = event.rankings.findIndex(rank => rank.userId.toString() === userId.toString());
     if (existingRankingIndex !== -1 && event.rankings[existingRankingIndex].points < points) {
         event.rankings[existingRankingIndex].points = points;
-    } else if (event.rankings.length < 5) {
-        event.rankings.push({ userId, points });
-    } else {
-        // Check if current points are higher than the lowest ranking
-        const lowestRanking = event.rankings[event.rankings.length - 1];
-        if (points > lowestRanking.points) {
-            event.rankings[event.rankings.length - 1] = { userId, points };
+    }
+    if (existingRankingIndex === -1) {
+        if (event.rankings.length < 5) {
+            event.rankings.push({ userId, points });
+        } else {
+            const lowestRanking = event.rankings[event.rankings.length - 1];
+            if (points > lowestRanking.points) {
+                event.rankings[event.rankings.length - 1] = { userId, points };
+            }
         }
     }
+
 
     // Sort rankings by points in descending order
     event.rankings.sort((a, b) => b.points - a.points);
