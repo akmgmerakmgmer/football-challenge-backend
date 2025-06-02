@@ -55,7 +55,7 @@ const eventResults = async (user) => {
             if (userEvent?.id) {
                 const currentDate = getCurrentDate();
                 const event = await Event.findById({ _id: userEvent.id });
-                if (event && currentDate == event.endDate) {
+                if (event && currentDate > event.endDate) {
                     if (event.isSinglePlayer) {
                         user = singlePlayerEventResultPoints(user, event);
                     } else if (!event.isMultiplayer) {

@@ -285,7 +285,7 @@ const getQuestionsMethod = (req, res, next, match, user, searchName) => {
         match.$and.push({ $or: [{ 'question.en': { $regex: searchName, $options: "i" } }, { 'question.ar': { $regex: searchName, $options: "i" } }] })
     }
     const page = (req.query.page || 1) - 1;
-    const per_page = 30;
+    const per_page = req.query.isSinglePlayerEvent ? 15 : 30;
 
     // Calculate the skip value based on the page number and number of documents per page
     const skip = page * per_page;
