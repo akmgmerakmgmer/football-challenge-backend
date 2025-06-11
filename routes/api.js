@@ -4,22 +4,22 @@ require("dotenv").config()
 
 
 // Import routers
-const authRoutes = require('./authRoutes');
-const userRoutes = require('./userRoutes');
-const questionRoutes = require('./questionRoutes');
-const playerRoutes = require('./playerRoutes');
-const advertisementRoutes = require('./advertisementRoutes');
-const challengeRoutes = require('./challengeRoutes');
-const avatarRoutes = require('./avatarRoutes');
-const themeRoutes = require('./themeRoutes');
-const transactionRoutes = require('./transactionRoutes');
-const shopItemRoutes = require('./shopItemRoutes');
-const perkRoutes = require('./perkRoutes');
-const rankRoutes = require('./rankRoutes');
-const eventRoutes = require('./eventRoutes');
-const systemRoutes = require('./systemRoutes');
-const utilityRoutes = require('./utilityRoutes');
-const uploadRoutes = require('./uploadRoutes');
+const authRoutes = require('./authRoutes.min');
+const userRoutes = require('./userRoutes.min');
+const questionRoutes = require('./questionRoutes.min');
+const playerRoutes = require('./playerRoutes.min');
+const advertisementRoutes = require('./advertisementRoutes.min');
+const challengeRoutes = require('./challengeRoutes.min');
+const avatarRoutes = require('./avatarRoutes.min');
+const themeRoutes = require('./themeRoutes.min');
+const transactionRoutes = require('./transactionRoutes.min');
+const shopItemRoutes = require('./shopItemRoutes.min');
+const perkRoutes = require('./perkRoutes.min');
+const rankRoutes = require('./rankRoutes.min');
+const eventRoutes = require('./eventRoutes.min');
+const systemRoutes = require('./systemRoutes.min');
+const utilityRoutes = require('./utilityRoutes.min');
+const uploadRoutes = require('./uploadRoutes.min');
 
 // Use routers
 router.use('/', authRoutes);
