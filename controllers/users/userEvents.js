@@ -69,7 +69,7 @@ const eventResults = async (user) => {
 };
 
 const teamEventPoints = (userEvents, eventId, points, event) => {
-    const userSide = userEvents.find(userEvent => userEvent.id.toString() === eventId)?.yourSide;
+    const userSide = userEvents.find(userEvent => userEvent.id.toString() === eventId.toString())?.yourSide.toString();
     event.total_points += points;
     for (const side of event.sides) {
         if (userSide === side._id.toString()) side.points += points;

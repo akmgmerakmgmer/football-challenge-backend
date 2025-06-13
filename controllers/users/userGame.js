@@ -23,7 +23,7 @@ const addToResults = async (players, winnerId, results) => {
 
 const updateUserEvent = (userEvents, eventId, points) => {
     const updatedEvents = userEvents.map(event => {
-        if (event.id.toString() === eventId) {
+        if (event.id.toString() === eventId.toString()) {
             return { ...event, gamesPlayed: (event.gamesPlayed || 0) + 1, points: points > event.points ? points : event.points };
         }
         return event;
