@@ -39,7 +39,6 @@ const update_events = async (req, res, next) => {
         eventUpdates.rankings = [];
         eventUpdates.total_points = 0;
         eventUpdates.games_played = 0;
-        eventUpdates.sides = [];
         eventUpdates.number_of_players = 0;
     }
     Event.findByIdAndUpdate({ _id: req.params.id }, eventUpdates, { new: true }).then(event => res.status(200).send(event)).catch(next)
