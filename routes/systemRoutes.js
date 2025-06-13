@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const systemController = require('../controllers/systemController.min.js');
 const cache = require('../route_cache.js');
-const SIX_HOURS = 60 * 60 * 6;
+const SIX_HOURS = 60 * 60 * 3;
 const { redis, isConnected, reconnect } = require('../config/redis');
 
 router.get('/initial-fetch', cache(SIX_HOURS), systemController.inital_fetch);
