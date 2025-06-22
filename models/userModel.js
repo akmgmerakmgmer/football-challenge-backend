@@ -103,6 +103,10 @@ const UserSchema = new Schema({
         type: Number,
         default: 0
     },
+    events_games_played: {
+        type: Number,
+        default: 0
+    },
     online_games_played: {
         type: Number,
         default: 0

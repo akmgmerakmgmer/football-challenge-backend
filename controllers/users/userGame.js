@@ -35,6 +35,7 @@ const user_save_game = async (req, res, next) => {
     User.findById({ _id: req.params.id }).then(async user => {
         if (eventId) {
             await addPointsToEvents(user.events, eventId, points, user._id);
+            user.events_games_played += 1;
             user.events = updateUserEvent(user.events, eventId, points);
         }
         if (!eventId) {
