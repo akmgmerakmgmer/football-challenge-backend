@@ -10,17 +10,23 @@ const create_rank = (req, res, next) => {
 }
 
 const get_ranks = (req, res, next) => {
-    Rank.find({}).lean().then(ranks => res.status(200).send({ ranks: ranks.reverse() })).catch(next)
-
-}
+    Rank.find({}).sort({ rank_number: -1 }).lean()
+        .then(ranks => res.status(200).send({ ranks }))
+        .catch(next);
+};
 
 const get_admin_ranks = (req, res, next) => {
-    const page = req.query.page - 1 || 0
-    const per_page = 30
+    const page = req.query.page - 1 || 0;
+    const per_page = 30;
     Rank.find({}).count().then(total_ranks => {
-        Rank.find({}).skip(page * per_page).limit(per_page).then(ranks => res.status(200).send({ ranks, total_ranks, per_page })).catch(next)
-    })
-}
+        Rank.find({})
+            .sort({ rank_number: -1 })
+            .skip(page * per_page)
+            .limit(per_page)
+            .then(ranks => res.status(200).send({ ranks, total_ranks, per_page }))
+            .catch(next);
+    });
+};
 
 const get_single_rank = (req, res, next) => {
     Rank.findById({ _id: req.params.id }).then(rank => res.status(200).send(rank)).catch(next)

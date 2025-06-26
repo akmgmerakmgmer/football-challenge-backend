@@ -96,7 +96,9 @@ const get_current_user = (req, res, next) => {
 };
 
 const get_single_user = async (req, res, next) => {
-    await findUser(req.params.id);
+    const user = await findUser(req.params.id);
+    if (!user) next();
+    res.status(200).send(user);
 };
 
 const delete_user = (req, res, next) => {

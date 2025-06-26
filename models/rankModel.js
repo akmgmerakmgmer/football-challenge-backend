@@ -59,6 +59,9 @@ const RankModel = new Schema({
         type: [Object],
         default: []
     },
+    rank_number: {
+        type: Number,
+    },
 }, {
     timestamps: true
 })
