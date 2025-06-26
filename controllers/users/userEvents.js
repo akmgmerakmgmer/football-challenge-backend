@@ -27,7 +27,7 @@ const teamEventResultPoints = (user, event, userEvent) => {
 }
 const singlePlayerEventResultPoints = (user, event) => {
     if (event && user && user.events && user.events.length) {
-        
+
         const userRankIndex = event.rankings.findIndex(rank => rank.userId.toString() === user._id.toString());
         if (userRankIndex !== -1 && event.prizes && event.prizes[userRankIndex]) {
             // Add message to the prize before adding it to user's prizes
@@ -55,7 +55,7 @@ const eventResults = async (user) => {
             if (userEvent?.id) {
                 const currentDate = getCurrentDate();
                 const event = await Event.findById({ _id: userEvent.id });
-                if (event && currentDate > event.endDate) {
+                if (currentDate > userEvent.endDate) {
                     if (event.isSinglePlayer) {
                         user = singlePlayerEventResultPoints(user, event);
                     } else if (!event.isMultiplayer) {
@@ -102,9 +102,10 @@ const singlePlayerEventPoints = (userId, points, event) => {
 }
 
 const addPointsToEvents = async (userEvents, eventId, points, userId) => {
+    const userEvent = userEvents.find(event => event.id.toString() === eventId.toString());
     let event = await Event.findById({ _id: eventId });
     const currentDate = getCurrentDate();
-    if (event && currentDate <= event.endDate) {
+    if (userEvent && currentDate <= userEvent.endDate) {
         if (event.isSinglePlayer) {
             event = singlePlayerEventPoints(userId, points, event);
         } else if (!event.isMultiplayer) {
