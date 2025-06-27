@@ -14,6 +14,10 @@ const AvatarModel = new Schema({
         type: Number,
         required: [true, 'field_required']
     },
+    quantity: {
+        type: Number,
+        default: 1000
+    },        
     purchases: {
         type: Number,
         default: 0

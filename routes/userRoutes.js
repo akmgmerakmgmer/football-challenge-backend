@@ -19,6 +19,7 @@ router.put('/buy-theme/:id', onlyUserAuth, usersController.buy_theme);
 router.put('/buy-perks/:id', onlyUserAuth, usersController.buy_perks);
 router.put('/notify-about/:id', onlyUserAuth, usersController.notify_about);
 router.put('/add-event/:id', onlyUserAuth, usersController.add_event_to_user);
+router.put('/send-avatar-to-user/:id', onlyUserAuth, usersController.send_avatar_to_user);
 router.put('/multi-game-winner/:id', onlyUserAuth, usersController.multi_game_winner);
 router.put('/multi-game-loser/:id', onlyUserAuth, usersController.multi_game_loser);
 router.put('/multi-game-draw/:id', onlyUserAuth, usersController.multi_game_draw);
