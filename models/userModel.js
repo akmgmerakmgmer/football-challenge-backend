@@ -175,7 +175,7 @@ const UserSchema = new Schema({
     },
     selectedTheme: {
         type: String,
-        default: 'http://res.cloudinary.com/do0qe5hin/image/upload/v1732278095/smkjxdd13hkajcdjtnpb.jpg'
+        default: 'https://res.cloudinary.com/do0qe5hin/image/upload/v1733445680/sgc9r2uwe5k5gyhuzqoy.jpg'
     },
     roles: {
         type: [String],
