@@ -1,13 +1,43 @@
-const Event = require("../models/eventsModel")
-const { handleErrors } = require('../utilities/handle_errors')
+const Event = require("../models/eventsModel");
+const User = require("../models/userModel");
+const { handleErrors } = require('../utilities/handle_errors');
+const { eventResults } = require("./usersController.min");
 
-const create_events = (req, res, next) => {
-    Event.create(req.body).then(events => {
-        res.status(200).send(events)
-    }).catch(err => {
-        res.status(422).send(handleErrors(err, req, 'event'))
-    })
+async function scheduleEventEndJob(eventId, next) {
+    const event = await Event.findById({ _id: eventId });
+    if (event && event.endDate) {
+        const endDate = new Date(event.endDate);
+        if (!isNaN(endDate.getTime())) {
+            const sec = endDate.getSeconds();
+            const min = endDate.getMinutes();
+            const hour = endDate.getHours();
+            const day = endDate.getDate();
+            const month = endDate.getMonth() + 1; // node-cron months are 1-based
+            const cronExp = `${sec} ${min} ${hour} ${day} ${month} *`;
+            cron.schedule(cronExp, async () => {
+                for (let i in event.rankings) {
+                    let user = await User.findById({ _id: event.rankings[i].userId });
+                    if (user) {
+                        user = eventResults(user, event);
+                        User.findByIdAndUpdate({ _id: user._id }, user, { new: true })
+                            .then(updatedUser => {
+                            }).catch(err => {
+                                next();
+                            });
+                    }
+                }
+            });
+        }
+    }
 }
+const create_events = (req, res, next) => {
+    Event.create(req.body).then(event => {
+        res.status(200).send(event);
+        scheduleEventEndJob(event['_id']);
+    }).catch(err => {
+        res.status(422).send(handleErrors(err, req, 'event'));
+    });
+};
 
 const get_events = async (req, res, next) => {
     Event.find({ active: true }).then(events => {
@@ -41,7 +71,10 @@ const update_events = async (req, res, next) => {
         eventUpdates.games_played = 0;
         eventUpdates.number_of_players = 0;
     }
-    Event.findByIdAndUpdate({ _id: req.params.id }, eventUpdates, { new: true }).then(event => res.status(200).send(event)).catch(next)
+    Event.findByIdAndUpdate({ _id: req.params.id }, eventUpdates, { new: true }).then(event => {
+        res.status(200).send(event);
+        scheduleEventEndJob(event);
+    }).catch(next)
 }
 
 const delete_events = (req, res, next) => {

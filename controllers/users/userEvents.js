@@ -49,12 +49,11 @@ const singlePlayerEventResultPoints = (user, event) => {
 
     return user;
 };
-const eventResults = async (user) => {
+const eventResults = async (user, event) => {
     if (user?.events?.length) {
         for (const userEvent of user.events) {
             if (userEvent?.id) {
                 const currentDate = getCurrentDate();
-                const event = await Event.findById({ _id: userEvent.id });
                 if (currentDate > userEvent.endDate) {
                     if (event.isSinglePlayer) {
                         user = singlePlayerEventResultPoints(user, event);

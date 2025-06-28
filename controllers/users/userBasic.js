@@ -2,7 +2,6 @@ const jwt = require('jsonwebtoken');
 const User = require('../../models/userModel');
 const { getUser, findUser, updateAndGetUser } = require('../../utilities/user_general_methods.min');
 const { getCurrentDate } = require('./userUtils.min');
-const { eventResults } = require('./userEvents.min');
 
 const get_users = (req, res, next) => {
     const page = (req.query.page ? req.query.page - 1 : 0) || 0;
@@ -79,7 +78,6 @@ const get_current_user = (req, res, next) => {
 
         user = changeLoginDayData(user);
         user = checkIfFreeCoinsAvailable(user);
-        user = await eventResults(user);
         user = changeSeason(user);
 
         const prizes = user?.prizes || [];
