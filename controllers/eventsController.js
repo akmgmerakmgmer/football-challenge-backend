@@ -2,6 +2,7 @@ const Event = require("../models/eventsModel");
 const User = require("../models/userModel");
 const { handleErrors } = require('../utilities/handle_errors');
 const { eventResults } = require("./usersController.min");
+const cron = require('node-cron');
 
 async function scheduleEventEndJob(eventId, next) {
     const event = await Event.findById({ _id: eventId });
@@ -33,7 +34,7 @@ async function scheduleEventEndJob(eventId, next) {
 const create_events = (req, res, next) => {
     Event.create(req.body).then(event => {
         res.status(200).send(event);
-        scheduleEventEndJob(event['_id']);
+        scheduleEventEndJob(event['_id'], next);
     }).catch(err => {
         res.status(422).send(handleErrors(err, req, 'event'));
     });
@@ -72,8 +73,8 @@ const update_events = async (req, res, next) => {
         eventUpdates.number_of_players = 0;
     }
     Event.findByIdAndUpdate({ _id: req.params.id }, eventUpdates, { new: true }).then(event => {
+        scheduleEventEndJob(event['_id'], next);
         res.status(200).send(event);
-        scheduleEventEndJob(event);
     }).catch(next)
 }
 
