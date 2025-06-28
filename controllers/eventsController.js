@@ -16,6 +16,7 @@ async function scheduleEventEndJob(eventId, next) {
             const month = endDate.getMonth() + 1; // node-cron months are 1-based
             const cronExp = `${sec} ${min} ${hour} ${day} ${month} *`;
             cron.schedule(cronExp, async () => {
+                console.log('CRON CALLED: EVENT END JOB');
                 for (let i in event.rankings) {
                     let user = await User.findById({ _id: event.rankings[i].userId });
                     if (user) {
