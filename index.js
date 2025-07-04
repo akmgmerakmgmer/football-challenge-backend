@@ -47,7 +47,6 @@ mongoose.connect(database, { writeConcern: { w: 'majority', j: true, wtimeout: 1
 io.on('connection', (socket) => {
     socket.on('joinRoom', (data) => socketMethods.handleJoinRoom(socket, io, data));
     socket.on('sendPoints', (data) => socketMethods.handleSendPoints(io, data));
-    socket.on('timeDone', (data) => socketMethods.handleTimeDone(io, data));
     socket.on('leaveRoomEarly', (data) => socketMethods.handleLeaveRoomEarly(socket, io, data));
     socket.on('leaveRoom', (data) => socketMethods.handleLeaveRoom(socket, io, data));
     socket.on('gameDone', (data) => socketMethods.handleGameDone(socket, data));

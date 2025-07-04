@@ -1,5 +1,4 @@
 const User = require('../../models/userModel');
-const Room = require('../../models/roomModel');
 const { updateAndGetUser, getUser } = require('../../utilities/user_general_methods.min');
 const { numberOfDaysToPlayerLastSaturday, getLastSaturday, getCurrentDay, calculatePercentage } = require('./userUtils.min');
 const { addPointsToEvents } = require('./userEvents.min');
@@ -100,10 +99,9 @@ const user_save_game = async (req, res, next) => {
 };
 
 const multi_game_winner = async (req, res, next) => {
-    const { userId, players, winnerId, roomId } = req.body;
+    const { userId, players, winnerId, usedPerks } = req.body;
     let prizes = [];
     let promoted = false;
-    await Room.findByIdAndDelete({ _id: roomId }).catch(next);
     const user = await User.findById({ _id: userId }).populate('rank');
     user.online_games_played += 1
     user.total_results.wins += 1;
@@ -129,13 +127,20 @@ const multi_game_winner = async (req, res, next) => {
     } else {
         user.season_results.consecutive_rank_wins += 1;
     }
+    if (usedPerks.length) {
+        for (const perk of user.perks) {
+            if (usedPerks.includes(perk.id.toString())) {
+                perk.quantity -= 1;
+            }
+        }
+    }
     user.season_results.results = await addToResults(players, winnerId, user.season_results.results);
     const updatedUser = await updateAndGetUser(userId, user);
     res.status(200).send({ user: updatedUser, prizes, promoted });
 };
 
 const multi_game_loser = async (req, res, next) => {
-    const { userId, players, winnerId } = req.body;
+    const { userId, players, winnerId, usedPerks } = req.body;
     let demoted = false;
     const user = await User.findById({ _id: userId }).populate('rank');
     user.online_games_played += 1
@@ -155,6 +160,13 @@ const multi_game_loser = async (req, res, next) => {
         demoted = true;
     } else {
         user.season_results.consecutive_rank_loses += 1;
+    }
+    if (usedPerks && usedPerks.length) {
+        for (const perk of user.perks) {
+            if (usedPerks.includes(perk.id.toString())) {
+                perk.quantity -= 1;
+            }
+        }
     }
     user.season_results.results = await addToResults(players, winnerId, user.season_results.results);
     const updatedUser = await updateAndGetUser(userId, user);

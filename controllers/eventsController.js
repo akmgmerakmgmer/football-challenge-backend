@@ -9,26 +9,28 @@ async function scheduleEventEndJob(eventId, next) {
     if (event && event.endDate) {
         const endDate = new Date(event.endDate);
         if (!isNaN(endDate.getTime())) {
-            const sec = endDate.getSeconds();
-            const min = endDate.getMinutes();
-            const hour = endDate.getHours();
-            const day = endDate.getDate();
-            const month = endDate.getMonth() + 1; // node-cron months are 1-based
-            const cronExp = `${sec} ${min} ${hour} ${day} ${month} *`;
-            cron.schedule(cronExp, async () => {
-                console.log('CRON CALLED: EVENT END JOB');
-                for (let i in event.rankings) {
-                    let user = await User.findById({ _id: event.rankings[i].userId });
-                    if (user) {
-                        user = eventResults(user, event);
-                        User.findByIdAndUpdate({ _id: user._id }, user, { new: true })
-                            .then(updatedUser => {
-                            }).catch(err => {
+            // Calculate delay until midnight after endDate
+            const runDate = new Date(endDate);
+            runDate.setDate(runDate.getDate() + 1);
+            runDate.setHours(0, 0, 0, 0);
+            const delay = runDate.getTime() - Date.now();
+            if (delay > 0) {
+                setTimeout(async () => {
+                    const currentEvent = await Event.findById({ _id: eventId });
+                    console.log('setTimeout CALLED: EVENT END JOB');
+                    for (let i in currentEvent.rankings) {
+                        let user = await User.findById({ _id: currentEvent.rankings[i].userId });
+                        if (user) {
+                            user = eventResults(user, currentEvent);
+                            try {
+                                await User.findByIdAndUpdate({ _id: user._id }, user, { new: true });
+                            } catch (err) {
                                 next();
-                            });
+                            }
+                        }
                     }
-                }
-            });
+                }, delay);
+            }
         }
     }
 }
@@ -72,10 +74,16 @@ const update_events = async (req, res, next) => {
         eventUpdates.total_points = 0;
         eventUpdates.games_played = 0;
         eventUpdates.number_of_players = 0;
+        if (currentEvent.sides.length) {
+            for (let i in currentEvent.sides) {
+                currentEvent.sides[i].points = 0
+                currentEvent.sides[i].numberOfPlayers = 0
+            }
+        }
     }
     Event.findByIdAndUpdate({ _id: req.params.id }, eventUpdates, { new: true }).then(event => {
-        scheduleEventEndJob(event['_id'], next);
         res.status(200).send(event);
+        scheduleEventEndJob(event['_id'], next);
     }).catch(next)
 }
 

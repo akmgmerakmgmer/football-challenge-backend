@@ -30,10 +30,15 @@ const RoomModel = new Schema({
         default: [],
         validate: [
             function (players) {
-                return players.length <= 2;
+                // 'this' refers to the Room document
+                return players.length <= this.numberOfPlayers;
             },
-            'Players array cannot exceed 2 players'
+            'Players array cannot exceed the numberOfPlayers'
         ]
+    },
+    gameDuration: {
+        type: Number,
+        default: 90
     },
     isJoinable: {
         type: Boolean,
@@ -57,7 +62,7 @@ const RoomModel = new Schema({
     }
 }, {
     timestamps: true
-})
+});
 
 
 const Room = mongoose.model('room', RoomModel)

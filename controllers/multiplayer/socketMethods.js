@@ -1,56 +1,65 @@
 const Room = require('../../models/roomModel');
 const Question = require('../../models/questionModel');
 const crypto = require('crypto');
+const cron = require('node-cron');
 
-async function findAndJoinRoom(player, code, isCasual, questionMode) {
+async function findAndJoinRoom(player, code, isCasual, questionMode, numberOfPlayers, gameDuration) {
     let filter = {
         isJoinable: true,
         isCasual: isCasual,
-        'players.1': { $exists: false },
+        gameDuration: gameDuration
     };
 
-    if (code) {
-        filter.code = code;
-    } else {
-        filter.questionMode = questionMode;
+    if (code) filter.code = code;
+    if (questionMode && !code) filter.questionMode = questionMode;
+    if (numberOfPlayers && !code) filter.numberOfPlayers = numberOfPlayers;
+
+    // Find a room that is joinable and not full
+    let room = await Room.findOne(filter);
+
+    // Check if the room exists and has space
+    if (room && room.players.length < room.numberOfPlayers) {
+        room.isJoinable = room.players.length + 1 < room.numberOfPlayers;
+        room.players.push(player);
+        await room.save();
+        room = await Room.findById(room._id).populate({
+            path: 'players.userId',
+            select: 'username selectedAvatar rank',
+            populate: {
+                path: 'rank',
+                select: 'image'
+            }
+        });
+        return room;
     }
 
-    let room = await Room.findOneAndUpdate(
-        filter,
-        {
-            isJoinable: false,
-            $push: { players: player }
-        },
-        {
-            new: true,
-            runValidators: true
-        }
-    ).populate({
-        path: 'players.userId',
-        select: 'username selectedAvatar rank',
-        populate: {
-            path: 'rank',
-            select: 'image'
-        }
-    });
-
-    return room;
+    // No available room found
+    return null;
 }
 
 function generateRandomNumbers() {
     return Array.from({ length: 5 }, () => Math.floor(Math.random() * 10)).join('');
 }
 
-async function createNewRoom(player, questionMode, hostRoom, isCasual) {
+function deleteRoom(gameDuration, id) {
+    const totalMinutes = Number(gameDuration) + 10;
+    const delayMs = totalMinutes * 60 * 1000;
+    setTimeout(async () => {
+        await Room.findByIdAndDelete(id);
+        console.log(`Room ${id} deleted after ${totalMinutes} minutes`);
+    }, delayMs);
+}
+
+async function createNewRoom(player, questionMode, hostRoom, isCasual, numberOfPlayers, gameDuration) {
     let code = hostRoom ? generateRandomNumbers() : '';
     if (hostRoom) {
         let roomExistantBefore = false;
         while (!roomExistantBefore) {
-            const hostRoomAvail = await Room.findOne({ code: code, questionMode: questionMode });
+            const hostRoomAvail = await Room.findOne({ code: code, questionMode: questionMode, numberOfPlayers: numberOfPlayers });
             if (!hostRoomAvail) roomExistantBefore = true;
         }
     }
-    const room = new Room({ code: code, isCasual: isCasual, questionMode: questionMode });
+    const room = new Room({ code, isCasual, questionMode, numberOfPlayers, gameDuration });
     const questions_per_room = 50;
     const pipeline = [];
     if (questionMode) {
@@ -72,7 +81,11 @@ async function createNewRoom(player, questionMode, hostRoom, isCasual) {
     }
     room.players.push(player);
     room.questions = questions;
-    return (await room.save()).populate({
+    const savedRoom = await room.save();
+    deleteRoom(gameDuration, savedRoom._id)
+
+
+    return savedRoom.populate({
         path: 'players.userId',
         select: 'username selectedAvatar rank',
         populate: {
@@ -82,7 +95,7 @@ async function createNewRoom(player, questionMode, hostRoom, isCasual) {
     });
 }
 
-async function handleJoinRoom(socket, io, { userId, questionMode = "", coinsPayed = false, code = "", hostRoom = false, isCasual = false }) {
+async function handleJoinRoom(socket, io, { userId, questionMode = "", coinsPayed = false, code = "", hostRoom = false, isCasual = false, numberOfPlayers = 2, gameDuration = 90 }) {
     try {
         const player = {
             userId: userId,
@@ -90,12 +103,12 @@ async function handleJoinRoom(socket, io, { userId, questionMode = "", coinsPaye
 
         let room;
         if (!hostRoom) {
-            room = await findAndJoinRoom(player, code, isCasual, questionMode);
+            room = await findAndJoinRoom(player, code, isCasual, questionMode, numberOfPlayers, gameDuration);
         }
 
         if (!room) {
             if (code) return socket.emit('joinRoomError', { message: { en: "Match code doesn't exist", ar: "لا توجد مباراة بهذا الرقم السري" } });
-            room = await createNewRoom(player, questionMode, hostRoom, isCasual);
+            room = await createNewRoom(player, questionMode, hostRoom, isCasual, numberOfPlayers, gameDuration);
         }
 
         const roomId = room._id.toString();
@@ -106,6 +119,15 @@ async function handleJoinRoom(socket, io, { userId, questionMode = "", coinsPaye
         if (room.players.length === room.numberOfPlayers) {
             setTimeout(() => {
                 io.to(roomId).emit('navigateToGameListener', room);
+                let countdown = gameDuration - 1;
+                const intervalId = setInterval(() => {
+                    io.to(roomId).emit('gameCountdown', countdown);
+                    countdown--;
+                    if (countdown < 0) {
+                        Room.findByIdAndDelete({ _id: roomId }, { new: true }).then(res => { });
+                        clearInterval(intervalId);
+                    }
+                }, 1000);
             }, 5000);
         }
     } catch (e) {
@@ -124,11 +146,11 @@ async function handleLeaveRoomEarly(socket, io, { userId, roomId }) {
         path: 'players.userId',
         select: 'username selectedAvatar'
     });
-    
+
     if (room.players.length) {
         io.to(roomId).emit('leaveRoomEarlyListener', { room: room });
     } else {
-        room = await Room.findByIdAndDelete({ _id: roomId }, { new: true });
+        room = await Room.findByIdAndDelete({ _id: roomId }, { new: true }).then(res => { });
     }
 }
 
@@ -146,15 +168,10 @@ function handleSendPoints(io, { userId, points, roomId }) {
     io.to(roomId).emit('sendPointsListener', emitData);
 }
 
-function handleTimeDone(io, { userId, roomId }) {
-    io.to(roomId).emit('timeDoneListener', { userId });
-}
-
 module.exports = {
     handleJoinRoom,
     handleLeaveRoomEarly,
     handleLeaveRoom,
     handleGameDone,
     handleSendPoints,
-    handleTimeDone
 }; 
