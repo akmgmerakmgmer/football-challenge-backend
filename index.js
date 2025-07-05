@@ -26,7 +26,7 @@ const io = new Server(server);
 // User.collection.dropIndex({ "user_points.yearlyPoints.points": -1 })
 //Database Connection
 const port = process.env.PORT || 4000
-const database = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}@cluster0.yyqyr.mongodb.net/?retryWrites=true&w=${process.env.MONGO_DATABASE}`
+const database = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}@cluster0.yqj8bb.mongodb.net/?retryWrites=true&w=${process.env.MONGO_DATABASE}`
 
 // Initialize scheduled tasks
 initializeScheduledTasks();

@@ -146,7 +146,9 @@ async function handleLeaveRoomEarly(socket, io, { userId, roomId }) {
         path: 'players.userId',
         select: 'username selectedAvatar'
     });
-
+    if (!room) {
+        return
+    }
     if (room.players.length) {
         io.to(roomId).emit('leaveRoomEarlyListener', { room: room });
     } else {
