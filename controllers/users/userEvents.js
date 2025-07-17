@@ -1,4 +1,5 @@
 const Event = require('../../models/eventsModel');
+const User = require('../../models/userModel');
 const { getUser } = require('../../utilities/user_general_methods.min');
 const { getCurrentDate } = require('./userUtils.min');
 
@@ -131,11 +132,16 @@ const add_event_to_user = async (req, res, next) => {
             }
         }
     }
+
+    const user = await User.findById(req.params.id);
+    if (user && user.events && user.events.length) {
+        user.events = user.events.filter(e => e.id.toString() !== req.body.eventId.toString());
+        user.events.push(eventPayload)
+    }
+
     Event.findByIdAndUpdate({ _id: req.body.eventId }, event).then(() => {
-        getUser(req.params.id, { $inc: { coins: -req.body.price }, $push: { events: eventPayload } }, res, next);
+        getUser(req.params.id, { $inc: { coins: -req.body.price }, user }, res, next);
     });
-
-
 };
 
 module.exports = {
