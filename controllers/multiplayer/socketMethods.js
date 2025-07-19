@@ -117,6 +117,7 @@ async function handleJoinRoom(socket, io, { userId, questionMode = "", coinsPaye
         io.to(roomId).emit('joinRoomSuccess', { room: room, coinsPayed: coinsPayed });
 
         if (room.players.length === room.numberOfPlayers) {
+            Room.findByIdAndDelete({ _id: roomId }, { new: true }).then(res => { });
             setTimeout(() => {
                 io.to(roomId).emit('navigateToGameListener', room);
                 let countdown = gameDuration - 1;
@@ -124,7 +125,6 @@ async function handleJoinRoom(socket, io, { userId, questionMode = "", coinsPaye
                     io.to(roomId).emit('gameCountdown', countdown);
                     countdown--;
                     if (countdown < 0) {
-                        Room.findByIdAndDelete({ _id: roomId }, { new: true }).then(res => { });
                         clearInterval(intervalId);
                     }
                 }, 1000);
