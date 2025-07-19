@@ -29,7 +29,6 @@ const get_avatars = (req, res, next) => {
             .sort({ createdAt: -1 })
             .skip(page * per_page)
             .limit(per_page)
-            .lean()
             .then(avatars => res.status(200).send({ avatars, total_avatars, per_page }))
             .catch(next);
     });
