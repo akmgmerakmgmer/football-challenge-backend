@@ -15,10 +15,10 @@ require("dotenv").config();
 const server = http.createServer(app);
 const io = new Server(server);
 
-// const UglifyJS = require('uglify-js');
-// const fs = require('fs');
-// const result = UglifyJS.minify(fs.readFileSync('./controllers/users/userGame.js', 'utf8'));
-// fs.writeFileSync('./controllers/users/userGame.min.js', result.code);
+const UglifyJS = require('uglify-js');
+const fs = require('fs');
+const result = UglifyJS.minify(fs.readFileSync('./controllers/multiplayer/socketMethods.js', 'utf8'));
+fs.writeFileSync('./controllers/multiplayer/socketMethods.min.js', result.code);
 
 // User.collection.getIndexes().then(res=>{
 //     console.log(res)
@@ -26,7 +26,7 @@ const io = new Server(server);
 // User.collection.dropIndex({ "user_points.yearlyPoints.points": -1 })
 //Database Connection
 const port = process.env.PORT || 4000
-const database = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}@cluster0.yqj8bb.mongodb.net/?retryWrites=true&w=${process.env.MONGO_DATABASE}`
+const database = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}@cluster1.2flmnom.mongodb.net/?retryWrites=true&w=majority&appName=Cluster1`
 
 // Initialize scheduled tasks
 initializeScheduledTasks();

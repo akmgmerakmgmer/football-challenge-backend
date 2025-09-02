@@ -117,9 +117,9 @@ async function handleJoinRoom(socket, io, { userId, questionMode = "", coinsPaye
         io.to(roomId).emit('joinRoomSuccess', { room: room, coinsPayed: coinsPayed });
 
         if (room.players.length === room.numberOfPlayers) {
-            Room.findByIdAndDelete({ _id: roomId }, { new: true }).then(res => { });
             setTimeout(() => {
                 io.to(roomId).emit('navigateToGameListener', room);
+                Room.findByIdAndDelete({ _id: roomId }, { new: true }).then(res => { });
                 let countdown = gameDuration - 1;
                 const intervalId = setInterval(() => {
                     io.to(roomId).emit('gameCountdown', countdown);
