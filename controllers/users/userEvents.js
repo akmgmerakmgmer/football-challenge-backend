@@ -134,11 +134,11 @@ const add_event_to_user = async (req, res, next) => {
     }
 
     const user = await User.findById(req.params.id);
-    if (user && user.events && user.events.length) {
+    if (user && user.events) {
         user.events = user.events.filter(e => e.id.toString() !== req.body.eventId.toString());
         user.events.push(eventPayload)
     }
-    user.coins -= req.body.price
+    // user.coins -= req.body.price
     Event.findByIdAndUpdate({ _id: req.body.eventId }, event).then(() => {
         getUser(req.params.id, user, res, next);
     });

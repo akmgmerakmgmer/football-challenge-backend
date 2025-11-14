@@ -7,7 +7,7 @@ const { findUser, getUser } = require('../../utilities/user_general_methods.min'
 const buy_avatar = async (req, res, next) => {
     const user = await findUser(req.params.id);
     const avatar = await Avatar.findOne({ image: req.body.avatar.image });
-    if (avatar.quantity == 0) return res.status(422).send({ message: { en: "This avatar is out of stock", ar: "هذا الرمز غير متوفر" } });
+    // if (avatar.quantity == 0) return res.status(422).send({ message: { en: "This avatar is out of stock", ar: "هذا الرمز غير متوفر" } });
     if (user.avatars.some(a => a.image === req.body.avatar.image)) return res.status(422).send({ message: { en: "You already have this avatar", ar: "انت بالفعل لديك هذا الرمز" } });
     if (user.coins < req.body.avatar.price) return res.status(422).send({ message: { en: "You don't have enough coins", ar: "انت لا تملك عملات كافية" } });
     

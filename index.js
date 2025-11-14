@@ -15,10 +15,10 @@ require("dotenv").config();
 const server = http.createServer(app);
 const io = new Server(server);
 
-const UglifyJS = require('uglify-js');
-const fs = require('fs');
-const result = UglifyJS.minify(fs.readFileSync('./controllers/multiplayer/socketMethods.js', 'utf8'));
-fs.writeFileSync('./controllers/multiplayer/socketMethods.min.js', result.code);
+// const UglifyJS = require('uglify-js');
+// const fs = require('fs');
+// const result = UglifyJS.minify(fs.readFileSync('./controllers/users/userPurchases.js', 'utf8'));
+// fs.writeFileSync('./controllers/users/userPurchases.min.js', result.code);
 
 // User.collection.getIndexes().then(res=>{
 //     console.log(res)
